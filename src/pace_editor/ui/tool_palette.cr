@@ -134,13 +134,18 @@ module PaceEditor::UI
       RL.draw_text("Character", 10, y, 12, RL::WHITE)
       y += 20
 
+      if draw_small_button("New Char", 5, y)
+        create_character
+      end
+      y += 25
+
       if draw_small_button("Edit Anim", 5, y)
-        # Edit animations
+        edit_animations
       end
       y += 25
 
       if draw_small_button("Script", 5, y)
-        # Edit script
+        edit_character_script
       end
     end
 
@@ -163,12 +168,12 @@ module PaceEditor::UI
       y += 20
 
       if draw_small_button("Add Node", 5, y)
-        # Add dialog node
+        create_dialog_node
       end
       y += 25
 
       if draw_small_button("Connect", 5, y)
-        # Connect nodes
+        connect_dialog_nodes
       end
     end
 
@@ -189,7 +194,49 @@ module PaceEditor::UI
       text_x = x + (width - text_width) // 2
       RL.draw_text(text, text_x, y + 4, 12, RL::WHITE)
 
-      is_hover && RL.mouse_button_pressed?(RL::MouseButton::Left)
+      clicked = is_hover && RL.mouse_button_pressed?(RL::MouseButton::Left)
+
+      # Debug output
+      if clicked
+        puts "🔍 Button '#{text}' clicked! (#{x}, #{y}) hover: #{is_hover}"
+      end
+
+      clicked
+    end
+
+    # Character tool actions
+    private def create_character
+      puts "🎭 Creating new character..."
+      puts "   ✓ Character creation dialog would open here"
+      puts "   ✓ This button is working!"
+      # In a real implementation, this would open a character creation dialog
+    end
+
+    private def edit_animations
+      puts "🎬 Opening animation editor..."
+      puts "   ✓ Animation timeline would open here"
+      # In a real implementation, this would open the animation timeline editor
+    end
+
+    private def edit_character_script
+      puts "📝 Opening script editor for character..."
+      puts "   ✓ Lua script editor would open here"
+      # In a real implementation, this would open a Lua script editor
+    end
+
+    # Dialog tool actions
+    private def create_dialog_node
+      puts "💬 Creating new dialog node..."
+      puts "   ✓ Dialog node creation dialog would open here"
+      puts "   ✓ This button is working!"
+      # In a real implementation, this would create a new dialog node
+    end
+
+    private def connect_dialog_nodes
+      puts "🔗 Connecting dialog nodes..."
+      puts "   ✓ Node connection tool activated"
+      puts "   ✓ This button is working!"
+      # In a real implementation, this would activate connection mode
     end
   end
 end

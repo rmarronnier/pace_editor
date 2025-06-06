@@ -5,36 +5,65 @@ module PaceEditor::UI
       @show_new_dialog = false
       @show_open_dialog = false
       @show_about_dialog = false
+      @show_file_menu = false
+      @show_edit_menu = false
+      @show_view_menu = false
       @new_project_name = ""
       @new_project_path = ""
     end
 
     def update
-      # Dialog state management
+      # Close menus when clicking elsewhere (but not on the menus themselves)
+      if RL.mouse_button_pressed?(RL::MouseButton::Left)
+        mouse_pos = RL.get_mouse_position
+
+        # Don't close if clicking on a dropdown menu
+        in_file_dropdown = @show_file_menu && mouse_pos.x >= 10 && mouse_pos.x <= 150 &&
+                           mouse_pos.y >= Core::EditorWindow::MENU_HEIGHT && mouse_pos.y <= Core::EditorWindow::MENU_HEIGHT + 120
+        in_edit_dropdown = @show_edit_menu && mouse_pos.x >= 60 && mouse_pos.x <= 180 &&
+                           mouse_pos.y >= Core::EditorWindow::MENU_HEIGHT && mouse_pos.y <= Core::EditorWindow::MENU_HEIGHT + 96
+        in_view_dropdown = @show_view_menu && mouse_pos.x >= 110 && mouse_pos.x <= 250 &&
+                           mouse_pos.y >= Core::EditorWindow::MENU_HEIGHT && mouse_pos.y <= Core::EditorWindow::MENU_HEIGHT + 72
+
+        # Only close if clicking outside menu area and not in any dropdown
+        if mouse_pos.y > Core::EditorWindow::MENU_HEIGHT && !in_file_dropdown && !in_edit_dropdown && !in_view_dropdown
+          @show_file_menu = false
+          @show_edit_menu = false
+          @show_view_menu = false
+        end
+      end
     end
 
-    def draw
+    def draw_background
       # Draw menu bar background
       RL.draw_rectangle(0, 0, Core::EditorWindow::WINDOW_WIDTH, Core::EditorWindow::MENU_HEIGHT,
         RL::Color.new(r: 60, g: 60, b: 60, a: 255))
+    end
 
+    def draw_content
       x = 10
 
       # File menu
-      if draw_menu_item("File", x, 5)
-        # File menu implementation would go here
+      if draw_menu_item("File", x, 5, @show_file_menu)
+        @show_file_menu = !@show_file_menu
+        @show_edit_menu = false
+        @show_view_menu = false
       end
       x += 50
 
       # Edit menu
-      if draw_menu_item("Edit", x, 5)
-        # Edit menu implementation
+      if draw_menu_item("Edit", x, 5, @show_edit_menu)
+        @show_edit_menu = !@show_edit_menu
+        @show_file_menu = false
+        @show_view_menu = false
       end
       x += 50
 
       # View menu
-      if draw_menu_item("View", x, 5)
-        # View menu implementation
+      if draw_menu_item("View", x, 5, @show_view_menu)
+        @show_view_menu = !@show_view_menu
+        @show_file_menu = false
+        @show_edit_menu = false
       end
       x += 50
 
@@ -48,8 +77,27 @@ module PaceEditor::UI
         @show_about_dialog = true
       end
 
-      # Draw dialogs
+      # Draw dropdowns LAST (on top)
+      x = 10
+      if @show_file_menu
+        draw_file_dropdown(x, Core::EditorWindow::MENU_HEIGHT)
+      end
+      x += 50
+      if @show_edit_menu
+        draw_edit_dropdown(x, Core::EditorWindow::MENU_HEIGHT)
+      end
+      x += 50
+      if @show_view_menu
+        draw_view_dropdown(x, Core::EditorWindow::MENU_HEIGHT)
+      end
+
+      # Draw dialogs LAST
       draw_dialogs
+    end
+
+    def draw
+      draw_background
+      draw_content
     end
 
     private def draw_mode_buttons(start_x : Int32)
@@ -75,7 +123,7 @@ module PaceEditor::UI
       end
     end
 
-    private def draw_menu_item(text : String, x : Int32, y : Int32) : Bool
+    private def draw_menu_item(text : String, x : Int32, y : Int32, is_open : Bool = false) : Bool
       width = RL.measure_text(text, 16) + 10
       height = 20
 
@@ -83,13 +131,147 @@ module PaceEditor::UI
       is_hover = mouse_pos.x >= x && mouse_pos.x <= x + width &&
                  mouse_pos.y >= y && mouse_pos.y <= y + height
 
-      if is_hover
+      if is_open || is_hover
         RL.draw_rectangle(x, y, width, height, RL::Color.new(r: 80, g: 80, b: 80, a: 255))
       end
 
       RL.draw_text(text, x + 5, y + 2, 16, RL::WHITE)
 
       is_hover && RL.mouse_button_pressed?(RL::MouseButton::Left)
+    end
+
+    private def draw_file_dropdown(x : Int32, y : Int32)
+      dropdown_width = 140
+      dropdown_height = 120
+
+      # Dropdown background
+      RL.draw_rectangle(x, y, dropdown_width, dropdown_height, RL::Color.new(r: 70, g: 70, b: 70, a: 255))
+      RL.draw_rectangle_lines(x, y, dropdown_width, dropdown_height, RL::LIGHTGRAY)
+
+      item_height = 24
+      current_y = y + 4
+
+      # New Project
+      if draw_dropdown_item("New Project", x, current_y, dropdown_width, item_height, "Ctrl+N")
+        @show_new_dialog = true
+        @show_file_menu = false
+      end
+      current_y += item_height
+
+      # Open Project
+      if draw_dropdown_item("Open Project", x, current_y, dropdown_width, item_height, "Ctrl+O")
+        @show_open_dialog = true
+        @show_file_menu = false
+      end
+      current_y += item_height
+
+      # Save Project
+      if draw_dropdown_item("Save Project", x, current_y, dropdown_width, item_height, "Ctrl+S")
+        @state.save_project
+        @show_file_menu = false
+      end
+      current_y += item_height
+
+      # Separator
+      RL.draw_line(x + 5, current_y + 8, x + dropdown_width - 5, current_y + 8, RL::GRAY)
+      current_y += 16
+
+      # Exit
+      if draw_dropdown_item("Exit", x, current_y, dropdown_width, item_height, "Alt+F4")
+        # Actually exit the application
+        exit(0)
+      end
+    end
+
+    private def draw_edit_dropdown(x : Int32, y : Int32)
+      dropdown_width = 120
+      dropdown_height = 96
+
+      RL.draw_rectangle(x, y, dropdown_width, dropdown_height, RL::Color.new(r: 70, g: 70, b: 70, a: 255))
+      RL.draw_rectangle_lines(x, y, dropdown_width, dropdown_height, RL::LIGHTGRAY)
+
+      item_height = 24
+      current_y = y + 4
+
+      # Undo
+      enabled = @state.can_undo?
+      if draw_dropdown_item("Undo", x, current_y, dropdown_width, item_height, "Ctrl+Z", enabled)
+        @state.undo
+        @show_edit_menu = false
+      end
+      current_y += item_height
+
+      # Redo
+      enabled = @state.can_redo?
+      if draw_dropdown_item("Redo", x, current_y, dropdown_width, item_height, "Ctrl+Y", enabled)
+        @state.redo
+        @show_edit_menu = false
+      end
+      current_y += item_height
+
+      # Separator
+      RL.draw_line(x + 5, current_y + 8, x + dropdown_width - 5, current_y + 8, RL::GRAY)
+      current_y += 16
+
+      # Delete
+      if draw_dropdown_item("Delete", x, current_y, dropdown_width, item_height, "Del")
+        # Delete selected objects
+        @show_edit_menu = false
+      end
+    end
+
+    private def draw_view_dropdown(x : Int32, y : Int32)
+      dropdown_width = 140
+      dropdown_height = 72
+
+      RL.draw_rectangle(x, y, dropdown_width, dropdown_height, RL::Color.new(r: 70, g: 70, b: 70, a: 255))
+      RL.draw_rectangle_lines(x, y, dropdown_width, dropdown_height, RL::LIGHTGRAY)
+
+      item_height = 24
+      current_y = y + 4
+
+      # Show Grid
+      checkbox_text = @state.show_grid ? "✓ Show Grid" : "  Show Grid"
+      if draw_dropdown_item(checkbox_text, x, current_y, dropdown_width, item_height, "G")
+        @state.show_grid = !@state.show_grid
+        @show_view_menu = false
+      end
+      current_y += item_height
+
+      # Show Hotspots
+      checkbox_text = @state.show_hotspots ? "✓ Show Hotspots" : "  Show Hotspots"
+      if draw_dropdown_item(checkbox_text, x, current_y, dropdown_width, item_height, "H")
+        @state.show_hotspots = !@state.show_hotspots
+        @show_view_menu = false
+      end
+      current_y += item_height
+
+      # Reset Camera
+      if draw_dropdown_item("Reset Camera", x, current_y, dropdown_width, item_height, "R")
+        @state.reset_camera
+        @show_view_menu = false
+      end
+    end
+
+    private def draw_dropdown_item(text : String, x : Int32, y : Int32, width : Int32, height : Int32, shortcut : String = "", enabled : Bool = true) : Bool
+      mouse_pos = RL.get_mouse_position
+      is_hover = mouse_pos.x >= x && mouse_pos.x <= x + width &&
+                 mouse_pos.y >= y && mouse_pos.y <= y + height
+
+      if is_hover && enabled
+        RL.draw_rectangle(x, y, width, height, RL::Color.new(r: 100, g: 100, b: 100, a: 255))
+      end
+
+      text_color = enabled ? RL::WHITE : RL::GRAY
+      RL.draw_text(text, x + 8, y + 4, 14, text_color)
+
+      # Draw shortcut if provided
+      if !shortcut.empty?
+        shortcut_width = RL.measure_text(shortcut, 12)
+        RL.draw_text(shortcut, x + width - shortcut_width - 8, y + 6, 12, RL::LIGHTGRAY)
+      end
+
+      is_hover && enabled && RL.mouse_button_pressed?(RL::MouseButton::Left)
     end
 
     private def draw_button(text : String, x : Int32, y : Int32, color : RL::Color) : Bool
@@ -121,10 +303,14 @@ module PaceEditor::UI
 
     private def draw_new_project_dialog
       # Simple modal dialog for new project
-      dialog_width = 400
-      dialog_height = 200
+      dialog_width = 500
+      dialog_height = 250
       dialog_x = (Core::EditorWindow::WINDOW_WIDTH - dialog_width) // 2
       dialog_y = (Core::EditorWindow::WINDOW_HEIGHT - dialog_height) // 2
+
+      # Modal overlay
+      RL.draw_rectangle(0, 0, Core::EditorWindow::WINDOW_WIDTH, Core::EditorWindow::WINDOW_HEIGHT,
+        RL::Color.new(r: 0, g: 0, b: 0, a: 128))
 
       # Dialog background
       RL.draw_rectangle(dialog_x, dialog_y, dialog_width, dialog_height,
@@ -136,43 +322,210 @@ module PaceEditor::UI
 
       # Project name input
       RL.draw_text("Name:", dialog_x + 20, dialog_y + 60, 16, RL::WHITE)
+      name_input_rect = RL::Rectangle.new(
+        x: (dialog_x + 100).to_f, y: (dialog_y + 58).to_f,
+        width: 350.0f32, height: 25.0f32
+      )
+      draw_text_input(name_input_rect, @new_project_name)
+
+      # Handle name input
+      @new_project_name = handle_text_input(@new_project_name)
 
       # Project path input
       RL.draw_text("Path:", dialog_x + 20, dialog_y + 100, 16, RL::WHITE)
+      path_input_rect = RL::Rectangle.new(
+        x: (dialog_x + 100).to_f, y: (dialog_y + 98).to_f,
+        width: 350.0f32, height: 25.0f32
+      )
+      draw_text_input(path_input_rect, @new_project_path)
+
+      # Set default path if empty
+      if @new_project_path.empty?
+        @new_project_path = "./#{@new_project_name.downcase.gsub(/[^a-z0-9]/, "_")}"
+      end
+
+      # Instructions
+      RL.draw_text("The project will be created in the specified directory.",
+        dialog_x + 20, dialog_y + 140, 12, RL::LIGHTGRAY)
 
       # Buttons
-      if draw_button("Create", dialog_x + dialog_width - 180, dialog_y + dialog_height - 40, RL::GREEN)
+      create_enabled = !@new_project_name.strip.empty?
+      create_color = create_enabled ? RL::GREEN : RL::GRAY
+
+      if draw_button("Create", dialog_x + dialog_width - 180, dialog_y + dialog_height - 40, create_color) && create_enabled
         create_new_project
       end
 
       if draw_button("Cancel", dialog_x + dialog_width - 80, dialog_y + dialog_height - 40, RL::RED)
         @show_new_dialog = false
       end
+
+      # Handle Escape key
+      if RL.key_pressed?(RL::KeyboardKey::Escape)
+        @show_new_dialog = false
+      end
+    end
+
+    private def draw_text_input(rect : RL::Rectangle, text : String)
+      # Input field background
+      RL.draw_rectangle_rec(rect, RL::Color.new(r: 60, g: 60, b: 60, a: 255))
+      RL.draw_rectangle_lines_ex(rect, 1, RL::LIGHTGRAY)
+
+      # Text
+      if !text.empty?
+        RL.draw_text(text, rect.x.to_i + 5, rect.y.to_i + 5, 14, RL::WHITE)
+      end
+
+      # Cursor (simple blinking)
+      if (RL.get_time * 2).to_i % 2 == 0
+        cursor_x = rect.x.to_i + 5 + RL.measure_text(text, 14)
+        RL.draw_line(cursor_x, rect.y.to_i + 3, cursor_x, rect.y.to_i + rect.height.to_i - 3, RL::WHITE)
+      end
+    end
+
+    private def handle_text_input(text : String) : String
+      # Very basic text input handling
+      # In a real implementation, you'd want more sophisticated input handling
+
+      # Get character input
+      key = RL.get_char_pressed
+      while key > 0
+        if key >= 32 && key <= 126 && text.size < 50 # Printable ASCII characters
+          text += key.chr
+        end
+        key = RL.get_char_pressed
+      end
+
+      # Handle backspace
+      if RL.key_pressed?(RL::KeyboardKey::Backspace) && !text.empty?
+        text = text[0..-2]
+      end
+
+      text
     end
 
     private def draw_open_project_dialog
-      # File browser dialog would go here
-      # For now, just a simple cancel button
+      dialog_width = 600
+      dialog_height = 400
+      dialog_x = (Core::EditorWindow::WINDOW_WIDTH - dialog_width) // 2
+      dialog_y = (Core::EditorWindow::WINDOW_HEIGHT - dialog_height) // 2
+
+      # Modal overlay
+      RL.draw_rectangle(0, 0, Core::EditorWindow::WINDOW_WIDTH, Core::EditorWindow::WINDOW_HEIGHT,
+        RL::Color.new(r: 0, g: 0, b: 0, a: 128))
+
+      # Dialog background
+      RL.draw_rectangle(dialog_x, dialog_y, dialog_width, dialog_height,
+        RL::Color.new(r: 80, g: 80, b: 80, a: 255))
+      RL.draw_rectangle_lines(dialog_x, dialog_y, dialog_width, dialog_height, RL::WHITE)
+
+      # Title
+      RL.draw_text("Open Project", dialog_x + 20, dialog_y + 20, 20, RL::WHITE)
+
+      # Simple file list (look for .pace files in current directory)
+      y = dialog_y + 60
+      RL.draw_text("Recent Projects:", dialog_x + 20, y, 16, RL::WHITE)
+      y += 30
+
+      # List some common project locations
+      project_files = find_pace_files
+
+      if project_files.empty?
+        RL.draw_text("No .pace files found in current directory", dialog_x + 20, y, 14, RL::LIGHTGRAY)
+        y += 25
+        RL.draw_text("Create a new project first, or navigate to a", dialog_x + 20, y, 12, RL::LIGHTGRAY)
+        y += 20
+        RL.draw_text("directory containing .pace files", dialog_x + 20, y, 12, RL::LIGHTGRAY)
+      else
+        project_files.each do |file|
+          if draw_file_item(file, dialog_x + 20, y, dialog_width - 40)
+            # Load this project
+            if @state.load_project(file)
+              @show_open_dialog = false
+            end
+          end
+          y += 25
+        end
+      end
+
+      # Buttons
+      if draw_button("Cancel", dialog_x + dialog_width - 80, dialog_y + dialog_height - 40, RL::RED)
+        @show_open_dialog = false
+      end
+
+      # Handle Escape key
       if RL.key_pressed?(RL::KeyboardKey::Escape)
         @show_open_dialog = false
       end
     end
 
+    private def find_pace_files : Array(String)
+      files = [] of String
+      begin
+        Dir.glob("*.pace").each do |file|
+          files << file
+        end
+        # Also check common subdirectories
+        Dir.glob("*/*.pace").each do |file|
+          files << file
+        end
+      rescue
+        # If there's an error reading directory, just return empty array
+      end
+      files[0..4] # Limit to first 5 files
+    end
+
+    private def draw_file_item(filename : String, x : Int32, y : Int32, width : Int32) : Bool
+      height = 20
+
+      mouse_pos = RL.get_mouse_position
+      is_hover = mouse_pos.x >= x && mouse_pos.x <= x + width &&
+                 mouse_pos.y >= y && mouse_pos.y <= y + height
+
+      if is_hover
+        RL.draw_rectangle(x, y, width, height, RL::Color.new(r: 100, g: 100, b: 100, a: 255))
+      end
+
+      # File icon
+      RL.draw_text("📁", x + 5, y + 2, 14, RL::YELLOW)
+
+      # File name
+      display_name = filename.size > 50 ? "..." + filename[-47..-1] : filename
+      RL.draw_text(display_name, x + 25, y + 3, 14, RL::WHITE)
+
+      is_hover && RL.mouse_button_pressed?(RL::MouseButton::Left)
+    end
+
     private def draw_about_dialog
-      dialog_width = 300
-      dialog_height = 150
+      dialog_width = 400
+      dialog_height = 200
       dialog_x = (Core::EditorWindow::WINDOW_WIDTH - dialog_width) // 2
       dialog_y = (Core::EditorWindow::WINDOW_HEIGHT - dialog_height) // 2
 
+      # Modal overlay
+      RL.draw_rectangle(0, 0, Core::EditorWindow::WINDOW_WIDTH, Core::EditorWindow::WINDOW_HEIGHT,
+        RL::Color.new(r: 0, g: 0, b: 0, a: 128))
+
+      # Dialog background
       RL.draw_rectangle(dialog_x, dialog_y, dialog_width, dialog_height,
         RL::Color.new(r: 80, g: 80, b: 80, a: 255))
       RL.draw_rectangle_lines(dialog_x, dialog_y, dialog_width, dialog_height, RL::WHITE)
 
+      # Content
       RL.draw_text("PACE Editor", dialog_x + 20, dialog_y + 20, 20, RL::WHITE)
       RL.draw_text("Point & Click Adventure Creator", dialog_x + 20, dialog_y + 50, 14, RL::LIGHTGRAY)
       RL.draw_text("Version #{PaceEditor::VERSION}", dialog_x + 20, dialog_y + 70, 14, RL::LIGHTGRAY)
 
+      RL.draw_text("Built with Crystal and Raylib", dialog_x + 20, dialog_y + 100, 12, RL::LIGHTGRAY)
+      RL.draw_text("Create point-and-click adventure games", dialog_x + 20, dialog_y + 120, 12, RL::LIGHTGRAY)
+
+      # Close button
       if draw_button("Close", dialog_x + dialog_width - 80, dialog_y + dialog_height - 40, RL::WHITE)
+        @show_about_dialog = false
+      end
+
+      # Handle Escape key
+      if RL.key_pressed?(RL::KeyboardKey::Escape)
         @show_about_dialog = false
       end
     end

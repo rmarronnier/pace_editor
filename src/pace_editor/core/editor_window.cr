@@ -98,8 +98,8 @@ module PaceEditor::Core
       RL.begin_drawing
       RL.clear_background(RL::Color.new(r: 50, g: 50, b: 50, a: 255))
 
-      # Draw menu bar
-      @menu_bar.draw
+      # Draw menu bar background first
+      @menu_bar.draw_background
 
       # Draw tool palette
       @tool_palette.draw
@@ -116,6 +116,9 @@ module PaceEditor::Core
 
       # Draw status bar
       draw_status_bar
+
+      # Draw menu bar content and dropdowns LAST (on top of everything)
+      @menu_bar.draw_content
 
       RL.end_drawing
     end
