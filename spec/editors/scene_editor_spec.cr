@@ -27,21 +27,21 @@ describe PaceEditor::Editors::SceneEditor do
 
       # Since current_scene reads from project, we need to test the method directly
       # For now, let's test if hotspots can be found by iterating them directly
-      found_hotspot = scene.hotspots.find { |h| 
+      found_hotspot = scene.hotspots.find { |h|
         h.contains_point?(RL::Vector2.new(x: 120, y: 120))
       }
       found_hotspot.should_not be_nil
       found_hotspot.not_nil!.name.should eq("hotspot1")
 
       # Test second hotspot
-      found_hotspot2 = scene.hotspots.find { |h| 
+      found_hotspot2 = scene.hotspots.find { |h|
         h.contains_point?(RL::Vector2.new(x: 220, y: 220))
       }
       found_hotspot2.should_not be_nil
       found_hotspot2.not_nil!.name.should eq("hotspot2")
 
       # Test point outside hotspots
-      found_none = scene.hotspots.find { |h| 
+      found_none = scene.hotspots.find { |h|
         h.contains_point?(RL::Vector2.new(x: 50, y: 50))
       }
       found_none.should be_nil
