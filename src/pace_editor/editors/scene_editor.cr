@@ -10,6 +10,13 @@ module PaceEditor::Editors
     def initialize(@state : Core::EditorState, @viewport_x : Int32, @viewport_y : Int32, @viewport_width : Int32, @viewport_height : Int32)
     end
 
+    def update_viewport(viewport_x : Int32, viewport_y : Int32, viewport_width : Int32, viewport_height : Int32)
+      @viewport_x = viewport_x
+      @viewport_y = viewport_y
+      @viewport_width = viewport_width
+      @viewport_height = viewport_height
+    end
+
     def update
       handle_mouse_input
       handle_keyboard_input
@@ -390,6 +397,19 @@ module PaceEditor::Editors
 
       # Add undo action
       # @state.add_undo_action(DeleteObjectAction.new(object_name, "object_data"))
+    end
+
+    # Test helper methods - expose private methods for testing
+    def test_point_in_rect?(point : RL::Vector2, rect_pos : RL::Vector2, rect_size : RL::Vector2) : Bool
+      point_in_rect?(point, rect_pos, rect_size)
+    end
+
+    def test_mouse_in_viewport?(mouse_pos : RL::Vector2) : Bool
+      mouse_in_viewport?(mouse_pos)
+    end
+
+    def test_find_object_at_position(world_pos : RL::Vector2) : String?
+      find_object_at_position(world_pos)
     end
   end
 end

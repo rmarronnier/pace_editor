@@ -3,12 +3,20 @@ require "raylib-cr"
 module PaceEditor::Core
   # Main editor window that coordinates all UI elements and editors
   class EditorWindow
-    WINDOW_WIDTH          = 1400
-    WINDOW_HEIGHT         =  900
+    DEFAULT_WINDOW_WIDTH  = 1400
+    DEFAULT_WINDOW_HEIGHT =  900
     MENU_HEIGHT           =   30
     TOOL_PALETTE_WIDTH    =   80
     PROPERTY_PANEL_WIDTH  =  300
     SCENE_HIERARCHY_WIDTH =  250
+
+    # Keep old constants for compatibility with other files
+    WINDOW_WIDTH  = 1400
+    WINDOW_HEIGHT =  900
+
+    @window_width : Int32
+    @window_height : Int32
+    @is_fullscreen : Bool
 
     property state : EditorState
     property menu_bar : UI::MenuBar
@@ -31,12 +39,15 @@ module PaceEditor::Core
 
     def initialize
       @state = EditorState.new
+      @window_width = DEFAULT_WINDOW_WIDTH
+      @window_height = DEFAULT_WINDOW_HEIGHT
+      @is_fullscreen = false
 
-      # Calculate viewport dimensions
+      # Initialize viewport dimensions
       @viewport_x = TOOL_PALETTE_WIDTH
       @viewport_y = MENU_HEIGHT
-      @viewport_width = WINDOW_WIDTH - TOOL_PALETTE_WIDTH - PROPERTY_PANEL_WIDTH
-      @viewport_height = WINDOW_HEIGHT - MENU_HEIGHT
+      @viewport_width = @window_width - TOOL_PALETTE_WIDTH - PROPERTY_PANEL_WIDTH
+      @viewport_height = @window_height - MENU_HEIGHT
 
       # Initialize UI components
       @menu_bar = UI::MenuBar.new(@state)
@@ -54,7 +65,8 @@ module PaceEditor::Core
 
     def run
       # Initialize Raylib
-      RL.init_window(WINDOW_WIDTH, WINDOW_HEIGHT, "PACE - Point & Click Adventure Creator Editor")
+      RL.init_window(@window_width, @window_height, "PACE - Point & Click Adventure Creator Editor")
+      RL.set_window_state(RL::ConfigFlags::WindowResizable)
       RL.set_target_fps(60)
 
       # Main loop
@@ -67,6 +79,13 @@ module PaceEditor::Core
     end
 
     private def update
+      # Check for window resize
+      if RL.window_resized?
+        @window_width = RL.get_screen_width
+        @window_height = RL.get_screen_height
+        calculate_viewport_dimensions
+      end
+
       # Handle global shortcuts
       handle_shortcuts
 
@@ -173,8 +192,8 @@ module PaceEditor::Core
     end
 
     private def draw_status_bar
-      status_y = WINDOW_HEIGHT - 25
-      RL.draw_rectangle(0, status_y, WINDOW_WIDTH, 25, RL::Color.new(r: 30, g: 30, b: 30, a: 255))
+      status_y = @window_height - 25
+      RL.draw_rectangle(0, status_y, @window_width, 25, RL::Color.new(r: 30, g: 30, b: 30, a: 255))
 
       status_text = build_status_text
       RL.draw_text(status_text, 10, status_y + 5, 12, RL::LIGHTGRAY)
@@ -182,7 +201,7 @@ module PaceEditor::Core
       # Draw mode indicator
       mode_text = @state.current_mode.to_s
       mode_width = RL.measure_text(mode_text, 12)
-      RL.draw_text(mode_text, WINDOW_WIDTH - mode_width - 10, status_y + 5, 12, RL::YELLOW)
+      RL.draw_text(mode_text, @window_width - mode_width - 10, status_y + 5, 12, RL::YELLOW)
     end
 
     private def build_status_text : String
@@ -217,6 +236,11 @@ module PaceEditor::Core
         elsif RL.key_pressed?(RL::KeyboardKey::Y)
           @state.redo
         end
+      end
+
+      # Fullscreen toggle with F11
+      if RL.key_pressed?(RL::KeyboardKey::F11)
+        toggle_fullscreen
       end
 
       # Tool shortcuts
@@ -259,6 +283,34 @@ module PaceEditor::Core
           end
         end
       end
+    end
+
+    private def calculate_viewport_dimensions
+      @viewport_x = TOOL_PALETTE_WIDTH
+      @viewport_y = MENU_HEIGHT
+      @viewport_width = @window_width - TOOL_PALETTE_WIDTH - PROPERTY_PANEL_WIDTH
+      @viewport_height = @window_height - MENU_HEIGHT
+
+      # Update scene editor viewport if it exists
+      if @scene_editor
+        @scene_editor.update_viewport(@viewport_x, @viewport_y, @viewport_width, @viewport_height)
+      end
+    end
+
+    private def toggle_fullscreen
+      @is_fullscreen = !@is_fullscreen
+
+      if @is_fullscreen
+        RL.toggle_fullscreen
+        @window_width = RL.get_monitor_width(RL.get_current_monitor)
+        @window_height = RL.get_monitor_height(RL.get_current_monitor)
+      else
+        RL.toggle_fullscreen
+        @window_width = DEFAULT_WINDOW_WIDTH
+        @window_height = DEFAULT_WINDOW_HEIGHT
+      end
+
+      calculate_viewport_dimensions
     end
 
     private def cleanup

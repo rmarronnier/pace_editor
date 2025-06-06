@@ -86,7 +86,7 @@ describe PaceEditor::Editors::SceneEditor do
   end
 
   describe "#point_in_rect?" do
-    pending "detects point inside rectangle" do
+    it "detects point inside rectangle" do
       state = PaceEditor::Core::EditorState.new
       editor = PaceEditor::Editors::SceneEditor.new(state, 0, 0, 800, 600)
 
@@ -94,11 +94,11 @@ describe PaceEditor::Editors::SceneEditor do
       rect_pos = RL::Vector2.new(x: 10, y: 20)
       rect_size = RL::Vector2.new(x: 50, y: 40)
 
-      result = editor.point_in_rect?(point, rect_pos, rect_size)
+      result = editor.test_point_in_rect?(point, rect_pos, rect_size)
       result.should be_true
     end
 
-    pending "detects point outside rectangle" do
+    it "detects point outside rectangle" do
       state = PaceEditor::Core::EditorState.new
       editor = PaceEditor::Editors::SceneEditor.new(state, 0, 0, 800, 600)
 
@@ -106,11 +106,11 @@ describe PaceEditor::Editors::SceneEditor do
       rect_pos = RL::Vector2.new(x: 10, y: 20)
       rect_size = RL::Vector2.new(x: 50, y: 40)
 
-      result = editor.point_in_rect?(point, rect_pos, rect_size)
+      result = editor.test_point_in_rect?(point, rect_pos, rect_size)
       result.should be_false
     end
 
-    pending "handles edge cases correctly" do
+    it "handles edge cases correctly" do
       state = PaceEditor::Core::EditorState.new
       editor = PaceEditor::Editors::SceneEditor.new(state, 0, 0, 800, 600)
 
@@ -119,86 +119,79 @@ describe PaceEditor::Editors::SceneEditor do
 
       # Point on left edge
       point = RL::Vector2.new(x: 10, y: 30)
-      editor.point_in_rect?(point, rect_pos, rect_size).should be_true
+      editor.test_point_in_rect?(point, rect_pos, rect_size).should be_true
 
       # Point on right edge
       point = RL::Vector2.new(x: 60, y: 30)
-      editor.point_in_rect?(point, rect_pos, rect_size).should be_true
+      editor.test_point_in_rect?(point, rect_pos, rect_size).should be_true
 
       # Point on top edge
       point = RL::Vector2.new(x: 30, y: 20)
-      editor.point_in_rect?(point, rect_pos, rect_size).should be_true
+      editor.test_point_in_rect?(point, rect_pos, rect_size).should be_true
 
       # Point on bottom edge
       point = RL::Vector2.new(x: 30, y: 60)
-      editor.point_in_rect?(point, rect_pos, rect_size).should be_true
+      editor.test_point_in_rect?(point, rect_pos, rect_size).should be_true
 
       # Point just outside
       point = RL::Vector2.new(x: 61, y: 30)
-      editor.point_in_rect?(point, rect_pos, rect_size).should be_false
+      editor.test_point_in_rect?(point, rect_pos, rect_size).should be_false
     end
   end
 
   describe "#mouse_in_viewport?" do
-    pending "detects mouse inside viewport" do
+    it "detects mouse inside viewport" do
       state = PaceEditor::Core::EditorState.new
       editor = PaceEditor::Editors::SceneEditor.new(state, 100, 50, 800, 600)
 
       # Mouse inside viewport
       mouse_pos = RL::Vector2.new(x: 200, y: 100)
-      result = editor.mouse_in_viewport?(mouse_pos)
+      result = editor.test_mouse_in_viewport?(mouse_pos)
       result.should be_true
 
       # Mouse at viewport edges
       mouse_pos = RL::Vector2.new(x: 100, y: 50)
-      result = editor.mouse_in_viewport?(mouse_pos)
+      result = editor.test_mouse_in_viewport?(mouse_pos)
       result.should be_true
 
       mouse_pos = RL::Vector2.new(x: 900, y: 650)
-      result = editor.mouse_in_viewport?(mouse_pos)
+      result = editor.test_mouse_in_viewport?(mouse_pos)
       result.should be_true
     end
 
-    pending "detects mouse outside viewport" do
+    it "detects mouse outside viewport" do
       state = PaceEditor::Core::EditorState.new
       editor = PaceEditor::Editors::SceneEditor.new(state, 100, 50, 800, 600)
 
       # Mouse left of viewport
       mouse_pos = RL::Vector2.new(x: 50, y: 100)
-      result = editor.mouse_in_viewport?(mouse_pos)
+      result = editor.test_mouse_in_viewport?(mouse_pos)
       result.should be_false
 
       # Mouse above viewport
       mouse_pos = RL::Vector2.new(x: 200, y: 25)
-      result = editor.mouse_in_viewport?(mouse_pos)
+      result = editor.test_mouse_in_viewport?(mouse_pos)
       result.should be_false
 
       # Mouse right of viewport
       mouse_pos = RL::Vector2.new(x: 950, y: 100)
-      result = editor.mouse_in_viewport?(mouse_pos)
+      result = editor.test_mouse_in_viewport?(mouse_pos)
       result.should be_false
 
       # Mouse below viewport
       mouse_pos = RL::Vector2.new(x: 200, y: 700)
-      result = editor.mouse_in_viewport?(mouse_pos)
+      result = editor.test_mouse_in_viewport?(mouse_pos)
       result.should be_false
     end
   end
 
   describe "tool modes" do
-    pending "handles select tool state correctly" do
+    it "handles select tool state correctly" do
       state = PaceEditor::Core::EditorState.new
       state.current_tool = PaceEditor::Tool::Select
       editor = PaceEditor::Editors::SceneEditor.new(state, 0, 0, 800, 600)
 
-      # Create test scene
-      scene = PointClickEngine::Scene.new("test_scene")
-      hotspot = PointClickEngine::Hotspot.new("test_hotspot", RL::Vector2.new(x: 100, y: 100), RL::Vector2.new(x: 50, y: 50))
-      scene.add_hotspot(hotspot)
-
-      allow(state).to receive(:current_scene).and_return(scene)
-
-      # Simulate tool behavior
+      # Verify tool is set correctly
       state.current_tool.should eq(PaceEditor::Tool::Select)
     end
 
@@ -224,6 +217,27 @@ describe PaceEditor::Editors::SceneEditor do
       editor = PaceEditor::Editors::SceneEditor.new(state, 0, 0, 800, 600)
 
       state.current_tool.should eq(PaceEditor::Tool::Delete)
+    end
+  end
+
+  describe "viewport updates" do
+    it "updates viewport dimensions correctly" do
+      state = PaceEditor::Core::EditorState.new
+      editor = PaceEditor::Editors::SceneEditor.new(state, 100, 50, 800, 600)
+
+      # Update viewport to new dimensions
+      editor.update_viewport(150, 75, 900, 700)
+
+      # Test that viewport is updated by testing mouse position detection
+      # Mouse inside new viewport
+      mouse_pos = RL::Vector2.new(x: 200, y: 100)
+      result = editor.test_mouse_in_viewport?(mouse_pos)
+      result.should be_true
+
+      # Mouse outside new viewport (would have been inside old viewport)
+      mouse_pos = RL::Vector2.new(x: 100, y: 60)
+      result = editor.test_mouse_in_viewport?(mouse_pos)
+      result.should be_false
     end
   end
 
