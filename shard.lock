@@ -1,0 +1,14 @@
+version: 2.0
+shards:
+  luajit:
+    git: https://github.com/mdwagner/luajit.cr.git
+    version: 0.4.0
+
+  point_click_engine:
+    path: ../point_click_engine
+    version: 0.2.0
+
+  raylib-cr:
+    git: https://github.com/sol-vin/raylib-cr.git
+    version: 5.0+git.commit.6e6b995aea08a843edb33d01e2fea31c851ce083
+

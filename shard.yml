@@ -1,0 +1,22 @@
+name: pace_editor
+version: 0.1.0
+
+authors:
+  - Remy Marronnier <remy@marronnier.dev>
+
+targets:
+  pace_editor:
+    main: src/pace_editor.cr
+
+crystal: '>= 1.16.3'
+
+license: MIT
+
+dependencies:
+  point_click_engine:
+    path: ../point_click_engine
+  raylib-cr:
+    github: sol-vin/raylib-cr
+  luajit:
+    github: mdwagner/luajit.cr
+    version: ~> 0.4.0
