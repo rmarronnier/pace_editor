@@ -106,17 +106,17 @@ module PaceEditor::UI
       if expanded
         # Down arrow (expanded)
         RL.draw_triangle(
-          RL::Vector2.new(x.to_f, y.to_f + 2),
-          RL::Vector2.new(x.to_f + triangle_size, y.to_f + 2),
-          RL::Vector2.new(x.to_f + triangle_size/2, y.to_f + triangle_size + 2),
+          RL::Vector2.new(x.to_f32, y.to_f32 + 2),
+          RL::Vector2.new(x.to_f32 + triangle_size, y.to_f32 + 2),
+          RL::Vector2.new(x.to_f32 + triangle_size/2, y.to_f32 + triangle_size + 2),
           RL::WHITE
         )
       else
         # Right arrow (collapsed)
         RL.draw_triangle(
-          RL::Vector2.new(x.to_f + 2, y.to_f),
-          RL::Vector2.new(x.to_f + 2, y.to_f + triangle_size),
-          RL::Vector2.new(x.to_f + triangle_size + 2, y.to_f + triangle_size/2),
+          RL::Vector2.new(x.to_f32 + 2, y.to_f32),
+          RL::Vector2.new(x.to_f32 + 2, y.to_f32 + triangle_size),
+          RL::Vector2.new(x.to_f32 + triangle_size + 2, y.to_f32 + triangle_size/2),
           RL::WHITE
         )
       end

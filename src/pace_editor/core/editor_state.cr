@@ -155,7 +155,7 @@ module PaceEditor::Core
     end
 
     def set_zoom(new_zoom : Float32)
-      @zoom = Math.max(0.1f32, Math.min(5.0f32, new_zoom))
+      @zoom = [0.1f32, [5.0f32, new_zoom].min].max
     end
 
     def zoom_in

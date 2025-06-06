@@ -1,3 +1,5 @@
+require "raylib-cr/rlgl"
+
 module PaceEditor::Editors
   # Scene editor for visual scene editing with drag-and-drop
   class SceneEditor
@@ -20,9 +22,9 @@ module PaceEditor::Editors
       draw_grid if @state.show_grid
 
       # Apply camera transform
-      RL.push_matrix
-      RL.translatef(-@state.camera_x * @state.zoom, -@state.camera_y * @state.zoom, 0)
-      RL.scalef(@state.zoom, @state.zoom, 1)
+      RLGL.push_matrix
+      RLGL.translate_f(-@state.camera_x * @state.zoom, -@state.camera_y * @state.zoom, 0)
+      RLGL.scale_f(@state.zoom, @state.zoom, 1)
 
       # Draw scene background
       if scene.background_path && scene.background
@@ -39,7 +41,7 @@ module PaceEditor::Editors
       # Draw selection indicators
       draw_selection_indicators(scene)
 
-      RL.pop_matrix
+      RLGL.pop_matrix
 
       # Draw UI overlays (not affected by camera)
       draw_tool_overlay
@@ -191,8 +193,8 @@ module PaceEditor::Editors
     private def draw_background_placeholder
       # Draw a checkerboard pattern to indicate no background
       checker_size = 32
-      cols = (800 / checker_size) + 1
-      rows = (600 / checker_size) + 1
+      cols = ((800 / checker_size) + 1).to_i
+      rows = ((600 / checker_size) + 1).to_i
 
       rows.times do |row|
         cols.times do |col|
@@ -285,10 +287,10 @@ module PaceEditor::Editors
         y: mouse_pos.y - @viewport_y
       ))
 
-      min_x = Math.min(drag_start.x, world_pos.x)
-      min_y = Math.min(drag_start.y, world_pos.y)
-      width = Math.abs(world_pos.x - drag_start.x)
-      height = Math.abs(world_pos.y - drag_start.y)
+      min_x = [drag_start.x, world_pos.x].min
+      min_y = [drag_start.y, world_pos.y].min
+      width = (world_pos.x - drag_start.x).abs
+      height = (world_pos.y - drag_start.y).abs
 
       RL.draw_rectangle(min_x.to_i, min_y.to_i, width.to_i, height.to_i,
         RL::Color.new(r: 100, g: 150, b: 200, a: 50))

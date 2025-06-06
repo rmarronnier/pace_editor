@@ -72,8 +72,8 @@ module PaceEditor::Editors
       preview_y = y + height // 2
 
       # Scale hotspot to fit preview
-      scale = Math.min(200.0f32 / hotspot.size.x, 150.0f32 / hotspot.size.y)
-      scale = Math.min(scale, 1.0f32)
+      scale = [200.0f32 / hotspot.size.x, 150.0f32 / hotspot.size.y].min
+      scale = [scale, 1.0f32].min
 
       preview_width = (hotspot.size.x * scale).to_i
       preview_height = (hotspot.size.y * scale).to_i
@@ -235,10 +235,10 @@ module PaceEditor::Editors
         start_pos = @hotspot_start.not_nil!
         end_pos = world_pos
 
-        min_x = Math.min(start_pos.x, end_pos.x)
-        min_y = Math.min(start_pos.y, end_pos.y)
-        width = Math.abs(end_pos.x - start_pos.x)
-        height = Math.abs(end_pos.y - start_pos.y)
+        min_x = [start_pos.x, end_pos.x].min
+        min_y = [start_pos.y, end_pos.y].min
+        width = (end_pos.x - start_pos.x).abs
+        height = (end_pos.y - start_pos.y).abs
 
         # This would be drawn in the scene editor, not here
       elsif RL.mouse_button_released?(RL::MouseButton::Left) && @hotspot_start
@@ -304,10 +304,10 @@ module PaceEditor::Editors
     end
 
     private def create_hotspot_from_drag(start_pos : RL::Vector2, end_pos : RL::Vector2)
-      min_x = Math.min(start_pos.x, end_pos.x)
-      min_y = Math.min(start_pos.y, end_pos.y)
-      width = Math.max(Math.abs(end_pos.x - start_pos.x), 10) # Minimum size
-      height = Math.max(Math.abs(end_pos.y - start_pos.y), 10)
+      min_x = [start_pos.x, end_pos.x].min
+      min_y = [start_pos.y, end_pos.y].min
+      width = [(end_pos.x - start_pos.x).abs, 10].max # Minimum size
+      height = [(end_pos.y - start_pos.y).abs, 10].max
 
       # Create new hotspot
       if scene = @state.current_scene

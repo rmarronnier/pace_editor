@@ -84,8 +84,8 @@ module PaceEditor::Core
       # Create a default scene
       default_scene_path = File.join(@scenes_path, "main_scene.yml")
       unless File.exists?(default_scene_path)
-        default_scene = create_default_scene
-        File.write(default_scene_path, default_scene.to_yaml)
+        default_scene_yaml = create_default_scene
+        File.write(default_scene_path, default_scene_yaml)
         @scenes << "main_scene.yml"
         @current_scene = "main_scene.yml"
       end
@@ -95,9 +95,17 @@ module PaceEditor::Core
     end
 
     private def create_default_scene
-      scene = PointClickEngine::Scenes::Scene.new("main_scene")
-      # Leave arrays as default empty arrays
-      scene
+      # For now, just create a simple YAML file with basic scene data
+      # rather than trying to serialize complex game objects
+      scene_yaml = <<-YAML
+        name: main_scene
+        background_path: null
+        hotspots: []
+        objects: []
+        characters: []
+        scale: 1.0
+        YAML
+      scene_yaml
     end
 
     def save
@@ -190,7 +198,7 @@ module PaceEditor::Core
       )
 
       # Load scenes
-      #{@scenes.map { |scene| "engine.add_scene(PointClickEngine::Scene.from_yaml(File.read(\"scenes/#{scene}\")))" }.join("\n")}
+      #{@scenes.map { |scene| "# TODO: Load scene from scenes/#{scene}" }.join("\n")}
 
       # Set initial scene
       #{"engine.change_scene(\"#{@current_scene.not_nil!.split('.').first}\") if !#{@current_scene.nil?}" unless @current_scene.nil?}

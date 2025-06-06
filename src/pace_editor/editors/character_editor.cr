@@ -214,7 +214,7 @@ module PaceEditor::Editors
     private def create_new_character
       # Create a new character and add it to the scene
       if scene = @state.current_scene
-        new_character = PointClickEngine::Characters::Character.new(
+        new_character = PointClickEngine::Characters::NPC.new(
           "new_character",
           RL::Vector2.new(x: 100, y: 100),
           RL::Vector2.new(x: 64, y: 64)

@@ -5,7 +5,7 @@ describe PaceEditor::Core::Project do
   describe "#initialize" do
     it "creates a new project with correct structure" do
       test_dir = File.tempname("test_project")
-      project = PaceEditor::Core::Project.new("Test Game", test_dir)
+      project = PaceEditor::Core::Project.create_new("Test Game", test_dir)
 
       begin
         project.name.should eq("Test Game")

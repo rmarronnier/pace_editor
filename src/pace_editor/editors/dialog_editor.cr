@@ -1,3 +1,5 @@
+require "raylib-cr/rlgl"
+
 module PaceEditor::Editors
   # Dialog editor for creating and editing dialog trees
   class DialogEditor
@@ -55,8 +57,8 @@ module PaceEditor::Editors
       draw_dialog_grid(x, y, width, height)
 
       # Apply camera transform for node drawing
-      RL.push_matrix
-      RL.translatef(@camera_offset.x, @camera_offset.y, 0)
+      RLGL.push_matrix
+      RLGL.translate_f(@camera_offset.x, @camera_offset.y, 0)
 
       # Draw connections between nodes
       draw_node_connections(dialog, x, y)
@@ -64,7 +66,7 @@ module PaceEditor::Editors
       # Draw dialog nodes
       draw_dialog_nodes(dialog, x, y)
 
-      RL.pop_matrix
+      RLGL.pop_matrix
 
       # Draw UI overlay (not affected by camera)
       draw_dialog_toolbar(x, y, width)
