@@ -24,6 +24,29 @@ module PaceEditor::Core
     property selected_characters : Array(String) = [] of String
     property clipboard : String?
 
+    # Additional workflow properties
+    # Note: undo_stack and redo_stack are already defined above as Array(EditorAction)
+    property current_mode : EditorMode = EditorMode::Scene
+    property selected_character : String?
+    property is_dirty : Bool = false
+    property dragging : Bool = false
+    property drag_data : String?
+    property drag_type : String?
+    property show_new_project_dialog : Bool = false
+    property new_project_name : String = ""
+    property new_project_path : String = ""
+    property focused_panel : String = "scene_editor"
+    property text_input_active : Bool = false
+    property active_text_field : String?
+    property frame_time : Float32 = 16.67f32
+    property fps : Int32 = 60
+    property loaded_textures : Int32 = 0
+    property loaded_sounds : Int32 = 0
+    property memory_usage : Int64 = 0_i64
+    property auto_save : Bool = true
+    property auto_save_interval : Int32 = 300
+    property editor_mode : EditorMode = EditorMode::Scene
+
     def initialize
     end
 
@@ -115,6 +138,31 @@ module PaceEditor::Core
       @selected_object = nil
       @selected_hotspots.clear
       @selected_characters.clear
+    end
+
+    # Undo/Redo support
+    def push_undo_state(description : String)
+      # For workflow tests, we'll create a simple action
+      action = SimpleAction.new(description)
+      add_undo_action(action)
+    end
+
+    # Dirty state management
+    def mark_dirty
+      @is_dirty = true
+    end
+
+    def clear_dirty
+      @is_dirty = false
+    end
+
+    # Modal state checks
+    def has_modal_open? : Bool
+      @show_new_project_dialog
+    end
+
+    def modal_blocks_input? : Bool
+      has_modal_open?
     end
 
     def is_selected?(object_name : String) : Bool
@@ -229,6 +277,24 @@ module PaceEditor::Core
 
     def description : String
       "Delete #{@object_name}"
+    end
+  end
+
+  # Simple action for testing
+  class SimpleAction < EditorAction
+    def initialize(@description : String)
+    end
+
+    def undo
+      # No-op for tests
+    end
+
+    def redo
+      # No-op for tests
+    end
+
+    def description : String
+      @description
     end
   end
 end

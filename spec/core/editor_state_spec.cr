@@ -90,7 +90,7 @@ describe PaceEditor::Core::EditorState do
         Dir.exists?(File.join(project.assets_path, "ui")).should be_true
 
         # Verify default files are created
-        project.scenes.should contain("main_scene.yml")
+        project.scenes.should contain("main_scene")
         scene_file = File.join(project.scenes_path, "main_scene.yml")
         File.exists?(scene_file).should be_true
 

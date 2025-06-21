@@ -15,6 +15,7 @@ module PaceEditor
     Hotspot
     Dialog
     Assets
+    Script
     Project
   end
 

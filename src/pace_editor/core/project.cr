@@ -81,13 +81,15 @@ module PaceEditor::Core
     end
 
     private def create_default_files
-      # Create a default scene
-      default_scene_path = File.join(@scenes_path, "main_scene.yml")
-      unless File.exists?(default_scene_path)
-        default_scene_yaml = create_default_scene
-        File.write(default_scene_path, default_scene_yaml)
-        @scenes << "main_scene.yml"
-        @current_scene = "main_scene.yml"
+      # Only create a default scene if no scenes exist
+      if @scenes.empty?
+        default_scene_path = File.join(@scenes_path, "main_scene.yml")
+        unless File.exists?(default_scene_path)
+          default_scene_yaml = create_default_scene
+          File.write(default_scene_path, default_scene_yaml)
+          @scenes << "main_scene"
+          @current_scene = "main_scene"
+        end
       end
 
       # Create project file
@@ -230,6 +232,30 @@ module PaceEditor::Core
       if File.dirname(output_path) != source_dir
         FileUtils.cp_r(source_dir, File.dirname(output_path))
       end
+    end
+
+    def save_project
+      setup_project_structure
+      project_file = File.join(@project_path, "project.pace")
+      File.write(project_file, self.to_yaml)
+    end
+
+    def self.load_project(project_file : String) : Project
+      project = Project.from_yaml(File.read(project_file))
+      project.project_path = File.dirname(project_file)
+
+      # Set up paths without creating default files
+      project.assets_path = File.join(project.project_path, "assets")
+      project.scenes_path = File.join(project.project_path, "scenes")
+      project.scripts_path = File.join(project.project_path, "scripts")
+      project.dialogs_path = File.join(project.project_path, "dialogs")
+      project.exports_path = File.join(project.project_path, "exports")
+
+      project
+    end
+
+    def get_scene_file_path(scene_name : String) : String
+      File.join(@scenes_path, "#{scene_name}.yaml")
     end
   end
 end

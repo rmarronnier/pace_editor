@@ -30,6 +30,8 @@ module PaceEditor::Core
     property character_editor : Editors::CharacterEditor
     property hotspot_editor : Editors::HotspotEditor
     property dialog_editor : Editors::DialogEditor
+    property width : Int32
+    property height : Int32
 
     # Editor viewport
     @viewport_x : Int32
@@ -61,6 +63,10 @@ module PaceEditor::Core
       @character_editor = Editors::CharacterEditor.new(@state)
       @hotspot_editor = Editors::HotspotEditor.new(@state)
       @dialog_editor = Editors::DialogEditor.new(@state)
+
+      # Initialize dimensions
+      @width = @window_width
+      @height = @window_height
     end
 
     def run
@@ -311,6 +317,19 @@ module PaceEditor::Core
       end
 
       calculate_viewport_dimensions
+      @width = @window_width
+      @height = @window_height
+    end
+
+    def handle_resize(new_width : Int32, new_height : Int32)
+      @window_width = new_width
+      @window_height = new_height
+      @width = new_width
+      @height = new_height
+      calculate_viewport_dimensions
+
+      # Update scene editor with new viewport (only editor that supports viewport updates)
+      @scene_editor.update_viewport(@viewport_x, @viewport_y, @viewport_width, @viewport_height)
     end
 
     private def cleanup

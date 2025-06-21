@@ -30,8 +30,8 @@ describe PaceEditor::Core::Project do
         Dir.exists?(File.join(project.assets_path, "ui")).should be_true
 
         # Check that default scene was created
-        project.scenes.should contain("main_scene.yml")
-        project.current_scene.should eq("main_scene.yml")
+        project.scenes.should contain("main_scene")
+        project.current_scene.should eq("main_scene")
 
         # Check that project file was created
         project_file = File.join(test_dir, "#{project.name}.pace")
@@ -96,23 +96,23 @@ describe PaceEditor::Core::Project do
         project = PaceEditor::Core::Project.new("Scene Test", test_dir)
 
         # Add scenes
-        project.add_scene("room1.yml")
-        project.add_scene("room2.yml")
+        project.add_scene("room1")
+        project.add_scene("room2")
 
-        project.scenes.should contain("main_scene.yml") # Default scene
-        project.scenes.should contain("room1.yml")
-        project.scenes.should contain("room2.yml")
+        project.scenes.should contain("main_scene") # Default scene
+        project.scenes.should contain("room1")
+        project.scenes.should contain("room2")
         project.scenes.size.should eq(3)
 
         # Remove scene
-        project.remove_scene("room1.yml")
-        project.scenes.should_not contain("room1.yml")
+        project.remove_scene("room1")
+        project.scenes.should_not contain("room1")
         project.scenes.size.should eq(2)
 
         # Remove current scene should switch to another
         project.current_scene = "room2.yml"
         project.remove_scene("room2.yml")
-        project.current_scene.should eq("main_scene.yml")
+        project.current_scene.should eq("main_scene")
       ensure
         FileUtils.rm_rf(test_dir) if Dir.exists?(test_dir)
       end
@@ -159,8 +159,8 @@ describe PaceEditor::Core::Project do
       begin
         project = PaceEditor::Core::Project.new("Path Test", test_dir)
 
-        scene_path = project.get_scene_file_path("test_scene.yml")
-        scene_path.should eq(File.join(project.scenes_path, "test_scene.yml"))
+        scene_path = project.get_scene_file_path("test_scene")
+        scene_path.should eq(File.join(project.scenes_path, "test_scene.yaml"))
 
         asset_path = project.get_asset_file_path("test_bg.png", "backgrounds")
         asset_path.should eq(File.join(project.assets_path, "backgrounds", "test_bg.png"))
@@ -185,7 +185,7 @@ describe PaceEditor::Core::Project do
 
         # Should have default scene
         project.scenes.size.should eq(1)
-        project.current_scene.should eq("main_scene.yml")
+        project.current_scene.should eq("main_scene")
       ensure
         FileUtils.rm_rf(test_dir) if Dir.exists?(test_dir)
       end
