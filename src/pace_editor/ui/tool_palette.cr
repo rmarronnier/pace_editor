@@ -62,34 +62,9 @@ module PaceEditor::UI
       button_size = 60
       is_active = @state.current_tool == tool
 
-      mouse_pos = RL.get_mouse_position
-      is_hover = mouse_pos.x >= x && mouse_pos.x <= x + button_size &&
-                 mouse_pos.y >= y && mouse_pos.y <= y + button_size
-
-      # Button background
-      bg_color = if is_active
-                   RL::Color.new(r: 100, g: 150, b: 200, a: 255)
-                 elsif is_hover
-                   RL::Color.new(r: 80, g: 80, b: 80, a: 255)
-                 else
-                   RL::Color.new(r: 60, g: 60, b: 60, a: 255)
-                 end
-
-      RL.draw_rectangle(x, y, button_size, button_size, bg_color)
-      RL.draw_rectangle_lines(x, y, button_size, button_size, RL::LIGHTGRAY)
-
-      # Tool icon (simplified text for now)
+      # Use enhanced toggle button for tool selection
       icon_text = get_tool_icon(tool)
-      icon_width = RL.measure_text(icon_text, 20)
-      icon_x = x + (button_size - icon_width) // 2
-      RL.draw_text(icon_text, icon_x, y + 15, 20, RL::WHITE)
-
-      # Shortcut key
-      shortcut_width = RL.measure_text(shortcut, 10)
-      shortcut_x = x + (button_size - shortcut_width) // 2
-      RL.draw_text(shortcut, shortcut_x, y + button_size - 15, 10, RL::LIGHTGRAY)
-
-      is_hover && RL.mouse_button_pressed?(RL::MouseButton::Left)
+      UIHelpers.toggle_button(x, y, button_size, button_size, icon_text, is_active, nil)
     end
 
     private def get_tool_icon(tool : Tool) : String
@@ -115,17 +90,17 @@ module PaceEditor::UI
       RL.draw_text("Scene Tools", 10, y, 12, RL::WHITE)
       y += 20
 
-      if draw_small_button("Add BG", 5, y)
+      if UIHelpers.button(5, y, 70, 22, "Add BG")
         # Add background
       end
       y += 25
 
-      if draw_small_button("Add Char", 5, y)
+      if UIHelpers.button(5, y, 70, 22, "Add Char")
         # Add character
       end
       y += 25
 
-      if draw_small_button("Add Spot", 5, y)
+      if UIHelpers.button(5, y, 70, 22, "Add Spot")
         # Add hotspot
       end
     end
@@ -134,17 +109,17 @@ module PaceEditor::UI
       RL.draw_text("Character", 10, y, 12, RL::WHITE)
       y += 20
 
-      if draw_small_button("New Char", 5, y)
+      if UIHelpers.button(5, y, 70, 22, "New Char")
         create_character
       end
       y += 25
 
-      if draw_small_button("Edit Anim", 5, y)
+      if UIHelpers.button(5, y, 70, 22, "Edit Anim")
         edit_animations
       end
       y += 25
 
-      if draw_small_button("Script", 5, y)
+      if UIHelpers.button(5, y, 70, 22, "Script")
         edit_character_script
       end
     end
@@ -153,12 +128,12 @@ module PaceEditor::UI
       RL.draw_text("Hotspots", 10, y, 12, RL::WHITE)
       y += 20
 
-      if draw_small_button("Rectangle", 5, y)
+      if UIHelpers.button(5, y, 70, 22, "Rectangle")
         # Create rectangular hotspot
       end
       y += 25
 
-      if draw_small_button("Circle", 5, y)
+      if UIHelpers.button(5, y, 70, 22, "Circle")
         # Create circular hotspot
       end
     end
@@ -167,41 +142,14 @@ module PaceEditor::UI
       RL.draw_text("Dialog", 10, y, 12, RL::WHITE)
       y += 20
 
-      if draw_small_button("Add Node", 5, y)
+      if UIHelpers.button(5, y, 70, 22, "Add Node")
         create_dialog_node
       end
       y += 25
 
-      if draw_small_button("Connect", 5, y)
+      if UIHelpers.button(5, y, 70, 22, "Connect")
         connect_dialog_nodes
       end
-    end
-
-    private def draw_small_button(text : String, x : Int32, y : Int32) : Bool
-      width = Core::EditorWindow::TOOL_PALETTE_WIDTH - 10
-      height = 20
-
-      mouse_pos = RL.get_mouse_position
-      is_hover = mouse_pos.x >= x && mouse_pos.x <= x + width &&
-                 mouse_pos.y >= y && mouse_pos.y <= y + height
-
-      bg_color = is_hover ? RL::Color.new(r: 80, g: 80, b: 80, a: 255) : RL::Color.new(r: 60, g: 60, b: 60, a: 255)
-
-      RL.draw_rectangle(x, y, width, height, bg_color)
-      RL.draw_rectangle_lines(x, y, width, height, RL::GRAY)
-
-      text_width = RL.measure_text(text, 12)
-      text_x = x + (width - text_width) // 2
-      RL.draw_text(text, text_x, y + 4, 12, RL::WHITE)
-
-      clicked = is_hover && RL.mouse_button_pressed?(RL::MouseButton::Left)
-
-      # Debug output
-      if clicked
-        puts "🔍 Button '#{text}' clicked! (#{x}, #{y}) hover: #{is_hover}"
-      end
-
-      clicked
     end
 
     # Character tool actions

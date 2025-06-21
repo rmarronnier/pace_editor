@@ -64,6 +64,44 @@ describe PaceEditor::Core::EditorState do
       end
     end
 
+    it "creates project with proper folder structure" do
+      state = PaceEditor::Core::EditorState.new
+      test_dir = File.tempname("test_project")
+
+      begin
+        result = state.create_new_project("My Adventure Game", test_dir)
+
+        result.should be_true
+        project = state.current_project.not_nil!
+
+        # Verify the complete folder structure exists
+        Dir.exists?(project.project_path).should be_true
+        Dir.exists?(project.assets_path).should be_true
+        Dir.exists?(project.scenes_path).should be_true
+        Dir.exists?(project.scripts_path).should be_true
+        Dir.exists?(project.dialogs_path).should be_true
+        Dir.exists?(project.exports_path).should be_true
+
+        # Verify asset subfolders
+        Dir.exists?(File.join(project.assets_path, "backgrounds")).should be_true
+        Dir.exists?(File.join(project.assets_path, "characters")).should be_true
+        Dir.exists?(File.join(project.assets_path, "sounds")).should be_true
+        Dir.exists?(File.join(project.assets_path, "music")).should be_true
+        Dir.exists?(File.join(project.assets_path, "ui")).should be_true
+
+        # Verify default files are created
+        project.scenes.should contain("main_scene.yml")
+        scene_file = File.join(project.scenes_path, "main_scene.yml")
+        File.exists?(scene_file).should be_true
+
+        # Verify project file exists
+        project_file = File.join(project.project_path, "#{project.name}.pace")
+        File.exists?(project_file).should be_true
+      ensure
+        FileUtils.rm_rf(test_dir) if Dir.exists?(test_dir)
+      end
+    end
+
     it "handles creation failure gracefully" do
       state = PaceEditor::Core::EditorState.new
 

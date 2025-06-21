@@ -331,22 +331,18 @@ module PaceEditor::UI
       # Handle name input
       @new_project_name = handle_text_input(@new_project_name)
 
-      # Project path input
-      RL.draw_text("Path:", dialog_x + 20, dialog_y + 100, 16, RL::WHITE)
-      path_input_rect = RL::Rectangle.new(
-        x: (dialog_x + 100).to_f, y: (dialog_y + 98).to_f,
-        width: 350.0f32, height: 25.0f32
-      )
-      draw_text_input(path_input_rect, @new_project_path)
+      # Show where project will be created
+      sanitized_name = @new_project_name.downcase.gsub(/[^a-z0-9_\s]/, "").gsub(/\s+/, "_")
+      preview_path = sanitized_name.empty? ? "project_name" : sanitized_name
 
-      # Set default path if empty
-      if @new_project_path.empty?
-        @new_project_path = "./#{@new_project_name.downcase.gsub(/[^a-z0-9]/, "_")}"
-      end
+      RL.draw_text("Location:", dialog_x + 20, dialog_y + 100, 16, RL::WHITE)
+      RL.draw_text("./projects/#{preview_path}/", dialog_x + 100, dialog_y + 102, 14, RL::LIGHTGRAY)
 
       # Instructions
-      RL.draw_text("The project will be created in the specified directory.",
-        dialog_x + 20, dialog_y + 140, 12, RL::LIGHTGRAY)
+      RL.draw_text("Project will be created in the projects folder with its own directory.",
+        dialog_x + 20, dialog_y + 130, 12, RL::LIGHTGRAY)
+      RL.draw_text("This includes subfolders for assets, scenes, scripts, dialogs, and exports.",
+        dialog_x + 20, dialog_y + 150, 12, RL::LIGHTGRAY)
 
       # Buttons
       create_enabled = !@new_project_name.strip.empty?
@@ -422,20 +418,18 @@ module PaceEditor::UI
       # Title
       RL.draw_text("Open Project", dialog_x + 20, dialog_y + 20, 20, RL::WHITE)
 
-      # Simple file list (look for .pace files in current directory)
+      # Simple file list (look for .pace files in projects directory)
       y = dialog_y + 60
-      RL.draw_text("Recent Projects:", dialog_x + 20, y, 16, RL::WHITE)
+      RL.draw_text("Available Projects:", dialog_x + 20, y, 16, RL::WHITE)
       y += 30
 
-      # List some common project locations
-      project_files = find_pace_files
+      # List project files from projects directory
+      project_files = find_pace_files_in_projects
 
       if project_files.empty?
-        RL.draw_text("No .pace files found in current directory", dialog_x + 20, y, 14, RL::LIGHTGRAY)
+        RL.draw_text("No projects found in the projects folder.", dialog_x + 20, y, 14, RL::LIGHTGRAY)
         y += 25
-        RL.draw_text("Create a new project first, or navigate to a", dialog_x + 20, y, 12, RL::LIGHTGRAY)
-        y += 20
-        RL.draw_text("directory containing .pace files", dialog_x + 20, y, 12, RL::LIGHTGRAY)
+        RL.draw_text("Create a new project to get started!", dialog_x + 20, y, 12, RL::LIGHTGRAY)
       else
         project_files.each do |file|
           if draw_file_item(file, dialog_x + 20, y, dialog_width - 40)
@@ -473,6 +467,23 @@ module PaceEditor::UI
         # If there's an error reading directory, just return empty array
       end
       files[0..4] # Limit to first 5 files
+    end
+
+    private def find_pace_files_in_projects : Array(String)
+      files = [] of String
+      projects_dir = "./projects"
+
+      begin
+        return files unless Dir.exists?(projects_dir)
+
+        # Look for .pace files in project subdirectories
+        Dir.glob(File.join(projects_dir, "**", "*.pace")).each do |file|
+          files << file
+        end
+      rescue
+        # If there's an error reading directory, just return empty array
+      end
+      files[0..10] # Limit to first 10 files
     end
 
     private def draw_file_item(filename : String, x : Int32, y : Int32, width : Int32) : Bool
@@ -533,7 +544,7 @@ module PaceEditor::UI
     def show_new_project_dialog
       @show_new_dialog = true
       @new_project_name = ""
-      @new_project_path = ""
+      @new_project_path = "" # Not used anymore but kept for compatibility
     end
 
     def show_open_project_dialog
@@ -541,11 +552,28 @@ module PaceEditor::UI
     end
 
     private def create_new_project
-      # For now, create with default values
+      # Create project in proper projects folder structure
       name = @new_project_name.empty? ? "New Game" : @new_project_name
-      path = @new_project_path.empty? ? "./new_game" : @new_project_path
 
-      if @state.create_new_project(name, path)
+      # Create projects directory if it doesn't exist
+      projects_dir = "./projects"
+      Dir.mkdir_p(projects_dir) unless Dir.exists?(projects_dir)
+
+      # Create project folder inside projects directory
+      sanitized_name = name.downcase.gsub(/[^a-z0-9_\s]/, "").gsub(/\s+/, "_")
+      project_path = File.join(projects_dir, sanitized_name)
+
+      # Handle case where project already exists
+      if Dir.exists?(project_path)
+        counter = 1
+        original_path = project_path
+        while Dir.exists?(project_path)
+          project_path = "#{original_path}_#{counter}"
+          counter += 1
+        end
+      end
+
+      if @state.create_new_project(name, project_path)
         @show_new_dialog = false
       end
     end

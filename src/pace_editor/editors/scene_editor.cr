@@ -1,36 +1,78 @@
 require "raylib-cr/rlgl"
 
 module PaceEditor::Editors
-  # Scene editor for visual scene editing with drag-and-drop
+  # Scene editor combining best features from both implementations
   class SceneEditor
-    property drag_start : RL::Vector2? = nil
-    property dragging_object : String? = nil
-    property is_camera_dragging : Bool = false
+    property viewport_x : Int32
+    property viewport_y : Int32
+    property viewport_width : Int32
+    property viewport_height : Int32
 
-    def initialize(@state : Core::EditorState, @viewport_x : Int32, @viewport_y : Int32, @viewport_width : Int32, @viewport_height : Int32)
+    # Dragging state
+    @dragging : Bool = false
+    @drag_start : RL::Vector2
+    @selection_rect : RL::Rectangle?
+    @selecting : Bool = false
+    @camera_dragging : Bool = false
+    @last_mouse_pos : RL::Vector2
+
+    def initialize(@state : Core::EditorState, @viewport_x : Int32, @viewport_y : Int32,
+                   @viewport_width : Int32, @viewport_height : Int32)
+      @drag_start = RL::Vector2.new(0, 0)
+      @last_mouse_pos = RL::Vector2.new(0, 0)
     end
 
-    def update_viewport(viewport_x : Int32, viewport_y : Int32, viewport_width : Int32, viewport_height : Int32)
-      @viewport_x = viewport_x
-      @viewport_y = viewport_y
-      @viewport_width = viewport_width
-      @viewport_height = viewport_height
+    def update_viewport(x : Int32, y : Int32, width : Int32, height : Int32)
+      @viewport_x = x
+      @viewport_y = y
+      @viewport_width = width
+      @viewport_height = height
     end
 
     def update
-      handle_mouse_input
-      handle_keyboard_input
+      mouse_pos = RL.get_mouse_position
+      viewport_bounds = RL::Rectangle.new(
+        x: @viewport_x.to_f32,
+        y: @viewport_y.to_f32,
+        width: @viewport_width.to_f32,
+        height: @viewport_height.to_f32
+      )
+
+      # Only process input if mouse is in viewport
+      if mouse_in_viewport?(mouse_pos)
+        handle_camera_controls
+        handle_tool_input
+      end
+
+      handle_keyboard_shortcuts
+      @last_mouse_pos = mouse_pos
     end
 
     def draw
       return unless scene = @state.current_scene
 
-      # Draw grid
-      draw_grid if @state.show_grid
+      # Set up viewport clipping
+      RL.begin_scissor_mode(@viewport_x, @viewport_y, @viewport_width, @viewport_height)
+
+      # Clear viewport
+      RL.draw_rectangle(@viewport_x, @viewport_y, @viewport_width, @viewport_height,
+        RL::Color.new(r: 30, g: 30, b: 30, a: 255))
+
+      # Draw grid using enhanced helpers
+      if @state.show_grid
+        UI::UIHelpers.draw_grid(
+          RL::Vector2.new(@state.camera_x, @state.camera_y),
+          @state.zoom,
+          @state.grid_size,
+          @viewport_width,
+          @viewport_height
+        )
+      end
 
       # Apply camera transform
       RLGL.push_matrix
-      RLGL.translate_f(-@state.camera_x * @state.zoom, -@state.camera_y * @state.zoom, 0)
+      RLGL.translate_f(@viewport_x - @state.camera_x * @state.zoom,
+        @viewport_y - @state.camera_y * @state.zoom, 0)
       RLGL.scale_f(@state.zoom, @state.zoom, 1)
 
       # Draw scene background
@@ -40,7 +82,7 @@ module PaceEditor::Editors
         draw_background_placeholder
       end
 
-      # Draw scene objects
+      # Draw scene objects with enhanced rendering
       draw_hotspots(scene) if @state.show_hotspots
       draw_characters(scene) if @state.show_character_bounds
       draw_objects(scene)
@@ -48,319 +90,519 @@ module PaceEditor::Editors
       # Draw selection indicators
       draw_selection_indicators(scene)
 
+      # Draw current tool preview
+      draw_tool_preview if @state.current_tool != :select
+
       RLGL.pop_matrix
 
-      # Draw UI overlays (not affected by camera)
-      draw_tool_overlay
-      draw_info_overlay
+      # Draw selection rectangle (screen space)
+      if rect = @selection_rect
+        RL.draw_rectangle_lines_ex(rect, 2, RL::Color.new(r: 100, g: 150, b: 200, a: 200))
+        RL.draw_rectangle_rec(rect, RL::Color.new(r: 100, g: 150, b: 200, a: 50))
+      end
+
+      RL.end_scissor_mode
+
+      # Draw viewport border
+      RL.draw_rectangle_lines(@viewport_x, @viewport_y, @viewport_width, @viewport_height,
+        UI::UIHelpers::PANEL_BORDER_COLOR)
     end
 
-    private def handle_mouse_input
+    private def handle_camera_controls
+      # Mouse wheel zoom (enhanced with smooth zooming)
+      wheel = RL.get_mouse_wheel_move
+      if wheel != 0
+        # Zoom towards mouse position
+        mouse_world_before = screen_to_world(RL.get_mouse_position)
+
+        zoom_factor = wheel > 0 ? 1.1f32 : 0.9f32
+        @state.zoom *= zoom_factor
+        @state.zoom = @state.zoom.clamp(0.1f32, 5.0f32)
+
+        # Adjust camera to keep mouse position stable
+        mouse_world_after = screen_to_world(RL.get_mouse_position)
+        @state.camera_x -= (mouse_world_after.x - mouse_world_before.x)
+        @state.camera_y -= (mouse_world_after.y - mouse_world_before.y)
+      end
+
+      # Middle mouse pan (or space + left mouse)
+      if RL.mouse_button_down?(RL::MouseButton::Middle) ||
+         (RL.key_down?(RL::KeyboardKey::Space) && RL.mouse_button_down?(RL::MouseButton::Left))
+        if !@camera_dragging
+          @camera_dragging = true
+          @drag_start = RL.get_mouse_position
+        end
+
+        delta = RL.get_mouse_delta
+        @state.camera_x -= delta.x / @state.zoom
+        @state.camera_y -= delta.y / @state.zoom
+      else
+        @camera_dragging = false
+      end
+
+      # Keyboard pan with smooth movement
+      pan_speed = 5.0f32 / @state.zoom
+      pan_speed *= 3.0f32 if RL.key_down?(RL::KeyboardKey::LeftShift)
+
+      @state.camera_x -= pan_speed if RL.key_down?(RL::KeyboardKey::A) || RL.key_down?(RL::KeyboardKey::Left)
+      @state.camera_x += pan_speed if RL.key_down?(RL::KeyboardKey::D) || RL.key_down?(RL::KeyboardKey::Right)
+      @state.camera_y -= pan_speed if RL.key_down?(RL::KeyboardKey::W) || RL.key_down?(RL::KeyboardKey::Up)
+      @state.camera_y += pan_speed if RL.key_down?(RL::KeyboardKey::S) || RL.key_down?(RL::KeyboardKey::Down)
+    end
+
+    private def handle_tool_input
+      return if @camera_dragging
+
       mouse_pos = RL.get_mouse_position
-
-      # Check if mouse is in viewport
-      return unless mouse_in_viewport?(mouse_pos)
-
-      world_pos = @state.screen_to_world(RL::Vector2.new(
-        x: mouse_pos.x - @viewport_x,
-        y: mouse_pos.y - @viewport_y
-      ))
+      world_pos = screen_to_world(mouse_pos)
 
       case @state.current_tool
-      when .select?
-        handle_select_tool(world_pos)
-      when .move?
+      when Tool::Select
+        handle_select_tool(mouse_pos, world_pos)
+      when Tool::Move
         handle_move_tool(world_pos)
-      when .place?
+      when Tool::Place
         handle_place_tool(world_pos)
-      when .delete?
+      when Tool::Delete
         handle_delete_tool(world_pos)
+      when "hotspot"
+        handle_hotspot_tool(world_pos)
+      when "character"
+        handle_character_tool(world_pos)
       end
     end
 
-    private def handle_select_tool(world_pos : RL::Vector2)
+    private def handle_select_tool(screen_pos : RL::Vector2, world_pos : RL::Vector2)
+      return unless scene = @state.current_scene
+
       if RL.mouse_button_pressed?(RL::MouseButton::Left)
-        # Find object at position
-        if object_name = find_object_at_position(world_pos)
-          multi_select = RL.key_down?(RL::KeyboardKey::LeftControl) || RL.key_down?(RL::KeyboardKey::RightControl)
-          @state.select_object(object_name, multi_select)
+        @selecting = true
+        @drag_start = screen_pos
+
+        # Check if clicking on an object
+        if obj = get_object_at(scene, world_pos)
+          if RL.key_down?(RL::KeyboardKey::LeftControl)
+            # Toggle selection
+            if @state.selected_object == obj
+              @state.selected_object = nil
+            else
+              @state.selected_object = obj
+            end
+          else
+            # Single selection
+            @state.selected_object = obj
+          end
+
+          # Start dragging if object selected
+          if @state.selected_object == obj
+            @dragging = true
+            @state.current_tool = Tool::Move
+          end
+          @selecting = false
         else
-          @state.clear_selection unless RL.key_down?(RL::KeyboardKey::LeftControl) || RL.key_down?(RL::KeyboardKey::RightControl)
+          # Start selection rectangle
+          @state.selected_object = nil unless RL.key_down?(RL::KeyboardKey::LeftControl)
         end
       end
 
-      # Handle selection rectangle
-      if RL.mouse_button_down?(RL::MouseButton::Left) && @drag_start
-        draw_selection_rectangle
-      elsif RL.mouse_button_pressed?(RL::MouseButton::Left)
-        @drag_start = world_pos
-      elsif RL.mouse_button_released?(RL::MouseButton::Left)
-        @drag_start = nil
+      if @selecting && RL.mouse_button_down?(RL::MouseButton::Left)
+        # Update selection rectangle
+        current_pos = RL.get_mouse_position
+        x = Math.min(@drag_start.x, current_pos.x)
+        y = Math.min(@drag_start.y, current_pos.y)
+        w = (current_pos.x - @drag_start.x).abs
+        h = (current_pos.y - @drag_start.y).abs
+        @selection_rect = RL::Rectangle.new(x: x, y: y, width: w, height: h)
+      end
+
+      if @selecting && RL.mouse_button_released?(RL::MouseButton::Left)
+        # Finish selection
+        if rect = @selection_rect
+          select_objects_in_rect(rect)
+        end
+        @selecting = false
+        @selection_rect = nil
       end
     end
 
     private def handle_move_tool(world_pos : RL::Vector2)
+      return if @state.selected_object.nil?
+
       if RL.mouse_button_pressed?(RL::MouseButton::Left)
-        if object_name = find_object_at_position(world_pos)
-          @dragging_object = object_name
-          @drag_start = world_pos
-          @state.select_object(object_name)
-        end
-      elsif RL.mouse_button_down?(RL::MouseButton::Left) && @dragging_object && @drag_start
-        # Calculate movement delta
+        @dragging = true
+        @drag_start = world_pos
+      end
+
+      if @dragging && RL.mouse_button_down?(RL::MouseButton::Left)
         delta = RL::Vector2.new(
-          x: world_pos.x - @drag_start.not_nil!.x,
-          y: world_pos.y - @drag_start.not_nil!.y
+          world_pos.x - @drag_start.x,
+          world_pos.y - @drag_start.y
         )
 
-        # Apply snap to grid
-        snapped_pos = @state.snap_to_grid(world_pos)
+        # Move selected object
+        if obj_name = @state.selected_object
+          if scene = @state.current_scene
+            # Find and move the object
+            if hotspot = scene.hotspots.find { |h| h.name == obj_name }
+              new_x = hotspot.position.x + delta.x.to_i
+              new_y = hotspot.position.y + delta.y.to_i
 
-        # Move object (in a real implementation, this would update the actual object)
-        # For now, just update the visual feedback
+              # Snap to grid if enabled
+              if @state.snap_to_grid
+                new_x = (new_x / @state.grid_size).round * @state.grid_size
+                new_y = (new_y / @state.grid_size).round * @state.grid_size
+              end
 
-      elsif RL.mouse_button_released?(RL::MouseButton::Left)
-        if @dragging_object && @drag_start
-          # Complete the move operation
-          # This would create an undo action and save the scene
+              hotspot.position = RL::Vector2.new(new_x.to_f32, new_y.to_f32)
+            elsif character = scene.characters.find { |c| c.name == obj_name }
+              new_x = character.position.x + delta.x.to_i
+              new_y = character.position.y + delta.y.to_i
+
+              if @state.snap_to_grid
+                new_x = (new_x / @state.grid_size).round * @state.grid_size
+                new_y = (new_y / @state.grid_size).round * @state.grid_size
+              end
+
+              character.position = RL::Vector2.new(new_x.to_f32, new_y.to_f32)
+            end
+          end
         end
-        @dragging_object = nil
-        @drag_start = nil
+
+        @drag_start = world_pos
+      end
+
+      if @dragging && RL.mouse_button_released?(RL::MouseButton::Left)
+        @dragging = false
       end
     end
 
     private def handle_place_tool(world_pos : RL::Vector2)
       if RL.mouse_button_pressed?(RL::MouseButton::Left)
-        place_object_at_position(world_pos)
+        # Placeholder for object placement
+        puts "Place object at #{world_pos.x}, #{world_pos.y}"
       end
     end
 
     private def handle_delete_tool(world_pos : RL::Vector2)
       if RL.mouse_button_pressed?(RL::MouseButton::Left)
-        if object_name = find_object_at_position(world_pos)
-          delete_object(object_name)
+        if scene = @state.current_scene
+          if obj = get_object_at(scene, world_pos)
+            # Remove from scene
+            scene.hotspots.reject! { |h| h.name == obj }
+            scene.characters.reject! { |c| c.name == obj }
+
+            # Clear selection if deleted object was selected
+            if @state.selected_object == obj
+              @state.selected_object = nil
+            end
+          end
         end
       end
     end
 
-    private def handle_keyboard_input
-      # Camera movement with arrow keys
-      camera_speed = 5.0f32 / @state.zoom
-
-      if RL.key_down?(RL::KeyboardKey::Left)
-        @state.camera_x -= camera_speed
-      elsif RL.key_down?(RL::KeyboardKey::Right)
-        @state.camera_x += camera_speed
+    private def handle_hotspot_tool(world_pos : RL::Vector2)
+      if RL.mouse_button_pressed?(RL::MouseButton::Left)
+        if scene = @state.current_scene
+          # Create new hotspot
+          hotspot_count = scene.hotspots.size + 1
+          hotspot = PointClickEngine::Scenes::Hotspot.new(
+            name: "hotspot_#{hotspot_count}",
+            position: RL::Vector2.new(
+              snap_to_grid(world_pos.x.to_i).to_f32,
+              snap_to_grid(world_pos.y.to_i).to_f32
+            ),
+            size: RL::Vector2.new(64.0_f32, 64.0_f32)
+          )
+          scene.hotspots << hotspot
+          @state.selected_object = hotspot.name
+        end
       end
+    end
 
-      if RL.key_down?(RL::KeyboardKey::Up)
-        @state.camera_y -= camera_speed
-      elsif RL.key_down?(RL::KeyboardKey::Down)
-        @state.camera_y += camera_speed
+    private def handle_character_tool(world_pos : RL::Vector2)
+      # Placeholder for character placement
+      if RL.mouse_button_pressed?(RL::MouseButton::Left)
+        puts "Place character at #{world_pos.x}, #{world_pos.y}"
       end
+    end
 
+    private def handle_keyboard_shortcuts
       # Delete selected objects
-      if RL.key_pressed?(RL::KeyboardKey::Delete) && @state.selected_object
-        delete_object(@state.selected_object.not_nil!)
-      end
-    end
-
-    private def draw_grid
-      grid_size = @state.grid_size
-
-      # Calculate grid bounds based on camera and zoom
-      start_x = (@state.camera_x / grid_size).floor.to_i * grid_size
-      start_y = (@state.camera_y / grid_size).floor.to_i * grid_size
-      end_x = start_x + (@viewport_width / @state.zoom).to_i + grid_size
-      end_y = start_y + (@viewport_height / @state.zoom).to_i + grid_size
-
-      # Draw vertical lines
-      x = start_x
-      while x <= end_x
-        screen_x = @viewport_x + ((x - @state.camera_x) * @state.zoom).to_i
-        if screen_x >= @viewport_x && screen_x <= @viewport_x + @viewport_width
-          RL.draw_line(screen_x, @viewport_y, screen_x, @viewport_y + @viewport_height,
-            RL::Color.new(r: 80, g: 80, b: 80, a: 255))
-        end
-        x += grid_size
+      if RL.key_pressed?(RL::KeyboardKey::Delete)
+        delete_selected_objects
       end
 
-      # Draw horizontal lines
-      y = start_y
-      while y <= end_y
-        screen_y = @viewport_y + ((y - @state.camera_y) * @state.zoom).to_i
-        if screen_y >= @viewport_y && screen_y <= @viewport_y + @viewport_height
-          RL.draw_line(@viewport_x, screen_y, @viewport_x + @viewport_width, screen_y,
-            RL::Color.new(r: 80, g: 80, b: 80, a: 255))
-        end
-        y += grid_size
+      # Select all
+      if RL.key_down?(RL::KeyboardKey::LeftControl) && RL.key_pressed?(RL::KeyboardKey::A)
+        select_all_objects
+      end
+
+      # Deselect all
+      if RL.key_pressed?(RL::KeyboardKey::Escape)
+        @state.selected_object = nil
+      end
+
+      # Reset view
+      if RL.key_pressed?(RL::KeyboardKey::Home)
+        @state.camera_x = 0
+        @state.camera_y = 0
+        @state.zoom = 1.0f32
       end
     end
 
     private def draw_background_placeholder
-      # Draw a checkerboard pattern to indicate no background
+      # Draw checkerboard pattern
       checker_size = 32
-      cols = ((800 / checker_size) + 1).to_i
-      rows = ((600 / checker_size) + 1).to_i
+      cols = 30
+      rows = 20
 
-      rows.times do |row|
-        cols.times do |col|
-          color = ((row + col) % 2 == 0) ? RL::Color.new(r: 100, g: 100, b: 100, a: 255) : RL::Color.new(r: 120, g: 120, b: 120, a: 255)
-          RL.draw_rectangle(col * checker_size, row * checker_size, checker_size, checker_size, color)
+      (0...rows).each do |row|
+        (0...cols).each do |col|
+          color = (row + col) % 2 == 0 ? RL::DARKGRAY : RL::GRAY
+          RL.draw_rectangle(
+            col * checker_size,
+            row * checker_size,
+            checker_size,
+            checker_size,
+            color
+          )
         end
       end
 
-      # Draw "No Background" text
-      text = "No Background - Drop image here"
-      text_width = RL.measure_text(text, 24)
-      RL.draw_text(text, (800 - text_width) // 2, 300, 24, RL::Color.new(r: 200, g: 200, b: 200, a: 150))
+      # Draw text
+      text = "No Background"
+      text_width = RL.measure_text(text, 40)
+      RL.draw_text(text,
+        (cols * checker_size - text_width) // 2,
+        (rows * checker_size - 40) // 2,
+        40,
+        RL::WHITE
+      )
     end
 
-    private def draw_hotspots(scene : PointClickEngine::Scene)
+    private def draw_hotspots(scene)
       scene.hotspots.each do |hotspot|
-        # Draw hotspot bounds
-        color = @state.is_selected?(hotspot.name) ? RL::YELLOW : RL::GREEN
-        alpha = 100u8
-        fill_color = RL::Color.new(r: color.r, g: color.g, b: color.b, a: alpha)
+        # Determine color based on selection
+        is_selected = is_hotspot_selected?(hotspot.name)
+        color = if is_selected
+                  RL::Color.new(r: 255, g: 200, b: 0, a: 100)
+                else
+                  RL::Color.new(r: 255, g: 100, b: 0, a: 80)
+                end
 
-        RL.draw_rectangle(hotspot.position.x.to_i, hotspot.position.y.to_i,
-          hotspot.size.x.to_i, hotspot.size.y.to_i, fill_color)
-        RL.draw_rectangle_lines(hotspot.position.x.to_i, hotspot.position.y.to_i,
-          hotspot.size.x.to_i, hotspot.size.y.to_i, color)
+        # Draw hotspot rectangle
+        x = hotspot.position.x.to_i
+        y = hotspot.position.y.to_i
+        width = hotspot.size.x.to_i
+        height = hotspot.size.y.to_i
 
-        # Draw hotspot name
-        RL.draw_text(hotspot.name, hotspot.position.x.to_i + 5, hotspot.position.y.to_i + 5, 12, color)
-      end
-    end
+        RL.draw_rectangle(x, y, width, height, color)
+        RL.draw_rectangle_lines(x, y, width, height,
+          is_selected ? RL::YELLOW : RL::ORANGE)
 
-    private def draw_characters(scene : PointClickEngine::Scene)
-      scene.characters.each do |character|
-        # Draw character bounds
-        color = @state.is_selected?(character.name) ? RL::YELLOW : RL::BLUE
+        # Draw name
+        if @state.zoom > 0.5
+          font_size = (12 * @state.zoom).to_i
+          RL.draw_text(hotspot.name, x + 2, y + 2, font_size, RL::WHITE)
+        end
 
-        RL.draw_rectangle_lines(character.position.x.to_i, character.position.y.to_i,
-          character.size.x.to_i, character.size.y.to_i, color)
-
-        # Draw character sprite if available
-        # For now, just draw a placeholder
-        RL.draw_rectangle(character.position.x.to_i + 2, character.position.y.to_i + 2,
-          character.size.x.to_i - 4, character.size.y.to_i - 4,
-          RL::Color.new(r: 100, g: 100, b: 200, a: 150))
-
-        # Draw character name
-        RL.draw_text(character.name, character.position.x.to_i, character.position.y.to_i - 15, 12, color)
-      end
-    end
-
-    private def draw_objects(scene : PointClickEngine::Scene)
-      scene.objects.each do |object|
-        # Skip objects that are already drawn as characters or hotspots
-        next if scene.characters.any? { |c| c == object }
-        next if scene.hotspots.any? { |h| h == object }
-
-        # Draw generic object
-        RL.draw_rectangle_lines(object.position.x.to_i, object.position.y.to_i,
-          object.size.x.to_i, object.size.y.to_i, RL::WHITE)
-      end
-    end
-
-    private def draw_selection_indicators(scene : PointClickEngine::Scene)
-      if selected = @state.selected_object
-        # Find and highlight selected object
-        if hotspot = scene.hotspots.find { |h| h.name == selected }
-          draw_selection_outline(hotspot.position, hotspot.size)
-        elsif character = scene.characters.find { |c| c.name == selected }
-          draw_selection_outline(character.position, character.size)
+        # Draw cursor type icon
+        if @state.show_hotspots && @state.zoom > 0.7
+          draw_cursor_icon(hotspot)
         end
       end
     end
 
-    private def draw_selection_outline(position : RL::Vector2, size : RL::Vector2)
-      # Draw animated selection outline
-      time = RL.get_time
-      alpha = (128 + 127 * Math.sin(time * 4)).to_u8
+    private def draw_characters(scene)
+      scene.characters.each do |character|
+        # Get character position and size
+        x = character.position.x.to_i
+        y = character.position.y.to_i
+        width = character.size.x.to_i
+        height = character.size.y.to_i
 
-      outline_color = RL::Color.new(r: 255, g: 255, b: 0, a: alpha)
-      RL.draw_rectangle_lines(position.x.to_i - 2, position.y.to_i - 2,
-        size.x.to_i + 4, size.y.to_i + 4, outline_color)
-    end
-
-    private def draw_selection_rectangle
-      return unless drag_start = @drag_start
-
-      mouse_pos = RL.get_mouse_position
-      world_pos = @state.screen_to_world(RL::Vector2.new(
-        x: mouse_pos.x - @viewport_x,
-        y: mouse_pos.y - @viewport_y
-      ))
-
-      min_x = [drag_start.x, world_pos.x].min
-      min_y = [drag_start.y, world_pos.y].min
-      width = (world_pos.x - drag_start.x).abs
-      height = (world_pos.y - drag_start.y).abs
-
-      RL.draw_rectangle(min_x.to_i, min_y.to_i, width.to_i, height.to_i,
-        RL::Color.new(r: 100, g: 150, b: 200, a: 50))
-      RL.draw_rectangle_lines(min_x.to_i, min_y.to_i, width.to_i, height.to_i, RL::BLUE)
-    end
-
-    private def draw_tool_overlay
-      # Draw tool-specific overlay information
-      mouse_pos = RL.get_mouse_position
-      return unless mouse_in_viewport?(mouse_pos)
-
-      world_pos = @state.screen_to_world(RL::Vector2.new(
-        x: mouse_pos.x - @viewport_x,
-        y: mouse_pos.y - @viewport_y
-      ))
-
-      case @state.current_tool
-      when .place?
-        # Show placement preview
-        snapped_pos = @state.snap_to_grid(world_pos)
-        screen_pos = @state.world_to_screen(snapped_pos)
-        preview_size = 64
-
+        # Draw character bounds
+        bounds_color = is_character_selected?(character.name) ? RL::YELLOW : RL::GREEN
         RL.draw_rectangle_lines(
-          @viewport_x + screen_pos.x.to_i - preview_size//2,
-          @viewport_y + screen_pos.y.to_i - preview_size//2,
-          preview_size, preview_size, RL::WHITE
+          x - width // 2,
+          y - height // 2,
+          width,
+          height,
+          bounds_color
+        )
+
+        # Draw name
+        if @state.zoom > 0.5
+          font_size = (12 * @state.zoom).to_i
+          text_width = RL.measure_text(character.name, font_size)
+          RL.draw_text(character.name,
+            x - text_width // 2,
+            y - height // 2 - font_size - 2,
+            font_size,
+            RL::WHITE
+          )
+        end
+      end
+    end
+
+    private def draw_objects(scene)
+      # Draw other scene objects if any
+    end
+
+    private def draw_selection_indicators(scene)
+      # Draw resize handles for selected hotspots
+      @state.selected_hotspots.each do |hotspot_name|
+        if hotspot = scene.hotspots.find { |h| h.name == hotspot_name }
+          draw_resize_handles(
+            hotspot.position.x.to_i,
+            hotspot.position.y.to_i,
+            hotspot.size.x.to_i,
+            hotspot.size.y.to_i
+          )
+        end
+      end
+
+      # Draw resize handles for selected characters
+      @state.selected_characters.each do |char_name|
+        if character = scene.characters.find { |c| c.name == char_name }
+          x = character.position.x.to_i
+          y = character.position.y.to_i
+          width = character.size.x.to_i
+          height = character.size.y.to_i
+          draw_resize_handles(
+            x - width // 2,
+            y - height // 2,
+            width,
+            height
+          )
+        end
+      end
+
+      # Draw resize handles for single selected object
+      if obj_name = @state.selected_object
+        if hotspot = scene.hotspots.find { |h| h.name == obj_name }
+          draw_resize_handles(
+            hotspot.position.x.to_i,
+            hotspot.position.y.to_i,
+            hotspot.size.x.to_i,
+            hotspot.size.y.to_i
+          )
+        elsif character = scene.characters.find { |c| c.name == obj_name }
+          x = character.position.x.to_i
+          y = character.position.y.to_i
+          width = character.size.x.to_i
+          height = character.size.y.to_i
+          draw_resize_handles(
+            x - width // 2,
+            y - height // 2,
+            width,
+            height
+          )
+        end
+      end
+    end
+
+    private def draw_resize_handles(x : Int32, y : Int32, width : Int32, height : Int32)
+      handle_size = (6 / @state.zoom).to_i.clamp(4, 8)
+
+      # Corner handles
+      positions = [
+        {x, y},                       # Top-left
+        {x + width, y},               # Top-right
+        {x, y + height},              # Bottom-left
+        {x + width, y + height},      # Bottom-right
+        {x + width // 2, y},          # Top-middle
+        {x + width // 2, y + height}, # Bottom-middle
+        {x, y + height // 2},         # Left-middle
+        {x + width, y + height // 2}, # Right-middle
+      ]
+
+      positions.each do |pos|
+        RL.draw_rectangle(
+          pos[0] - handle_size // 2,
+          pos[1] - handle_size // 2,
+          handle_size,
+          handle_size,
+          RL::WHITE
+        )
+        RL.draw_rectangle_lines(
+          pos[0] - handle_size // 2,
+          pos[1] - handle_size // 2,
+          handle_size,
+          handle_size,
+          RL::BLACK
         )
       end
     end
 
-    private def draw_info_overlay
-      # Draw coordinate information
+    private def draw_tool_preview
       mouse_pos = RL.get_mouse_position
-      return unless mouse_in_viewport?(mouse_pos)
+      world_pos = screen_to_world(mouse_pos)
 
-      world_pos = @state.screen_to_world(RL::Vector2.new(
-        x: mouse_pos.x - @viewport_x,
-        y: mouse_pos.y - @viewport_y
-      ))
-
-      info_text = "X: #{world_pos.x.to_i} Y: #{world_pos.y.to_i}"
-      RL.draw_text(info_text, @viewport_x + 10, @viewport_y + @viewport_height - 25, 12, RL::WHITE)
+      case @state.current_tool
+      when "hotspot"
+        # Preview hotspot placement
+        x = snap_to_grid(world_pos.x.to_i)
+        y = snap_to_grid(world_pos.y.to_i)
+        RL.draw_rectangle_lines(x, y, 64, 64, RL::Color.new(r: 255, g: 255, b: 255, a: 128))
+      when "character"
+        # Preview character placement
+        x = snap_to_grid(world_pos.x.to_i)
+        y = snap_to_grid(world_pos.y.to_i)
+        RL.draw_rectangle_lines(x - 16, y - 24, 32, 48, RL::Color.new(r: 0, g: 255, b: 0, a: 128))
+      end
     end
 
-    private def mouse_in_viewport?(mouse_pos : RL::Vector2) : Bool
-      mouse_pos.x >= @viewport_x && mouse_pos.x <= @viewport_x + @viewport_width &&
-        mouse_pos.y >= @viewport_y && mouse_pos.y <= @viewport_y + @viewport_height
+    private def draw_cursor_icon(hotspot)
+      icon = case hotspot.cursor_type
+             when :hand then "✋"
+             when :look then "👁"
+             when :talk then "💬"
+             when :use  then "⚙"
+             else            "➤"
+             end
+
+      font_size = (16 * @state.zoom).to_i
+      x = hotspot.position.x.to_i
+      y = hotspot.position.y.to_i
+      width = hotspot.size.x.to_i
+      RL.draw_text(icon,
+        x + width - font_size - 2,
+        y + 2,
+        font_size,
+        RL::WHITE
+      )
     end
 
-    private def find_object_at_position(world_pos : RL::Vector2) : String?
-      return nil unless scene = @state.current_scene
+    private def screen_to_world(screen_pos : RL::Vector2) : RL::Vector2
+      RL::Vector2.new(
+        (screen_pos.x - @viewport_x) / @state.zoom + @state.camera_x,
+        (screen_pos.y - @viewport_y) / @state.zoom + @state.camera_y
+      )
+    end
 
-      # Check hotspots first (they have priority)
-      scene.hotspots.reverse_each do |hotspot|
-        if point_in_rect?(world_pos, hotspot.position, hotspot.size)
+    private def world_to_screen(world_pos : RL::Vector2) : RL::Vector2
+      RL::Vector2.new(
+        (world_pos.x - @state.camera_x) * @state.zoom + @viewport_x,
+        (world_pos.y - @state.camera_y) * @state.zoom + @viewport_y
+      )
+    end
+
+    private def get_object_at(scene, world_pos : RL::Vector2) : String?
+      # Check hotspots
+      scene.hotspots.reverse.each do |hotspot|
+        if world_pos.x >= hotspot.position.x && world_pos.x <= hotspot.position.x + hotspot.size.x &&
+           world_pos.y >= hotspot.position.y && world_pos.y <= hotspot.position.y + hotspot.size.y
           return hotspot.name
         end
       end
 
       # Check characters
-      scene.characters.reverse_each do |character|
-        if point_in_rect?(world_pos, character.position, character.size)
+      scene.characters.each do |character|
+        if world_pos.x >= character.position.x - 25 &&
+           world_pos.x <= character.position.x + 25 &&
+           world_pos.y >= character.position.y - 50 &&
+           world_pos.y <= character.position.y + 50
           return character.name
         end
       end
@@ -368,48 +610,116 @@ module PaceEditor::Editors
       nil
     end
 
-    private def point_in_rect?(point : RL::Vector2, rect_pos : RL::Vector2, rect_size : RL::Vector2) : Bool
-      point.x >= rect_pos.x && point.x <= rect_pos.x + rect_size.x &&
-        point.y >= rect_pos.y && point.y <= rect_pos.y + rect_size.y
-    end
+    private def select_objects_in_rect(rect : RL::Rectangle)
+      return unless scene = @state.current_scene
 
-    private def place_object_at_position(world_pos : RL::Vector2)
-      snapped_pos = @state.snap_to_grid(world_pos)
+      # Convert screen rect to world coordinates
+      top_left = screen_to_world(RL::Vector2.new(rect.x, rect.y))
+      bottom_right = screen_to_world(RL::Vector2.new(rect.x + rect.width, rect.y + rect.height))
 
-      # Create a new hotspot at the position (example)
-      new_hotspot_name = "hotspot_#{Time.utc.to_unix_ms}"
+      world_rect = RL::Rectangle.new(
+        x: top_left.x,
+        y: top_left.y,
+        width: bottom_right.x - top_left.x,
+        height: bottom_right.y - top_left.y
+      )
 
-      # In a real implementation, this would create the hotspot and add it to the scene
-      puts "Would place object at #{snapped_pos.x}, #{snapped_pos.y}"
+      # Select all objects in rectangle
+      scene.hotspots.each do |hotspot|
+        hotspot_rect = RL::Rectangle.new(
+          x: hotspot.position.x.to_f32,
+          y: hotspot.position.y.to_f32,
+          width: hotspot.size.x.to_f32,
+          height: hotspot.size.y.to_f32
+        )
 
-      # Add undo action
-      # @state.add_undo_action(CreateObjectAction.new(new_hotspot_name, "hotspot_data"))
-    end
-
-    private def delete_object(object_name : String)
-      # In a real implementation, this would remove the object from the scene
-      puts "Would delete object: #{object_name}"
-
-      # Clear selection if deleted object was selected
-      if @state.selected_object == object_name
-        @state.clear_selection
+        if rects_overlap?(hotspot_rect, world_rect)
+          @state.selected_object = hotspot.name
+        end
       end
 
-      # Add undo action
-      # @state.add_undo_action(DeleteObjectAction.new(object_name, "object_data"))
+      scene.characters.each do |character|
+        char_rect = RL::Rectangle.new(
+          x: (character.position.x - 25).to_f32,
+          y: (character.position.y - 50).to_f32,
+          width: 50.0_f32,
+          height: 100.0_f32
+        )
+
+        if rects_overlap?(char_rect, world_rect)
+          @state.selected_object = character.name
+        end
+      end
     end
 
-    # Test helper methods - expose private methods for testing
-    def test_point_in_rect?(point : RL::Vector2, rect_pos : RL::Vector2, rect_size : RL::Vector2) : Bool
-      point_in_rect?(point, rect_pos, rect_size)
+    private def delete_selected_objects
+      return unless scene = @state.current_scene
+
+      # Delete selected hotspots
+      @state.selected_hotspots.each do |hotspot_name|
+        scene.hotspots.reject! { |h| h.name == hotspot_name }
+      end
+
+      # Delete selected characters
+      @state.selected_characters.each do |char_name|
+        scene.characters.reject! { |c| c.name == char_name }
+      end
+
+      # Also delete single selected object if any
+      if obj_name = @state.selected_object
+        scene.hotspots.reject! { |h| h.name == obj_name }
+        scene.characters.reject! { |c| c.name == obj_name }
+      end
+
+      # Clear all selections
+      @state.selected_object = nil
+      @state.selected_hotspots.clear
+      @state.selected_characters.clear
     end
 
-    def test_mouse_in_viewport?(mouse_pos : RL::Vector2) : Bool
-      mouse_in_viewport?(mouse_pos)
+    private def select_all_objects
+      return unless scene = @state.current_scene
+
+      # Clear single selection
+      @state.selected_object = nil
+
+      # Select all hotspots
+      @state.selected_hotspots.clear
+      scene.hotspots.each do |hotspot|
+        @state.selected_hotspots << hotspot.name
+      end
+
+      # Select all characters
+      @state.selected_characters.clear
+      scene.characters.each do |character|
+        @state.selected_characters << character.name
+      end
     end
 
-    def test_find_object_at_position(world_pos : RL::Vector2) : String?
-      find_object_at_position(world_pos)
+    private def snap_to_grid(value : Int32) : Int32
+      return value unless @state.snap_to_grid
+      ((value / @state.grid_size).round * @state.grid_size).to_i
+    end
+
+    private def mouse_in_viewport?(mouse_pos : RL::Vector2) : Bool
+      mouse_pos.x >= @viewport_x && mouse_pos.x <= @viewport_x + @viewport_width &&
+        mouse_pos.y >= @viewport_y && mouse_pos.y <= @viewport_y + @viewport_height
+    end
+
+    private def rects_overlap?(rect1 : RL::Rectangle, rect2 : RL::Rectangle) : Bool
+      !(rect1.x + rect1.width < rect2.x ||
+        rect2.x + rect2.width < rect1.x ||
+        rect1.y + rect1.height < rect2.y ||
+        rect2.y + rect2.height < rect1.y)
+    end
+
+    # Helper methods for selection checking
+    private def is_hotspot_selected?(name : String) : Bool
+      @state.selected_hotspots.includes?(name) || @state.selected_object == name
+    end
+
+    private def is_character_selected?(name : String) : Bool
+      @state.selected_characters.includes?(name) || @state.selected_object == name
     end
   end
 end
