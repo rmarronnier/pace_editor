@@ -1,0 +1,5 @@
+puts "PROGRAM_NAME: #{PROGRAM_NAME}"
+puts "Ends with pace_editor?: #{PROGRAM_NAME.ends_with?("pace_editor")}"
+puts "Ends with pace_editor.cr?: #{PROGRAM_NAME.ends_with?("pace_editor.cr")}"
+puts "Ends with test_entry?: #{PROGRAM_NAME.ends_with?("test_entry")}"
+puts "Ends with test_entry.cr?: #{PROGRAM_NAME.ends_with?("test_entry.cr")}"

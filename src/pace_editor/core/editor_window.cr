@@ -1,5 +1,3 @@
-require "raylib-cr"
-
 module PaceEditor::Core
   # Main editor window that coordinates all UI elements and editors
   class EditorWindow
@@ -32,6 +30,9 @@ module PaceEditor::Core
     property dialog_editor : Editors::DialogEditor
     property width : Int32
     property height : Int32
+    
+    # Dialogs
+    property hotspot_action_dialog : UI::HotspotActionDialog
 
     # Editor viewport
     @viewport_x : Int32
@@ -63,10 +64,20 @@ module PaceEditor::Core
       @character_editor = Editors::CharacterEditor.new(@state)
       @hotspot_editor = Editors::HotspotEditor.new(@state)
       @dialog_editor = Editors::DialogEditor.new(@state)
+      
+      # Initialize dialogs
+      @hotspot_action_dialog = UI::HotspotActionDialog.new(@state)
 
       # Initialize dimensions
       @width = @window_width
       @height = @window_height
+      
+      # Store reference to window in state
+      @state.editor_window = self
+    end
+    
+    def show_hotspot_action_dialog(hotspot_name : String)
+      @hotspot_action_dialog.show(hotspot_name)
     end
 
     def run
@@ -117,6 +128,9 @@ module PaceEditor::Core
       @property_panel.update
       @scene_hierarchy.update
       @asset_browser.update if @state.current_mode.assets?
+      
+      # Update dialogs
+      @hotspot_action_dialog.update
     end
 
     private def draw
@@ -144,6 +158,9 @@ module PaceEditor::Core
 
       # Draw menu bar content and dropdowns LAST (on top of everything)
       @menu_bar.draw_content
+      
+      # Draw dialogs on top of everything
+      @hotspot_action_dialog.draw
 
       RL.end_drawing
     end

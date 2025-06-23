@@ -1,0 +1,10 @@
+---
+name: scene_1
+background_path:
+scale: 1.0
+enable_pathfinding: true
+navigation_cell_size: 16
+script_path:
+hotspots: []
+characters: []
+walkable_areas:

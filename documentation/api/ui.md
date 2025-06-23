@@ -580,6 +580,71 @@ class FileDialog < Dialog
 end
 ```
 
+### ExportDialog
+
+Dialog for exporting games with validation feedback.
+
+```crystal
+class ExportDialog < Dialog
+  property export_path : String           # Export destination
+  property export_format : String         # Export format (folder/zip)
+  property validation_result : ValidationResult? # Validation results
+  property include_source : Bool          # Include source files option
+  
+  def initialize
+    super("Export Game", 700, 500)
+    @export_path = ""
+    @export_format = "folder"
+    @include_source = false
+  end
+  
+  def validate_project
+    # Run project validation and display results
+  end
+  
+  def show_validation_errors(result : ValidationResult)
+    # Display errors and warnings in scrollable list
+  end
+  
+  def on_ok
+    if @validation_result && @validation_result.valid?
+      perform_export(@export_path, @export_format)
+      close(DialogResult::OK)
+    end
+  end
+end
+```
+
+### ValidationResultPanel
+
+Panel for displaying validation errors and warnings.
+
+```crystal
+class ValidationResultPanel
+  property result : ValidationResult      # Validation result to display
+  property bounds : Rectangle             # Panel bounds
+  property scroll_offset : Int32          # Scroll position
+  property selected_error : ValidationError? # Selected error
+  
+  def initialize(@bounds : Rectangle)
+    @scroll_offset = 0
+  end
+  
+  def set_result(result : ValidationResult)
+    @result = result
+    @scroll_offset = 0
+  end
+  
+  def draw
+    # Draw errors and warnings with icons and descriptions
+  end
+  
+  def handle_click(position : Vector2)
+    # Handle clicking on errors to navigate to source
+  end
+end
+```
+
 ## Usage Examples
 
 ### Creating a Custom Property Panel

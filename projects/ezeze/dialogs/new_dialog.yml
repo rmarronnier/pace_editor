@@ -1,0 +1,32 @@
+---
+name: New Dialog
+nodes:
+  start:
+    id: start
+    text: Hello! This is the start of a new dialog.
+    choices: []
+    conditions: []
+    actions: []
+    is_end: false
+  node_1750638739518:
+    id: node_1750638739518
+    text: New dialog text
+    choices: []
+    conditions: []
+    actions: []
+    is_end: false
+  node_1750640239498:
+    id: node_1750640239498
+    text: New dialog text
+    choices: []
+    conditions: []
+    actions: []
+    is_end: false
+  node_1750640262055:
+    id: node_1750640262055
+    text: New dialog text
+    choices: []
+    conditions: []
+    actions: []
+    is_end: false
+variables: {}

@@ -2,44 +2,130 @@
 
 PACE is a visual editor for creating point-and-click adventure games using the PointClickEngine. It provides an intuitive interface for designing scenes, characters, hotspots, and dialog trees without requiring extensive programming knowledge.
 
+## 🎉 New in Version 2.0
+
+- **Full compatibility with Point & Click Engine v1.0 game format**
+- **Advanced validation system** - Catch errors before export
+- **Complete scene serialization** - Save and load scenes with full YAML support
+- **Enhanced object placement** - Hotspot and character placement with grid snapping
+- **Comprehensive undo/redo system** - Full support for all editing operations
+- **Dynamic property editing** - Real-time property updates with validation
+- **Hotspot action system** - 7 action types with visual parameter editing
+- **Dialog node creation** - Visual dialog tree editor with node management
+- **Scene background management** - Background selector with thumbnails
+- **Asset import system** - Multi-format support with auto-discovery
+- **Enhanced export** - Generate fully playable games with proper structure
+
+### 🔧 Core Implementation Status
+- ✅ **Complete scene persistence** - Full YAML save/load with all object types
+- ✅ **Working undo/redo** - Support for move, create, and property changes
+- ✅ **Functional object placement** - Hotspot and character creation tools
+- ✅ **Property editing** - Real-time updates with validation
+- ✅ **Action system** - 7 action types with parameter configuration
+- ✅ **Dialog editing** - Node creation and visual tree management
+- ✅ **Asset management** - Import, categorization, and preview
+- ✅ **Background selection** - Visual selector with thumbnails
+- ✅ **Grid snapping** - Precise object placement
+- ✅ **Scene validation** - Comprehensive error checking
+
 ## Features
 
 ### 🎨 Visual Scene Editor
 - Drag-and-drop scene creation
-- Background image support
-- Real-time preview
+- Background image support with visual selector
+- Real-time preview with zoom and pan controls
 - Multi-layer object management
-- Grid snapping and alignment tools
+- Grid snapping and alignment tools (fixed precision)
+- Walkable area definition with YAML persistence
+- Scale zones for character perspective
+- Walk-behind regions
+- Complete scene serialization/deserialization
+- Automatic scene saving on modifications
 
 ### 👥 Character Management
 - Character sprite management
-- Animation timeline editor
-- Character positioning and scaling
-- Interactive character placement
+- NPC character placement tool
+- Character positioning with grid snapping
+- Character state management (idle, walking, talking, etc.)
+- Direction and mood configuration
+- Interactive character placement with undo support
+- Dialog tree integration
+- Portrait support for conversations
+- Full character serialization with properties
 
 ### 🎯 Hotspot System
-- Visual hotspot creation and editing
-- Multiple interaction types (look, use, talk, etc.)
-- Custom action scripting
+- Visual hotspot creation with placement tool
+- Multiple interaction types (look, use, talk, click)
+- Comprehensive action system with 7 action types:
+  - ShowMessage - Display text to player
+  - ChangeScene - Navigate between scenes
+  - PlaySound - Trigger audio effects
+  - GiveItem - Add items to inventory
+  - RunScript - Execute Lua scripts
+  - SetVariable - Modify game state
+  - StartDialog - Initiate conversations
+- Visual action editor with parameter configuration
 - Hotspot visualization and debugging
+- Dynamic cursor type management
+- Event-based actions (on_click, on_look, on_use, on_talk)
+- Full YAML serialization support
 
 ### 💬 Dialog Tree Editor
-- Visual dialog tree creation
-- Branching conversation support
-- Conditional dialog options
+- Visual dialog tree creation with node placement
+- Dialog node creation/editing dialog with ID, character, and text fields
+- Branching conversation support with visual connections
+- Conditional dialog options and end node flags
 - Character expression management
+- Effects and consequences system
+- Portrait integration
+- Double-click editing for existing nodes
+- Automatic node positioning for new nodes
+- Full YAML serialization support
+
+### 📦 Quest System (NEW)
+- Visual quest designer
+- Objective management
+- Prerequisites and dependencies
+- Reward configuration
+- Journal entry system
+- Quest categories (main/side/hidden)
+
+### 🎒 Item System (NEW)
+- Item property editor
+- Stackable and consumable items
+- Item combinations
+- Use effects configuration
+- Quest item support
+- Item states management
+
+### 🎬 Cutscene Editor (NEW)
+- Timeline-based editor
+- Multiple action types
+- Character movements
+- Camera effects
+- Audio synchronization
+- Conditional sequences
 
 ### 📁 Asset Management
-- Centralized asset browser
-- Import/export functionality
-- Asset categorization
-- Preview support for images and sounds
+- Centralized asset browser with category tabs
+- Multi-format import functionality (PNG, JPG, WAV, OGG, MP3, LUA, etc.)
+- Automatic asset discovery in common directories
+- File copying to appropriate project directories
+- Asset categorization (backgrounds, characters, sounds, music, scripts)
+- Preview support for images with thumbnails
+- Asset validation and duplicate detection
+- Error handling for import failures
+- Integration with scene editor for asset assignment
 
 ### 🏗️ Project Management
-- Complete project structure
-- Version control integration
-- Export to playable games
-- Cross-platform compilation
+- Complete project structure with proper directory organization
+- Scene file management with automatic saving
+- Export to Point & Click Engine v1.0 compatible games
+- Comprehensive validation system before export
+- Proper game format generation with YAML configuration
+- Entry point creation (main.cr and shard.yml)
+- Asset organization and copying during export
+- ZIP packaging option for distribution
 
 ## System Requirements
 
@@ -124,27 +210,63 @@ PACE operates in several distinct modes, each optimized for different aspects of
 - **Dialog Mode** - Create branching conversations and character interactions
 - **Assets Mode** - Manage project resources and imports
 - **Project Mode** - Configure game settings and export options
+- **Quest Mode** (NEW) - Design quests with objectives and rewards
+- **Item Mode** (NEW) - Create inventory items and interactions
+- **Cutscene Mode** (NEW) - Script cinematic sequences
+
+## Exporting Your Game
+
+PACE now includes a comprehensive export system that generates games compatible with Point & Click Engine v1.0:
+
+### Export Features
+- **Automatic validation** - Ensures your game is error-free before export
+- **Proper file structure** - Generates the correct directory layout
+- **Asset optimization** - Organizes and copies all required assets
+- **Configuration generation** - Creates `game_config.yaml` with all settings
+- **Entry point creation** - Generates `main.cr` and `shard.yml` files
+- **ZIP packaging** - Optional compression for easy distribution
+
+### Export Process
+1. Click **File → Export Game** in the menu bar
+2. Review validation results - fix any errors before proceeding
+3. Choose export location and format (folder or ZIP)
+4. Click Export to generate your playable game
+
+### Validation System
+The editor validates:
+- All scene files and references
+- Asset paths and file formats
+- Quest and dialog structures
+- Item definitions and combinations
+- Game configuration settings
+- Cross-references between game elements
 
 ## Keyboard Shortcuts
 
 ### General
-- `Ctrl+N` - New project
-- `Ctrl+O` - Open project
-- `Ctrl+S` - Save project
-- `Ctrl+Z` - Undo
-- `Ctrl+Y` - Redo
+- `Ctrl+N` - New scene
+- `Ctrl+O` - Open scene
+- `Ctrl+S` - Save scene
+- `Ctrl+Z` - Undo last action
+- `Ctrl+Y` / `Ctrl+Shift+Z` - Redo action
+- `Ctrl+Q` - Quit editor
 
 ### Tools
-- `V` - Select tool
-- `M` - Move tool
-- `P` - Place tool
+- `V` - Select tool (click to select objects)
+- `M` - Move tool (drag objects with undo support)
+- `P` - Place tool (create hotspots)
+- `C` - Character tool (place NPCs)
 - `D` - Delete tool
+- `H` - Hotspot tool
+- `W` - Walkable area tool
 
 ### View
-- `G` - Toggle grid
-- `H` - Toggle hotspot visibility
+- `G` - Toggle grid snapping
+- `Shift+H` - Toggle hotspot visibility
 - `Space+Mouse` - Pan camera
 - `Mouse Wheel` - Zoom in/out
+- `F` - Focus on selected object
+- `Home` - Reset camera view
 
 ## Development
 
@@ -171,6 +293,15 @@ PACE operates in several distinct modes, each optimized for different aspects of
    ```bash
    crystal spec
    ```
+   
+   All specs should pass. The test suite covers:
+   - Scene serialization/deserialization
+   - Object placement and manipulation
+   - Undo/redo functionality
+   - Asset import system
+   - Property editing
+   - Export system
+   - UI components
 
 ### Project Structure
 
@@ -187,6 +318,28 @@ pace_editor/
 ├── lib/                    # Dependencies
 └── shard.yml              # Project configuration
 ```
+
+## Upgrading from Previous Versions
+
+If you're upgrading from PACE 1.x, here's what you need to know:
+
+### Breaking Changes
+- Export format has changed to match Point & Click Engine v1.0
+- Scene files now use the new YAML structure
+- Project files remain compatible but export differently
+
+### Migration Steps
+1. Open your existing project in PACE 2.0
+2. The editor will automatically update internal structures
+3. Review any validation warnings
+4. Re-export your game using the new export system
+
+### New Requirements
+- Exported games now require a `game_config.yaml` file (auto-generated)
+- Scene files must include proper navigation data
+- Asset paths must follow the new directory structure
+
+For detailed migration instructions, see [Migration Guide](docs/migration/MIGRATION_GUIDE.md).
 
 ## Contributing
 
@@ -219,6 +372,10 @@ We welcome contributions to PACE! Here's how to get started:
 - **Testing**: Add specs for new features
 - **Documentation**: Update relevant docs
 - **Commits**: Use clear, descriptive commit messages
+
+### Development Status
+
+See [MISSING_IMPLEMENTATIONS.md](MISSING_IMPLEMENTATIONS.md) for a detailed list of features that have been completed and those still pending. Major features like scene I/O, object placement, undo/redo, property editing, and asset management are fully implemented and tested.
 
 ## License
 

@@ -4,6 +4,7 @@ module PaceEditor::Core
     property current_project : Project?
     property current_mode : EditorMode = EditorMode::Scene
     property current_tool : Tool = Tool::Select
+    property current_scene : PointClickEngine::Scenes::Scene?
     property selected_object : String?
     property camera_x : Float32 = 0.0f32
     property camera_y : Float32 = 0.0f32
@@ -26,7 +27,6 @@ module PaceEditor::Core
 
     # Additional workflow properties
     # Note: undo_stack and redo_stack are already defined above as Array(EditorAction)
-    property current_mode : EditorMode = EditorMode::Scene
     property selected_character : String?
     property is_dirty : Bool = false
     property dragging : Bool = false
@@ -46,6 +46,12 @@ module PaceEditor::Core
     property auto_save : Bool = true
     property auto_save_interval : Int32 = 300
     property editor_mode : EditorMode = EditorMode::Scene
+    
+    # Reference to the main editor window (set after initialization)
+    property editor_window : EditorWindow?
+    
+    # Editor references
+    property dialog_editor : Editors::DialogEditor?
 
     def initialize
     end
@@ -54,24 +60,12 @@ module PaceEditor::Core
       !@current_project.nil?
     end
 
-    def current_scene : PointClickEngine::Scene?
-      return nil unless project = @current_project
-      return nil unless scene_name = project.current_scene
 
-      scene_path = project.get_scene_file_path(scene_name)
-      return nil unless File.exists?(scene_path)
-
-      PointClickEngine::Scene.from_yaml(File.read(scene_path))
-    rescue
-      nil
-    end
-
-    def save_current_scene(scene : PointClickEngine::Scene)
+    def save_current_scene(scene : PointClickEngine::Scenes::Scene)
       return unless project = @current_project
-      return unless scene_name = project.current_scene
-
-      scene_path = project.get_scene_file_path(scene_name)
-      File.write(scene_path, scene.to_yaml)
+      
+      scene_path = IO::SceneIO.get_scene_file_path(project, scene.name)
+      IO::SceneIO.save_scene(scene, scene_path)
     end
 
     def create_new_project(name : String, path : String) : Bool
@@ -100,6 +94,30 @@ module PaceEditor::Core
 
     def save_project
       @current_project.try(&.save)
+    end
+
+    def create_new_project(name : String, path : String) : Bool
+      begin
+        @current_project = Project.create_new(name, path)
+        @current_mode = EditorMode::Scene
+        clear_selection
+        
+        # Create a default scene
+        scene = PointClickEngine::Scenes::Scene.new("main")
+        scene.hotspots = [] of PointClickEngine::Scenes::Hotspot
+        scene.characters = [] of PointClickEngine::Characters::Character
+        @current_scene = scene
+        
+        # Add scene to project
+        @current_project.not_nil!.add_scene("main.yml")
+        
+        # Save the project
+        save_project
+        true
+      rescue ex
+        puts "Failed to create project: #{ex.message}"
+        false
+      end
     end
 
     def add_undo_action(action : EditorAction)
@@ -230,15 +248,46 @@ module PaceEditor::Core
 
   # Specific action implementations
   class MoveObjectAction < EditorAction
-    def initialize(@object_name : String, @old_pos : RL::Vector2, @new_pos : RL::Vector2)
+    def initialize(@object_name : String, @old_pos : RL::Vector2, @new_pos : RL::Vector2, @editor_state : EditorState)
     end
 
     def undo
-      # Implementation would move object back to old position
+      return unless scene = @editor_state.current_scene
+      
+      # Find and move the object back to old position
+      if hotspot = scene.hotspots.find { |h| h.name == @object_name }
+        hotspot.position = @old_pos
+      elsif character = scene.characters.find { |c| c.name == @object_name }
+        character.position = @old_pos
+      end
+      
+      # Auto-save scene after undo
+      if project = @editor_state.current_project
+        scene_filename = "#{scene.name}.yml"
+        scene_path = File.join(project.scenes_path, scene_filename)
+        PaceEditor::IO::SceneIO.save_scene(scene, scene_path)
+      end
+      
+      # Mark as dirty
+      @editor_state.mark_dirty
     end
 
     def redo
-      # Implementation would move object to new position
+      return unless scene = @editor_state.current_scene
+      
+      # Find and move the object to new position
+      if hotspot = scene.hotspots.find { |h| h.name == @object_name }
+        hotspot.position = @new_pos
+      elsif character = scene.characters.find { |c| c.name == @object_name }
+        character.position = @new_pos
+      end
+      
+      # Auto-save scene after redo
+      if project = @editor_state.current_project
+        scene_filename = "#{scene.name}.yml"
+        scene_path = File.join(project.scenes_path, scene_filename)
+        PaceEditor::IO::SceneIO.save_scene(scene, scene_path)
+      end
     end
 
     def description : String
@@ -247,15 +296,73 @@ module PaceEditor::Core
   end
 
   class CreateObjectAction < EditorAction
-    def initialize(@object_name : String, @object_data : String)
+    def initialize(@object_name : String, @object_type : String, @position : RL::Vector2, @editor_state : EditorState)
+      @object_type = object_type
+      @position = position
     end
 
     def undo
-      # Implementation would delete the object
+      return unless scene = @editor_state.current_scene
+      
+      # Remove the created object
+      case @object_type
+      when "hotspot"
+        scene.hotspots.reject! { |h| h.name == @object_name }
+      when "character"
+        scene.characters.reject! { |c| c.name == @object_name }
+      end
+      
+      # Clear selection if this object was selected
+      if @editor_state.selected_object == @object_name
+        @editor_state.selected_object = nil
+      end
+      
+      # Auto-save scene
+      if project = @editor_state.current_project
+        scene_filename = "#{scene.name}.yml"
+        scene_path = File.join(project.scenes_path, scene_filename)
+        PaceEditor::IO::SceneIO.save_scene(scene, scene_path)
+      end
     end
 
     def redo
-      # Implementation would recreate the object
+      return unless scene = @editor_state.current_scene
+      
+      # Recreate the object
+      case @object_type
+      when "hotspot"
+        hotspot = PointClickEngine::Scenes::Hotspot.new(
+          name: @object_name,
+          position: @position,
+          size: RL::Vector2.new(64.0_f32, 64.0_f32)
+        )
+        hotspot.cursor_type = PointClickEngine::Scenes::Hotspot::CursorType::Hand
+        hotspot.visible = true
+        hotspot.description = "New hotspot"
+        scene.hotspots << hotspot
+      when "character"
+        character = PointClickEngine::Characters::NPC.new(
+          @object_name,
+          @position,
+          RL::Vector2.new(32.0_f32, 64.0_f32)
+        )
+        character.description = "New character"
+        character.walking_speed = 100.0_f32
+        character.state = PointClickEngine::Characters::CharacterState::Idle
+        character.direction = PointClickEngine::Characters::Direction::Right
+        character.mood = PointClickEngine::Characters::NPCMood::Neutral
+        scene.characters << character
+      end
+      
+      # Select the recreated object
+      @editor_state.selected_object = @object_name
+      
+      # Auto-save scene
+      if project = @editor_state.current_project
+        scene_filename = "#{scene.name}.yml"
+        scene_path = File.join(project.scenes_path, scene_filename)
+        PaceEditor::IO::SceneIO.save_scene(scene, scene_path)
+      end
     end
 
     def description : String

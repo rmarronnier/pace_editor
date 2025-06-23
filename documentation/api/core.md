@@ -137,13 +137,32 @@ Returns the full path to an asset file.
 
 **Returns:** Full file path
 
-##### `export_game(output_path : String, include_source : Bool = false)`
+##### `export_game(output_path : String, include_source : Bool = false) : ValidationResult`
 
-Exports the project as a playable game.
+Exports the project as a playable game compatible with Point & Click Engine v1.0. Performs comprehensive validation before export.
 
 **Parameters:**
-- `output_path` - Where to export the game
-- `include_source` - Whether to include Crystal source files
+- `output_path` - Where to export the game (can be a directory path or end with .zip for archive)
+- `include_source` - Whether to include Crystal source files (currently unused)
+
+**Returns:** `ValidationResult` containing any errors or warnings encountered during export
+
+**Export Process:**
+1. Creates a `GameConfig` from project settings
+2. Validates the entire project structure
+3. If validation passes, exports the game with proper structure
+4. Returns validation results for UI feedback
+
+**Example:**
+```crystal
+result = project.export_game("/path/to/output/my_game.zip")
+if result.valid?
+  puts "Export successful!"
+else
+  puts "Export failed with errors:"
+  puts result.to_s
+end
+```
 
 ---
 

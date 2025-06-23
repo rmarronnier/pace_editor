@@ -1,6 +1,8 @@
 /docs/
 /lib/
 /bin/
+/spec/support/assets/
+/assets/
 /.shards/
 *.dwarf
 

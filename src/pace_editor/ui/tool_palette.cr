@@ -91,17 +91,39 @@ module PaceEditor::UI
       y += 20
 
       if UIHelpers.button(5, y, 70, 22, "Add BG")
-        # Add background
+        # Show background selector dialog
+        if editor_window = @state.editor_window
+          if scene_editor = editor_window.scene_editor
+            scene_editor.show_background_selector
+          end
+        end
       end
       y += 25
 
       if UIHelpers.button(5, y, 70, 22, "Add Char")
-        # Add character
+        create_character
       end
       y += 25
 
       if UIHelpers.button(5, y, 70, 22, "Add Spot")
-        # Add hotspot
+        add_hotspot
+      end
+    end
+    
+    private def add_hotspot
+      if scene = @state.current_scene
+        # Create a new hotspot at viewport center
+        new_hotspot = PointClickEngine::Scenes::Hotspot.new(
+          "hotspot_#{Time.utc.to_unix}",
+          RL::Vector2.new(x: 350, y: 250),
+          RL::Vector2.new(x: 100, y: 100)
+        )
+        new_hotspot.description = "New hotspot"
+        new_hotspot.cursor_type = :hand
+        scene.hotspots << new_hotspot
+        @state.selected_object = new_hotspot.name
+        @state.save_current_scene(scene)
+        @state.mark_dirty
       end
     end
 
@@ -154,10 +176,18 @@ module PaceEditor::UI
 
     # Character tool actions
     private def create_character
-      puts "🎭 Creating new character..."
-      puts "   ✓ Character creation dialog would open here"
-      puts "   ✓ This button is working!"
-      # In a real implementation, this would open a character creation dialog
+      if scene = @state.current_scene
+        # Create a new character at viewport center
+        new_char = PointClickEngine::Characters::NPC.new(
+          "character_#{Time.utc.to_unix}",
+          RL::Vector2.new(x: 400, y: 300),
+          RL::Vector2.new(x: 64, y: 128)
+        )
+        scene.add_character(new_char)
+        @state.selected_object = new_char.name
+        @state.save_current_scene(scene)
+        @state.mark_dirty
+      end
     end
 
     private def edit_animations
@@ -174,10 +204,11 @@ module PaceEditor::UI
 
     # Dialog tool actions
     private def create_dialog_node
-      puts "💬 Creating new dialog node..."
-      puts "   ✓ Dialog node creation dialog would open here"
-      puts "   ✓ This button is working!"
-      # In a real implementation, this would create a new dialog node
+      if dialog_editor = @state.dialog_editor
+        dialog_editor.create_new_node
+      else
+        puts "Error: Dialog editor not initialized"
+      end
     end
 
     private def connect_dialog_nodes

@@ -1,20 +1,50 @@
 require "raylib-cr/rlgl"
+require "../ui/dialog_node_dialog"
+require "../ui/dialog_preview_window"
 
 module PaceEditor::Editors
   # Dialog editor for creating and editing dialog trees
   class DialogEditor
-    property current_dialog : PointClickEngine::DialogTree? = nil
+    property current_dialog : PointClickEngine::Characters::Dialogue::DialogTree? = nil
     property selected_node : String? = nil
     property camera_offset : RL::Vector2 = RL::Vector2.new(x: 0, y: 0)
     property node_positions : Hash(String, RL::Vector2) = {} of String => RL::Vector2
     property dragging_node : String? = nil
     property drag_start : RL::Vector2? = nil
+    
+    # Connection state
+    property connecting_mode : Bool = false
+    property source_node : String? = nil
+    property connection_preview_pos : RL::Vector2? = nil
+    
+    @node_dialog : UI::DialogNodeDialog
+    @preview_window : UI::DialogPreviewWindow
+    @last_click_time : Int64? = nil
 
     def initialize(@state : Core::EditorState)
+      @node_dialog = UI::DialogNodeDialog.new(@state)
+      @preview_window = UI::DialogPreviewWindow.new(@state)
+      @state.dialog_editor = self
     end
 
     def update
-      handle_node_interaction
+      @node_dialog.update
+      @preview_window.update
+      unless @node_dialog.visible || @preview_window.visible
+        handle_node_interaction
+        
+        # Update connection preview if in connection mode
+        if @connecting_mode
+          mouse_pos = RL.get_mouse_position
+          editor_x = Core::EditorWindow::TOOL_PALETTE_WIDTH
+          editor_y = Core::EditorWindow::MENU_HEIGHT + 40
+          canvas_pos = RL::Vector2.new(
+            x: mouse_pos.x - editor_x - @camera_offset.x,
+            y: mouse_pos.y - editor_y - @camera_offset.y
+          )
+          update_connection_preview(canvas_pos)
+        end
+      end
     end
 
     def draw
@@ -32,24 +62,33 @@ module PaceEditor::Editors
       else
         draw_no_dialog_message(editor_x, editor_y, editor_width, editor_height)
       end
+      
+      # Draw node dialog and preview window on top
+      @node_dialog.draw
+      @preview_window.draw
     end
 
-    private def get_current_dialog : PointClickEngine::DialogTree?
+    private def get_current_dialog : PointClickEngine::Characters::Dialogue::DialogTree?
       return @current_dialog if @current_dialog
 
       # Try to load a dialog from the current project
       if project = @state.current_project
         dialog_files = Dir.glob(File.join(project.dialogs_path, "*.yml"))
         if !dialog_files.empty?
-          @current_dialog = PointClickEngine::DialogTree.load_from_file(dialog_files.first)
-          initialize_node_positions(@current_dialog.not_nil!)
+          begin
+            yaml_content = File.read(dialog_files.first)
+            @current_dialog = PointClickEngine::Characters::Dialogue::DialogTree.from_yaml(yaml_content)
+            initialize_node_positions(@current_dialog.not_nil!)
+          rescue ex
+            puts "Error loading dialog: #{ex.message}"
+          end
         end
       end
 
       @current_dialog
     end
 
-    private def draw_dialog_workspace(dialog : PointClickEngine::DialogTree, x : Int32, y : Int32, width : Int32, height : Int32)
+    private def draw_dialog_workspace(dialog : PointClickEngine::Characters::Dialogue::DialogTree, x : Int32, y : Int32, width : Int32, height : Int32)
       # Draw dialog canvas background
       RL.draw_rectangle(x, y, width, height, RL::Color.new(r: 35, g: 35, b: 35, a: 255))
 
@@ -62,6 +101,9 @@ module PaceEditor::Editors
 
       # Draw connections between nodes
       draw_node_connections(dialog, x, y)
+      
+      # Draw connection preview if in connection mode
+      draw_connection_preview
 
       # Draw dialog nodes
       draw_dialog_nodes(dialog, x, y)
@@ -91,7 +133,7 @@ module PaceEditor::Editors
       end
     end
 
-    private def draw_node_connections(dialog : PointClickEngine::DialogTree, offset_x : Int32, offset_y : Int32)
+    private def draw_node_connections(dialog : PointClickEngine::Characters::Dialogue::DialogTree, offset_x : Int32, offset_y : Int32)
       dialog.nodes.each do |node_id, node|
         start_pos = @node_positions[node_id]? || RL::Vector2.new(x: 100, y: 100)
         start_center = RL::Vector2.new(
@@ -131,14 +173,14 @@ module PaceEditor::Editors
       end
     end
 
-    private def draw_dialog_nodes(dialog : PointClickEngine::DialogTree, offset_x : Int32, offset_y : Int32)
+    private def draw_dialog_nodes(dialog : PointClickEngine::Characters::Dialogue::DialogTree, offset_x : Int32, offset_y : Int32)
       dialog.nodes.each do |node_id, node|
         position = @node_positions[node_id]? || RL::Vector2.new(x: 100, y: 100)
         draw_dialog_node(node, position, node_id == @selected_node)
       end
     end
 
-    private def draw_dialog_node(node : PointClickEngine::DialogNode, position : RL::Vector2, selected : Bool)
+    private def draw_dialog_node(node : PointClickEngine::Characters::Dialogue::DialogNode, position : RL::Vector2, selected : Bool)
       node_width = 150
       node_height = 80
 
@@ -157,13 +199,18 @@ module PaceEditor::Editors
       # Node title
       title_text = node.id.size > 15 ? node.id[0...12] + "..." : node.id
       RL.draw_text(title_text, position.x.to_i + 5, position.y.to_i + 5, 12, RL::WHITE)
+      
+      # Character name (if present)
+      if char_name = node.character_name
+        RL.draw_text(char_name, position.x.to_i + 5, position.y.to_i + 18, 10, RL::YELLOW)
+      end
 
       # Node text preview
       preview_text = node.text.size > 40 ? node.text[0...37] + "..." : node.text
       lines = wrap_text(preview_text, 16)
       lines.each_with_index do |line, index|
         break if index >= 3 # Max 3 lines
-        RL.draw_text(line, position.x.to_i + 5, position.y.to_i + 20 + index * 15, 10, RL::LIGHTGRAY)
+        RL.draw_text(line, position.x.to_i + 5, position.y.to_i + 30 + index * 12, 10, RL::LIGHTGRAY)
       end
 
       # Choice count indicator
@@ -196,8 +243,9 @@ module PaceEditor::Editors
       end
       button_x += 70
 
-      if draw_toolbar_button("Connect", button_x, y + 5)
-        # Start connection mode
+      connect_button_color = @connecting_mode ? RL::DARKGREEN : RL::LIGHTGRAY
+      if draw_toolbar_button("Connect", button_x, y + 5, connect_button_color)
+        toggle_connection_mode
       end
       button_x += 70
 
@@ -245,15 +293,47 @@ module PaceEditor::Editors
         y: mouse_pos.y - editor_y - @camera_offset.y
       )
 
-      # Handle node selection and dragging
+      # Handle double click to edit node
+      if RL.mouse_button_pressed?(RL::MouseButton::Left) && @selected_node
+        # Check for double click
+        current_time = Time.utc.to_unix_ms
+        if last_time = @last_click_time
+          if (current_time - last_time) < 500
+            # Double click detected
+            if node = @current_dialog.try(&.nodes[@selected_node.not_nil!]?)
+              @node_dialog.show(node)
+            end
+          end
+        end
+        @last_click_time = current_time
+      end
+      
+      # Handle node selection and dragging (or connection)
       if RL.mouse_button_pressed?(RL::MouseButton::Left)
         clicked_node = find_node_at_position(canvas_pos)
         if clicked_node
-          @selected_node = clicked_node
-          @dragging_node = clicked_node
-          @drag_start = canvas_pos
+          if @connecting_mode
+            if @source_node
+              # Complete connection to target node
+              complete_connection_to_node(clicked_node)
+            else
+              # Start connection from source node
+              start_connection_from_node(clicked_node)
+            end
+          else
+            # Normal selection and dragging
+            @selected_node = clicked_node
+            @dragging_node = clicked_node
+            @drag_start = canvas_pos
+          end
         else
-          @selected_node = nil
+          if @connecting_mode
+            # Cancel connection if clicking on empty space
+            @source_node = nil
+            @connection_preview_pos = nil
+          else
+            @selected_node = nil
+          end
         end
       elsif RL.mouse_button_down?(RL::MouseButton::Left) && @dragging_node && @drag_start
         # Update node position while dragging
@@ -294,7 +374,7 @@ module PaceEditor::Editors
       nil
     end
 
-    private def initialize_node_positions(dialog : PointClickEngine::DialogTree)
+    private def initialize_node_positions(dialog : PointClickEngine::Characters::Dialogue::DialogTree)
       @node_positions.clear
 
       # Simple layout: arrange nodes in a grid
@@ -337,7 +417,7 @@ module PaceEditor::Editors
       lines
     end
 
-    private def draw_toolbar_button(text : String, x : Int32, y : Int32) : Bool
+    private def draw_toolbar_button(text : String, x : Int32, y : Int32, base_color : RL::Color = RL::Color.new(r: 80, g: 80, b: 80, a: 255)) : Bool
       width = 70
       height = 30
 
@@ -345,7 +425,7 @@ module PaceEditor::Editors
       is_hover = mouse_pos.x >= x && mouse_pos.x <= x + width &&
                  mouse_pos.y >= y && mouse_pos.y <= y + height
 
-      bg_color = is_hover ? RL::Color.new(r: 100, g: 100, b: 100, a: 255) : RL::Color.new(r: 80, g: 80, b: 80, a: 255)
+      bg_color = is_hover ? RL::Color.new(r: base_color.r + 20, g: base_color.g + 20, b: base_color.b + 20, a: 255) : base_color
 
       RL.draw_rectangle(x, y, width, height, bg_color)
       RL.draw_rectangle_lines(x, y, width, height, RL::LIGHTGRAY)
@@ -374,20 +454,11 @@ module PaceEditor::Editors
       is_hover && RL.mouse_button_pressed?(RL::MouseButton::Left)
     end
 
-    private def create_new_node
+    def create_new_node
       return unless dialog = @current_dialog
-
-      # Create new dialog node
-      node_id = "node_#{Time.utc.to_unix_ms}"
-      new_node = PointClickEngine::DialogNode.new(node_id, "New dialog text")
-
-      dialog.nodes[node_id] = new_node
-
-      # Position new node
-      @node_positions[node_id] = RL::Vector2.new(x: 100, y: 100)
-      @selected_node = node_id
-
-      save_current_dialog
+      
+      # Show dialog for creating new node
+      @node_dialog.show(nil)
     end
 
     private def delete_selected_node
@@ -411,30 +482,98 @@ module PaceEditor::Editors
       return unless project = @state.current_project
 
       # Create new dialog tree
-      @current_dialog = PointClickEngine::DialogTree.new
-      @current_dialog.not_nil!.name = "New Dialog"
+      @current_dialog = PointClickEngine::Characters::Dialogue::DialogTree.new("new_dialog")
 
       # Create initial node
-      start_node = PointClickEngine::DialogNode.new("start", "Hello! This is the start of a new dialog.")
-      @current_dialog.not_nil!.nodes["start"] = start_node
+      start_node = PointClickEngine::Characters::Dialogue::DialogNode.new("start", "Hello! This is the start of a new dialog.")
+      @current_dialog.not_nil!.add_node(start_node)
 
       initialize_node_positions(@current_dialog.not_nil!)
       save_current_dialog
     end
 
-    private def test_dialog_tree
+    private def toggle_connection_mode
+      @connecting_mode = !@connecting_mode
+      if !@connecting_mode
+        # Cancel any pending connection
+        @source_node = nil
+        @connection_preview_pos = nil
+      end
+    end
+    
+    private def start_connection_from_node(node_id : String)
+      return unless @connecting_mode
+      
+      @source_node = node_id
+      puts "Starting connection from node: #{node_id}"
+    end
+    
+    private def complete_connection_to_node(target_node_id : String)
+      return unless @connecting_mode
+      return unless source_id = @source_node
       return unless dialog = @current_dialog
-      puts "Testing dialog tree: #{dialog.name}"
-      puts "Nodes: #{dialog.nodes.size}"
+      return unless source_node = dialog.nodes[source_id]?
+      return unless target_node = dialog.nodes[target_node_id]?
+      
+      # Don't connect to the same node
+      return if source_id == target_node_id
+      
+      # Create a new choice that connects to the target node
+      choice_text = "Continue..."  # Default choice text
+      new_choice = PointClickEngine::Characters::Dialogue::DialogChoice.new(choice_text, target_node_id)
+      
+      source_node.choices << new_choice
+      
+      puts "Connected #{source_id} to #{target_node_id}"
+      
+      # Reset connection state
+      @source_node = nil
+      @connection_preview_pos = nil
+      @connecting_mode = false
+      
+      # Save the dialog
+      save_current_dialog
+    end
+    
+    private def update_connection_preview(mouse_pos : RL::Vector2)
+      return unless @connecting_mode && @source_node
+      @connection_preview_pos = mouse_pos
+    end
+    
+    private def draw_connection_preview
+      return unless @connecting_mode
+      return unless source_id = @source_node
+      return unless preview_pos = @connection_preview_pos
+      return unless source_pos = @node_positions[source_id]?
+      
+      # Calculate source node center
+      node_width = 120
+      node_height = 60
+      source_center = RL::Vector2.new(
+        source_pos.x + node_width / 2,
+        source_pos.y + node_height / 2
+      )
+      
+      # Draw preview line
+      RL.draw_line_ex(source_center, preview_pos, 2, RL::YELLOW)
+      
+      # Draw arrowhead at preview position
+      RL.draw_circle(preview_pos.x.to_i, preview_pos.y.to_i, 4, RL::YELLOW)
     end
 
-    private def save_current_dialog
+    private def test_dialog_tree
+      return unless dialog = @current_dialog
+      @preview_window.show(dialog)
+    end
+
+    def save_current_dialog
       return unless dialog = @current_dialog
       return unless project = @state.current_project
 
       # Save dialog to project
       dialog_file = File.join(project.dialogs_path, "#{dialog.name.downcase.gsub(" ", "_")}.yml")
-      dialog.save_to_file(dialog_file)
+      File.write(dialog_file, dialog.to_yaml)
+      @state.mark_dirty
     end
   end
 end

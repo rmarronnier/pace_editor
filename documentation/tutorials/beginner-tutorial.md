@@ -369,6 +369,45 @@ Your finished game should have:
 - Review the [User Interface Guide](../guides/user-interface.md)
 - Look at other [example projects](../examples/)
 
+## Exporting Your Game
+
+Now let's export your game so others can play it!
+
+### Step 1: Prepare for Export
+
+1. Save your project one final time with **Ctrl+S**
+2. Select **File → Export Game** from the menu
+
+### Step 2: Review Validation
+
+PACE automatically validates your project:
+
+1. The Export Dialog shows validation results
+2. Check for any **errors** (red) - these must be fixed
+3. Review any **warnings** (yellow) - optional but recommended
+4. Common checks include:
+   - All referenced files exist
+   - Scene backgrounds are present
+   - Asset paths are correct
+
+### Step 3: Configure Export
+
+1. **Export Path**: Choose where to save
+   - Browse to select a folder
+   - Or add `.zip` for archive format
+2. **Format**: Folder or ZIP archive
+3. Click **Export**
+
+### Step 4: Test Exported Game
+
+Your exported game includes:
+- `game_config.yaml` - Game settings
+- `scenes/` - All scene files  
+- `assets/` - All game assets
+- `main.cr` - Entry point
+
+To run: `crystal run main.cr`
+
 ## Next Steps
 
 Congratulations! You've created your first complete adventure game. Here's what to learn next:

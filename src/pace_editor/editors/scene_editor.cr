@@ -1,4 +1,6 @@
 require "raylib-cr/rlgl"
+require "../ui/background_selector_dialog"
+require "../ui/object_type_dialog"
 
 module PaceEditor::Editors
   # Scene editor combining best features from both implementations
@@ -11,15 +13,22 @@ module PaceEditor::Editors
     # Dragging state
     @dragging : Bool = false
     @drag_start : RL::Vector2
+    @drag_start_object_pos : RL::Vector2?
     @selection_rect : RL::Rectangle?
     @selecting : Bool = false
     @camera_dragging : Bool = false
     @last_mouse_pos : RL::Vector2
+    
+    # Dialogs
+    @background_selector : UI::BackgroundSelectorDialog
+    @object_type_dialog : UI::ObjectTypeDialog
 
     def initialize(@state : Core::EditorState, @viewport_x : Int32, @viewport_y : Int32,
                    @viewport_width : Int32, @viewport_height : Int32)
       @drag_start = RL::Vector2.new(0, 0)
       @last_mouse_pos = RL::Vector2.new(0, 0)
+      @background_selector = UI::BackgroundSelectorDialog.new(@state)
+      @object_type_dialog = UI::ObjectTypeDialog.new(@state)
     end
 
     def update_viewport(x : Int32, y : Int32, width : Int32, height : Int32)
@@ -30,6 +39,13 @@ module PaceEditor::Editors
     end
 
     def update
+      # Update dialogs first
+      @background_selector.update
+      @object_type_dialog.update
+      
+      # Don't process scene input if dialog is open
+      return if @background_selector.visible || @object_type_dialog.visible
+      
       mouse_pos = RL.get_mouse_position
       viewport_bounds = RL::Rectangle.new(
         x: @viewport_x.to_f32,
@@ -76,8 +92,27 @@ module PaceEditor::Editors
       RLGL.scale_f(@state.zoom, @state.zoom, 1)
 
       # Draw scene background
-      if scene.background_path && scene.background
-        RL.draw_texture(scene.background.not_nil!, 0, 0, RL::WHITE)
+      if bg_path = scene.background_path
+        # Try to load background if not already loaded
+        if scene.background.nil?
+          if project = @state.current_project
+            full_path = File.join(project.project_path, bg_path)
+            if File.exists?(full_path)
+              begin
+                texture = RL.load_texture(full_path)
+                scene.background = texture
+              rescue ex
+                puts "Failed to load background texture: #{ex.message}"
+              end
+            end
+          end
+        end
+        
+        if bg = scene.background
+          RL.draw_texture(bg, 0, 0, RL::WHITE)
+        else
+          draw_background_placeholder
+        end
       else
         draw_background_placeholder
       end
@@ -106,6 +141,15 @@ module PaceEditor::Editors
       # Draw viewport border
       RL.draw_rectangle_lines(@viewport_x, @viewport_y, @viewport_width, @viewport_height,
         UI::UIHelpers::PANEL_BORDER_COLOR)
+      
+      # Draw dialogs on top
+      @background_selector.draw
+      @object_type_dialog.draw
+    end
+    
+    # Show the background selector dialog
+    def show_background_selector
+      @background_selector.show
     end
 
     private def handle_camera_controls
@@ -231,6 +275,17 @@ module PaceEditor::Editors
       if RL.mouse_button_pressed?(RL::MouseButton::Left)
         @dragging = true
         @drag_start = world_pos
+        
+        # Capture the object's starting position for undo
+        if obj_name = @state.selected_object
+          if scene = @state.current_scene
+            if hotspot = scene.hotspots.find { |h| h.name == obj_name }
+              @drag_start_object_pos = hotspot.position
+            elsif character = scene.characters.find { |c| c.name == obj_name }
+              @drag_start_object_pos = character.position
+            end
+          end
+        end
       end
 
       if @dragging && RL.mouse_button_down?(RL::MouseButton::Left)
@@ -273,14 +328,163 @@ module PaceEditor::Editors
 
       if @dragging && RL.mouse_button_released?(RL::MouseButton::Left)
         @dragging = false
+        
+        # Create undo action if the object actually moved
+        if obj_name = @state.selected_object
+          if scene = @state.current_scene
+            if start_pos = @drag_start_object_pos
+              current_pos = RL::Vector2.new(0.0_f32, 0.0_f32)
+              
+              if hotspot = scene.hotspots.find { |h| h.name == obj_name }
+                current_pos = hotspot.position
+              elsif character = scene.characters.find { |c| c.name == obj_name }
+                current_pos = character.position
+              end
+              
+              # Only create undo action if position actually changed
+              if start_pos.x != current_pos.x || start_pos.y != current_pos.y
+                move_action = Core::MoveObjectAction.new(obj_name, start_pos, current_pos, @state)
+                @state.add_undo_action(move_action)
+              end
+            end
+          end
+        end
+        
+        @drag_start_object_pos = nil
       end
     end
 
     private def handle_place_tool(world_pos : RL::Vector2)
       if RL.mouse_button_pressed?(RL::MouseButton::Left)
-        # Placeholder for object placement
-        puts "Place object at #{world_pos.x}, #{world_pos.y}"
+        return unless scene = @state.current_scene
+        
+        # Show object type selection dialog
+        @object_type_dialog.show do |object_type|
+          place_object_at(object_type, world_pos)
+        end
       end
+    end
+    
+    private def place_object_at(object_type : UI::ObjectTypeDialog::ObjectType, world_pos : RL::Vector2)
+      return unless scene = @state.current_scene
+      
+      snapped_pos = RL::Vector2.new(
+        snap_to_grid(world_pos.x.to_i).to_f32,
+        snap_to_grid(world_pos.y.to_i).to_f32
+      )
+      
+      case object_type
+      when UI::ObjectTypeDialog::ObjectType::Hotspot
+        place_hotspot_at(snapped_pos)
+      when UI::ObjectTypeDialog::ObjectType::Character
+        place_character_at(snapped_pos)
+      when UI::ObjectTypeDialog::ObjectType::Item
+        place_item_at(snapped_pos)
+      when UI::ObjectTypeDialog::ObjectType::Trigger
+        place_trigger_at(snapped_pos)
+      end
+    end
+    
+    private def place_hotspot_at(position : RL::Vector2)
+      return unless scene = @state.current_scene
+      
+      hotspot_count = scene.hotspots.size + 1
+      hotspot_name = "hotspot_#{hotspot_count}"
+      
+      # Ensure unique name
+      while scene.hotspots.any? { |h| h.name == hotspot_name }
+        hotspot_count += 1
+        hotspot_name = "hotspot_#{hotspot_count}"
+      end
+      
+      # Create new hotspot
+      hotspot = PointClickEngine::Scenes::Hotspot.new(
+        name: hotspot_name,
+        position: position,
+        size: RL::Vector2.new(64.0_f32, 64.0_f32)
+      )
+      
+      # Set default properties
+      hotspot.cursor_type = PointClickEngine::Scenes::Hotspot::CursorType::Hand
+      hotspot.visible = true
+      hotspot.description = "New hotspot"
+      
+      # Add to scene
+      scene.hotspots << hotspot
+      
+      # Select the new hotspot
+      @state.selected_object = hotspot.name
+      
+      # Create undo action for creation
+      create_action = Core::CreateObjectAction.new(hotspot_name, "hotspot", hotspot.position, @state)
+      @state.add_undo_action(create_action)
+      
+      # Mark as dirty and save
+      @state.is_dirty = true
+      save_scene
+      
+      puts "Created hotspot: #{hotspot_name} at #{position.x.to_i}, #{position.y.to_i}"
+    end
+    
+    private def place_character_at(position : RL::Vector2)
+      return unless scene = @state.current_scene
+      
+      character_count = scene.characters.size + 1
+      character_name = "character_#{character_count}"
+      
+      # Ensure unique name
+      while scene.characters.any? { |c| c.name == character_name }
+        character_count += 1
+        character_name = "character_#{character_count}"
+      end
+      
+      # Create new NPC character
+      character = PointClickEngine::Characters::NPC.new(
+        character_name,
+        position,
+        RL::Vector2.new(32.0_f32, 64.0_f32)
+      )
+      
+      # Set default properties
+      character.description = "New character"
+      character.state = PointClickEngine::Characters::CharacterState::Idle
+      character.direction = PointClickEngine::Characters::Direction::Down
+      character.mood = PointClickEngine::Characters::NPCMood::Neutral
+      
+      # Add to scene
+      scene.characters << character
+      
+      # Select the new character
+      @state.selected_object = character.name
+      
+      # Create undo action for creation
+      create_action = Core::CreateObjectAction.new(character_name, "character", character.position, @state)
+      @state.add_undo_action(create_action)
+      
+      # Mark as dirty and save
+      @state.is_dirty = true
+      save_scene
+      
+      puts "Created character: #{character_name} at #{position.x.to_i}, #{position.y.to_i}"
+    end
+    
+    private def place_item_at(position : RL::Vector2)
+      # TODO: Implement item placement when item system is ready
+      puts "Item placement not yet implemented"
+    end
+    
+    private def place_trigger_at(position : RL::Vector2)
+      # TODO: Implement trigger placement when trigger system is ready
+      puts "Trigger placement not yet implemented"
+    end
+    
+    private def save_scene
+      return unless scene = @state.current_scene
+      return unless project = @state.current_project
+      
+      scene_filename = "#{scene.name}.yml"
+      scene_path = File.join(project.scenes_path, scene_filename)
+      PaceEditor::IO::SceneIO.save_scene(scene, scene_path)
     end
 
     private def handle_delete_tool(world_pos : RL::Vector2)
@@ -320,9 +524,57 @@ module PaceEditor::Editors
     end
 
     private def handle_character_tool(world_pos : RL::Vector2)
-      # Placeholder for character placement
       if RL.mouse_button_pressed?(RL::MouseButton::Left)
-        puts "Place character at #{world_pos.x}, #{world_pos.y}"
+        return unless scene = @state.current_scene
+        
+        # Generate unique character name
+        char_count = scene.characters.size + 1
+        char_name = "character_#{char_count}"
+        
+        # Ensure unique name
+        while scene.characters.any? { |c| c.name == char_name }
+          char_count += 1
+          char_name = "character_#{char_count}"
+        end
+        
+        # Create new NPC character at clicked position
+        character = PointClickEngine::Characters::NPC.new(
+          char_name,
+          RL::Vector2.new(
+            snap_to_grid(world_pos.x.to_i).to_f32,
+            snap_to_grid(world_pos.y.to_i).to_f32
+          ),
+          RL::Vector2.new(32.0_f32, 64.0_f32)  # Default character size
+        )
+        
+        # Set default properties
+        character.description = "New character"
+        character.walking_speed = 100.0_f32
+        character.state = PointClickEngine::Characters::CharacterState::Idle
+        character.direction = PointClickEngine::Characters::Direction::Right
+        character.mood = PointClickEngine::Characters::NPCMood::Neutral
+        
+        # Add to scene
+        scene.characters << character
+        
+        # Select the new character
+        @state.selected_object = character.name
+        
+        # Create undo action for creation
+        create_action = Core::CreateObjectAction.new(char_name, "character", character.position, @state)
+        @state.add_undo_action(create_action)
+        
+        # Mark as dirty
+        @state.is_dirty = true
+        
+        # Save scene automatically
+        if project = @state.current_project
+          scene_filename = "#{scene.name}.yml"
+          scene_path = File.join(project.scenes_path, scene_filename)
+          PaceEditor::IO::SceneIO.save_scene(scene, scene_path)
+        end
+        
+        puts "Created character: #{char_name} at #{world_pos.x.to_i}, #{world_pos.y.to_i}"
       end
     end
 
@@ -330,6 +582,23 @@ module PaceEditor::Editors
       # Delete selected objects
       if RL.key_pressed?(RL::KeyboardKey::Delete)
         delete_selected_objects
+      end
+
+      # Undo (Ctrl+Z)
+      if RL.key_down?(RL::KeyboardKey::LeftControl) && RL.key_pressed?(RL::KeyboardKey::Z)
+        if @state.can_undo?
+          @state.undo
+          puts "Undo performed"
+        end
+      end
+
+      # Redo (Ctrl+Y or Ctrl+Shift+Z)
+      if (RL.key_down?(RL::KeyboardKey::LeftControl) && RL.key_pressed?(RL::KeyboardKey::Y)) ||
+         (RL.key_down?(RL::KeyboardKey::LeftControl) && RL.key_down?(RL::KeyboardKey::LeftShift) && RL.key_pressed?(RL::KeyboardKey::Z))
+        if @state.can_redo?
+          @state.redo
+          puts "Redo performed"
+        end
       end
 
       # Select all
@@ -588,7 +857,7 @@ module PaceEditor::Editors
       )
     end
 
-    private def get_object_at(scene, world_pos : RL::Vector2) : String?
+    def get_object_at(scene, world_pos : RL::Vector2) : String?
       # Check hotspots
       scene.hotspots.reverse.each do |hotspot|
         if world_pos.x >= hotspot.position.x && world_pos.x <= hotspot.position.x + hotspot.size.x &&
@@ -652,7 +921,7 @@ module PaceEditor::Editors
       end
     end
 
-    private def delete_selected_objects
+    def delete_selected_objects
       return unless scene = @state.current_scene
 
       # Delete selected hotspots
@@ -696,12 +965,12 @@ module PaceEditor::Editors
       end
     end
 
-    private def snap_to_grid(value : Int32) : Int32
+    def snap_to_grid(value : Int32) : Int32
       return value unless @state.snap_to_grid
-      ((value / @state.grid_size).round * @state.grid_size).to_i
+      ((value.to_f / @state.grid_size + 0.5).to_i * @state.grid_size)
     end
 
-    private def mouse_in_viewport?(mouse_pos : RL::Vector2) : Bool
+    def mouse_in_viewport?(mouse_pos : RL::Vector2) : Bool
       mouse_pos.x >= @viewport_x && mouse_pos.x <= @viewport_x + @viewport_width &&
         mouse_pos.y >= @viewport_y && mouse_pos.y <= @viewport_y + @viewport_height
     end

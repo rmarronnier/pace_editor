@@ -5,6 +5,7 @@ module PaceEditor::UI
       @show_new_dialog = false
       @show_open_dialog = false
       @show_about_dialog = false
+      @show_scene_dialog = false
       @show_file_menu = false
       @show_edit_menu = false
       @show_view_menu = false
@@ -142,7 +143,7 @@ module PaceEditor::UI
 
     private def draw_file_dropdown(x : Int32, y : Int32)
       dropdown_width = 140
-      dropdown_height = 120
+      dropdown_height = 216  # Increased for scene menu items
 
       # Dropdown background
       RL.draw_rectangle(x, y, dropdown_width, dropdown_height, RL::Color.new(r: 70, g: 70, b: 70, a: 255))
@@ -168,6 +169,33 @@ module PaceEditor::UI
       # Save Project
       if draw_dropdown_item("Save Project", x, current_y, dropdown_width, item_height, "Ctrl+S")
         @state.save_project
+        @show_file_menu = false
+      end
+      current_y += item_height
+
+      # Separator
+      RL.draw_line(x + 5, current_y + 8, x + dropdown_width - 5, current_y + 8, RL::GRAY)
+      current_y += 16
+
+      # New Scene (only enabled if project is loaded)
+      project_loaded = !@state.current_project.nil?
+      if draw_dropdown_item("New Scene", x, current_y, dropdown_width, item_height, "", project_loaded)
+        create_new_scene
+        @show_file_menu = false
+      end
+      current_y += item_height
+
+      # Load Scene (only enabled if project is loaded)
+      if draw_dropdown_item("Load Scene", x, current_y, dropdown_width, item_height, "", project_loaded)
+        @show_scene_dialog = true
+        @show_file_menu = false
+      end
+      current_y += item_height
+
+      # Save Scene (only enabled if scene is loaded)
+      scene_loaded = !@state.current_scene.nil?
+      if draw_dropdown_item("Save Scene", x, current_y, dropdown_width, item_height, "Ctrl+S", scene_loaded)
+        save_current_scene
         @show_file_menu = false
       end
       current_y += item_height
@@ -274,6 +302,63 @@ module PaceEditor::UI
       is_hover && enabled && RL.mouse_button_pressed?(RL::MouseButton::Left)
     end
 
+    private def create_new_scene
+      return unless project = @state.current_project
+
+      # Generate unique scene name
+      scene_count = 1
+      scene_name = "scene_#{scene_count}"
+      while project.scenes.includes?("#{scene_name}.yml")
+        scene_count += 1
+        scene_name = "scene_#{scene_count}"
+      end
+
+      # Create a simple default scene
+      scene = PointClickEngine::Scenes::Scene.new(scene_name)
+      scene.hotspots = [] of PointClickEngine::Scenes::Hotspot
+      scene.characters = [] of PointClickEngine::Characters::Character
+      scene.scale = 1.0_f32
+      scene.enable_pathfinding = true
+      scene.navigation_cell_size = 16
+      
+      # Set it as the current scene
+      @state.current_scene = scene
+      
+      # Save scene to file
+      scene_path = File.join(project.scenes_path, "#{scene_name}.yml")
+      if PaceEditor::IO::SceneIO.save_scene(scene, scene_path)
+        # Add scene to project
+        project.add_scene("#{scene_name}.yml")
+        
+        # Save project to persist scene list
+        project.save
+        
+        # Switch to scene mode
+        @state.current_mode = EditorMode::Scene
+        
+        puts "Created and saved new scene: #{scene_name}"
+      else
+        puts "Failed to save new scene"
+      end
+    end
+
+    private def save_current_scene
+      return unless project = @state.current_project
+      return unless scene = @state.current_scene
+      
+      # Build scene file path
+      scene_filename = "#{scene.name}.yml"
+      scene_path = File.join(project.scenes_path, scene_filename)
+      
+      # Save the scene
+      if PaceEditor::IO::SceneIO.save_scene(scene, scene_path)
+        puts "Saved scene: #{scene.name}"
+        @state.is_dirty = false
+      else
+        puts "Failed to save scene: #{scene.name}"
+      end
+    end
+
     private def draw_button(text : String, x : Int32, y : Int32, color : RL::Color) : Bool
       width = RL.measure_text(text, 16) + 10
       height = 25
@@ -296,6 +381,8 @@ module PaceEditor::UI
         draw_new_project_dialog
       elsif @show_open_dialog
         draw_open_project_dialog
+      elsif @show_scene_dialog
+        draw_scene_dialog
       elsif @show_about_dialog
         draw_about_dialog
       end
@@ -549,6 +636,82 @@ module PaceEditor::UI
 
     def show_open_project_dialog
       @show_open_dialog = true
+    end
+
+    private def draw_scene_dialog
+      return unless project = @state.current_project
+      
+      dialog_width = 600
+      dialog_height = 400
+      dialog_x = (Core::EditorWindow::WINDOW_WIDTH - dialog_width) // 2
+      dialog_y = (Core::EditorWindow::WINDOW_HEIGHT - dialog_height) // 2
+
+      # Modal overlay
+      RL.draw_rectangle(0, 0, Core::EditorWindow::WINDOW_WIDTH, Core::EditorWindow::WINDOW_HEIGHT,
+        RL::Color.new(r: 0, g: 0, b: 0, a: 128))
+
+      # Dialog background
+      RL.draw_rectangle(dialog_x, dialog_y, dialog_width, dialog_height,
+        RL::Color.new(r: 80, g: 80, b: 80, a: 255))
+      RL.draw_rectangle_lines(dialog_x, dialog_y, dialog_width, dialog_height, RL::WHITE)
+
+      # Title
+      RL.draw_text("Load Scene", dialog_x + 20, dialog_y + 20, 20, RL::WHITE)
+
+      # List scenes
+      y = dialog_y + 60
+      
+      # Get scene files
+      scene_files = project.scenes.select { |f| f.ends_with?(".yml") }
+      
+      if scene_files.empty?
+        RL.draw_text("No scenes found. Create a new scene from the File menu.", dialog_x + 20, y, 14, RL::LIGHTGRAY)
+      else
+        scene_files.each do |scene_file|
+          scene_name = scene_file.chomp(".yml")
+          
+          # Highlight current scene
+          is_current = @state.current_scene && @state.current_scene.not_nil!.name == scene_name
+          text_color = is_current ? RL::GREEN : RL::WHITE
+          
+          if draw_file_item(scene_name, dialog_x + 20, y, dialog_width - 40)
+            # Load this scene
+            load_scene(scene_file)
+            @show_scene_dialog = false
+          end
+          
+          # Show current indicator
+          if is_current
+            RL.draw_text("(current)", dialog_x + dialog_width - 100, y + 2, 12, RL::GREEN)
+          end
+          
+          y += 25
+        end
+      end
+
+      # Cancel button
+      if draw_button("Cancel", dialog_x + dialog_width - 80, dialog_y + dialog_height - 40, RL::RED)
+        @show_scene_dialog = false
+      end
+
+      # Handle Escape key
+      if RL.key_pressed?(RL::KeyboardKey::Escape)
+        @show_scene_dialog = false
+      end
+    end
+
+    private def load_scene(scene_filename : String)
+      return unless project = @state.current_project
+      
+      scene_path = File.join(project.scenes_path, scene_filename)
+      
+      if scene = PaceEditor::IO::SceneIO.load_scene(scene_path)
+        @state.current_scene = scene
+        @state.current_mode = EditorMode::Scene
+        puts "Loaded scene: #{scene.name}"
+      else
+        puts "Failed to load scene: #{scene_filename}"
+      end
     end
 
     private def create_new_project

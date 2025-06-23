@@ -212,21 +212,20 @@ describe PaceEditor::Core::Project do
         project.export_game(export_path)
 
         # Check export structure
-        export_dir = File.join(project.exports_path, "game_export")
-        Dir.exists?(export_dir).should be_true
+        Dir.exists?(export_path).should be_true
 
         # Check main game file was created
-        main_file = File.join(export_dir, "main.cr")
+        main_file = File.join(export_path, "main.cr")
         File.exists?(main_file).should be_true
 
-        shard_file = File.join(export_dir, "shard.yml")
+        shard_file = File.join(export_path, "shard.yml")
         File.exists?(shard_file).should be_true
 
         # Check assets were copied
-        Dir.exists?(File.join(export_dir, "assets")).should be_true
-        Dir.exists?(File.join(export_dir, "scenes")).should be_true
-        Dir.exists?(File.join(export_dir, "scripts")).should be_true
-        Dir.exists?(File.join(export_dir, "dialogs")).should be_true
+        Dir.exists?(File.join(export_path, "assets")).should be_true
+        Dir.exists?(File.join(export_path, "scenes")).should be_true
+        Dir.exists?(File.join(export_path, "scripts")).should be_true
+        Dir.exists?(File.join(export_path, "dialogs")).should be_true
       ensure
         FileUtils.rm_rf(test_dir) if Dir.exists?(test_dir)
       end

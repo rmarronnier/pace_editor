@@ -1,5 +1,6 @@
 require "yaml"
 require "file_utils"
+require "../export/game_exporter"
 
 module PaceEditor::Core
   # Represents a game project with all its assets and configuration
@@ -156,83 +157,43 @@ module PaceEditor::Core
     end
 
     def get_scene_file_path(scene_name : String) : String
-      File.join(@scenes_path, scene_name)
+      File.join(@scenes_path, "#{scene_name}.yaml")
     end
 
     def get_asset_file_path(asset_name : String, category : String) : String
       File.join(@assets_path, category, asset_name)
     end
+    
+    # Convenience methods for asset directory paths
+    def backgrounds_path : String
+      File.join(@assets_path, "backgrounds")
+    end
+    
+    def characters_path : String
+      File.join(@assets_path, "characters")
+    end
+    
+    def sounds_path : String
+      File.join(@assets_path, "sounds")
+    end
+    
+    def music_path : String
+      File.join(@assets_path, "music")
+    end
+    
+    def ui_path : String
+      File.join(@assets_path, "ui")
+    end
 
     def export_game(output_path : String, include_source : Bool = false)
-      export_dir = File.join(@exports_path, "game_export")
-      Dir.mkdir_p(export_dir)
-
-      # Copy all assets
-      FileUtils.cp_r(@assets_path, export_dir)
-      FileUtils.cp_r(@scenes_path, export_dir)
-      FileUtils.cp_r(@scripts_path, export_dir)
-      FileUtils.cp_r(@dialogs_path, export_dir)
-
-      # Create main game file
-      create_game_launcher(export_dir)
-
-      # Optionally create archive
-      if output_path.ends_with?(".zip")
-        create_game_archive(export_dir, output_path)
-      end
-    end
-
-    private def create_game_launcher(export_dir : String)
-      launcher_code = generate_launcher_code
-      File.write(File.join(export_dir, "main.cr"), launcher_code)
-      File.write(File.join(export_dir, "shard.yml"), generate_shard_yml)
-    end
-
-    private def generate_launcher_code : String
-      <<-CODE
-      require "point_click_engine"
-
-      # Auto-generated game launcher
-      engine = PointClickEngine::Game.new(
-        window_width: #{@window_width},
-        window_height: #{@window_height},
-        title: "#{@title}"
-      )
-
-      # Load scenes
-      #{@scenes.map { |scene| "# TODO: Load scene from scenes/#{scene}" }.join("\n")}
-
-      # Set initial scene
-      #{"engine.change_scene(\"#{@current_scene.not_nil!.split('.').first}\") if !#{@current_scene.nil?}" unless @current_scene.nil?}
-
-      engine.run
-      CODE
-    end
-
-    private def generate_shard_yml : String
-      <<-YAML
-      name: #{@name.downcase.gsub(/[^a-z0-9_]/, "_")}
-      version: #{@version}
+      # Use the new game exporter
+      exporter = PaceEditor::Export::GameExporter.new(self)
+      validation_result = exporter.export(output_path)
       
-      dependencies:
-        point_click_engine:
-          github: point-click-engine/point-click-engine
-      
-      targets:
-        main:
-          main: main.cr
-      
-      crystal: ">= 1.16.3"
-      YAML
+      # Return validation result so UI can show errors
+      validation_result
     end
 
-    private def create_game_archive(source_dir : String, output_path : String)
-      # This would create a ZIP archive of the game
-      # For now, just copy to output directory
-      if File.dirname(output_path) != source_dir
-        FileUtils.cp_r(source_dir, File.dirname(output_path))
-      end
-    end
 
     def save_project
       setup_project_structure
@@ -254,8 +215,5 @@ module PaceEditor::Core
       project
     end
 
-    def get_scene_file_path(scene_name : String) : String
-      File.join(@scenes_path, "#{scene_name}.yaml")
-    end
   end
 end

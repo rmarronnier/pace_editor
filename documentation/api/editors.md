@@ -1,6 +1,6 @@
 # Editors API Reference
 
-The Editors API provides specialized editing interfaces for different aspects of game creation including scenes, characters, hotspots, and dialogs.
+The Editors API provides specialized editing interfaces for different aspects of game creation including scenes, characters, hotspots, dialogs, quests, items, and cutscenes.
 
 ## Module: PaceEditor::Editors
 
@@ -333,6 +333,198 @@ Runs the dialog tree in preview mode for testing.
 
 ---
 
+### Class: QuestEditor
+
+The Quest Editor provides a visual interface for creating and managing game quests with objectives, prerequisites, and rewards.
+
+#### Properties
+
+```crystal
+property state : EditorState              # Reference to editor state
+property quest_list : Array(Quest)        # All quests in the project
+property selected_quest : Quest?          # Currently selected quest
+property selected_objective : QuestObjective? # Currently selected objective
+```
+
+#### Instance Methods
+
+##### `initialize(state : EditorState)`
+
+Creates a new quest editor.
+
+##### `update`
+
+Updates the quest editor, handling quest and objective management.
+
+##### `draw`
+
+Renders the quest editor interface with quest hierarchy and properties.
+
+##### `create_quest(name : String, category : String = "main") : Quest`
+
+Creates a new quest.
+
+**Parameters:**
+- `name` - Quest display name
+- `category` - Quest category (main, side, or hidden)
+
+**Returns:** The created quest
+
+##### `add_objective(quest : Quest, description : String) : QuestObjective`
+
+Adds an objective to a quest.
+
+**Parameters:**
+- `quest` - Parent quest
+- `description` - Objective description
+
+**Returns:** The created objective
+
+##### `set_objective_condition(objective : QuestObjective, condition : Condition)`
+
+Sets the completion condition for an objective.
+
+**Parameters:**
+- `objective` - Target objective
+- `condition` - Completion condition
+
+##### `add_reward(quest : Quest, reward : Reward)`
+
+Adds a reward to a quest.
+
+**Parameters:**
+- `quest` - Target quest
+- `reward` - Reward to add
+
+---
+
+### Class: ItemEditor
+
+The Item Editor manages inventory items with properties, states, and interactions.
+
+#### Properties
+
+```crystal
+property state : EditorState              # Reference to editor state
+property items : Hash(String, Item)       # All items in the project
+property selected_item : Item?            # Currently selected item
+```
+
+#### Instance Methods
+
+##### `initialize(state : EditorState)`
+
+Creates a new item editor.
+
+##### `update`
+
+Updates the item editor with item property management.
+
+##### `draw`
+
+Renders the item editor interface.
+
+##### `create_item(name : String, display_name : String) : Item`
+
+Creates a new inventory item.
+
+**Parameters:**
+- `name` - Internal item ID
+- `display_name` - Display name
+
+**Returns:** The created item
+
+##### `set_item_icon(item : Item, icon_path : String)`
+
+Sets the icon for an item.
+
+**Parameters:**
+- `item` - Target item
+- `icon_path` - Path to icon image
+
+##### `add_item_state(item : Item, state_name : String, icon_path : String?)`
+
+Adds a state to an item.
+
+**Parameters:**
+- `item` - Target item
+- `state_name` - State name
+- `icon_path` - Optional icon for this state
+
+##### `create_item_combination(item1 : Item, item2 : Item, result : Item)`
+
+Creates an item combination rule.
+
+**Parameters:**
+- `item1` - First item
+- `item2` - Second item
+- `result` - Resulting item
+
+---
+
+### Class: CutsceneEditor
+
+The Cutscene Editor provides timeline-based editing for creating cinematic sequences.
+
+#### Properties
+
+```crystal
+property state : EditorState              # Reference to editor state
+property cutscenes : Array(Cutscene)      # All cutscenes in the project
+property current_cutscene : Cutscene?     # Currently edited cutscene
+property timeline_position : Float32      # Current position in timeline
+property playing : Bool                   # Whether preview is playing
+```
+
+#### Instance Methods
+
+##### `initialize(state : EditorState)`
+
+Creates a new cutscene editor.
+
+##### `update`
+
+Updates the cutscene editor with timeline manipulation.
+
+##### `draw`
+
+Renders the cutscene editor with timeline interface.
+
+##### `create_cutscene(name : String) : Cutscene`
+
+Creates a new cutscene.
+
+**Parameters:**
+- `name` - Cutscene name
+
+**Returns:** The created cutscene
+
+##### `add_action(cutscene : Cutscene, action : CutsceneAction, time : Float32)`
+
+Adds an action to the cutscene timeline.
+
+**Parameters:**
+- `cutscene` - Target cutscene
+- `action` - Action to add
+- `time` - Time in seconds
+
+##### `play_preview`
+
+Starts cutscene preview playback.
+
+##### `stop_preview`
+
+Stops cutscene preview.
+
+##### `seek_to(time : Float32)`
+
+Seeks to a specific time in the timeline.
+
+**Parameters:**
+- `time` - Time in seconds
+
+---
+
 ## Supporting Classes
 
 ### SceneObject
@@ -415,6 +607,86 @@ class DialogChoice
 end
 ```
 
+### Quest
+
+Represents a game quest with objectives and rewards.
+
+```crystal
+class Quest
+  property id : String                    # Unique quest ID
+  property name : String                  # Display name
+  property description : String           # Quest description
+  property category : String              # Quest category (main/side/hidden)
+  property objectives : Array(QuestObjective) # Quest objectives
+  property rewards : Array(Reward)        # Quest rewards
+  property prerequisites : Array(String)  # Required quest IDs
+  property auto_start : Bool              # Whether quest starts automatically
+end
+```
+
+### QuestObjective
+
+Represents a single objective within a quest.
+
+```crystal
+class QuestObjective
+  property id : String                    # Unique objective ID
+  property description : String           # Objective description
+  property completion_conditions : Condition # Conditions to complete
+  property optional : Bool                # Whether objective is optional
+  property hidden : Bool                  # Whether objective is hidden initially
+end
+```
+
+### Item
+
+Represents an inventory item.
+
+```crystal
+class Item
+  property name : String                  # Internal item ID
+  property display_name : String          # Display name
+  property description : String           # Item description
+  property icon_path : String             # Path to item icon
+  property states : Hash(String, ItemState) # Item states
+  property current_state : String         # Current state name
+  property stackable : Bool               # Whether item can stack
+  property max_stack : Int32              # Maximum stack size
+  property quest_item : Bool              # Whether item is quest item
+  property consumable : Bool              # Whether item is consumable
+  property combinable_with : Array(String) # Items this can combine with
+end
+```
+
+### Cutscene
+
+Represents a cinematic sequence.
+
+```crystal
+class Cutscene
+  property id : String                    # Unique cutscene ID
+  property name : String                  # Cutscene name
+  property actions : Array(CutsceneAction) # Timeline actions
+  property duration : Float32             # Total duration in seconds
+  property skippable : Bool               # Whether player can skip
+  property trigger_condition : Condition? # Optional trigger condition
+end
+```
+
+### CutsceneAction
+
+Represents an action in a cutscene timeline.
+
+```crystal
+class CutsceneAction
+  property type : String                  # Action type
+  property time : Float32                 # Time in seconds
+  property duration : Float32             # Duration for timed actions
+  property target : String?               # Target object/character
+  property parameters : Hash(String, String) # Action parameters
+end
+```
+
 ## Usage Examples
 
 ### Scene Editing
@@ -490,6 +762,94 @@ dialog_editor.connect_nodes(greeting, response2, "Just browsing")
 dialog_editor.save_dialog_tree
 ```
 
+### Quest Creation
+
+```crystal
+# Create quest editor
+quest_editor = PaceEditor::Editors::QuestEditor.new(state)
+
+# Create a main quest
+main_quest = quest_editor.create_quest("Find the Lost Artifact", "main")
+
+# Add objectives
+obj1 = quest_editor.add_objective(main_quest, "Talk to the village elder")
+obj2 = quest_editor.add_objective(main_quest, "Search the ancient ruins")
+obj3 = quest_editor.add_objective(main_quest, "Retrieve the artifact")
+
+# Set completion conditions
+quest_editor.set_objective_condition(obj1, Condition.new(
+  type: "flag",
+  name: "talked_to_elder",
+  value: true
+))
+
+# Add rewards
+quest_editor.add_reward(main_quest, Reward.new(
+  type: "item",
+  name: "ancient_key"
+))
+```
+
+### Item Management
+
+```crystal
+# Create item editor
+item_editor = PaceEditor::Editors::ItemEditor.new(state)
+
+# Create inventory items
+key = item_editor.create_item("ancient_key", "Ancient Key")
+item_editor.set_item_icon(key, "assets/items/key_ancient.png")
+
+# Create combinable items
+rope = item_editor.create_item("rope", "Sturdy Rope")
+hook = item_editor.create_item("hook", "Metal Hook")
+grappling_hook = item_editor.create_item("grappling_hook", "Grappling Hook")
+
+# Set up item combination
+item_editor.create_item_combination(rope, hook, grappling_hook)
+```
+
+### Cutscene Creation
+
+```crystal
+# Create cutscene editor
+cutscene_editor = PaceEditor::Editors::CutsceneEditor.new(state)
+
+# Create opening cutscene
+opening = cutscene_editor.create_cutscene("intro_cutscene")
+
+# Add camera pan
+pan_action = CutsceneAction.new(
+  type: "camera_pan",
+  time: 0.0,
+  duration: 3.0,
+  parameters: {"from_x" => "0", "from_y" => "0", "to_x" => "500", "to_y" => "300"}
+)
+cutscene_editor.add_action(opening, pan_action, 0.0)
+
+# Add character entrance
+enter_action = CutsceneAction.new(
+  type: "character_move",
+  time: 2.0,
+  duration: 2.0,
+  target: "hero",
+  parameters: {"from_x" => "-100", "to_x" => "400", "y" => "400"}
+)
+cutscene_editor.add_action(opening, enter_action, 2.0)
+
+# Add dialog
+dialog_action = CutsceneAction.new(
+  type: "show_dialog",
+  time: 4.0,
+  duration: 3.0,
+  parameters: {"text" => "At last, I've found the ancient temple...", "speaker" => "Hero"}
+)
+cutscene_editor.add_action(opening, dialog_action, 4.0)
+
+# Preview the cutscene
+cutscene_editor.play_preview
+```
+
 ## Editor Integration
 
 All editors work together through the shared `EditorState`:
@@ -509,7 +869,40 @@ when .hotspot?
 when .dialog?
   dialog_editor.update
   dialog_editor.draw
+when .quest?
+  quest_editor.update
+  quest_editor.draw
+when .item?
+  item_editor.update
+  item_editor.draw
+when .cutscene?
+  cutscene_editor.update
+  cutscene_editor.draw
 end
 ```
 
 The editors automatically sync with the current project and maintain consistency across mode switches.
+
+## Validation Integration
+
+All editors support validation for export compatibility:
+
+```crystal
+# Validate before saving
+if quest_editor.validate_quest(quest).valid?
+  quest_editor.save_quest(quest)
+else
+  # Show validation errors to user
+end
+
+# Validate entire project
+validator = PaceEditor::Validation::ProjectValidator.new(state.current_project)
+result = validator.validate_for_export(game_config)
+
+if result.has_errors?
+  # Display errors in UI
+  result.errors.each do |error|
+    puts "Error: #{error.message} at #{error.path}"
+  end
+end
+```

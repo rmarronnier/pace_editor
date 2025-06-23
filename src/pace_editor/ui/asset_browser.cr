@@ -192,9 +192,135 @@ module PaceEditor::UI
     end
 
     private def import_asset
-      # In a real implementation, this would open a file dialog
-      # For now, just show a message
-      puts "Import asset dialog would open here"
+      return unless project = @state.current_project
+      
+      # Define supported file extensions by category
+      supported_extensions = case @current_category
+      when "backgrounds", "characters"
+        [".png", ".jpg", ".jpeg", ".bmp", ".tga"]
+      when "sounds", "music"
+        [".wav", ".ogg", ".mp3"]
+      when "scripts"
+        [".lua", ".cr"]
+      else
+        [] of String
+      end
+      
+      if supported_extensions.empty?
+        puts "No supported file types for category: #{@current_category}"
+        return
+      end
+      
+      # Simple file import dialog using system commands
+      # This is a basic implementation - a full implementation would use native file dialogs
+      puts "Opening file dialog for #{@current_category}..."
+      puts "Supported formats: #{supported_extensions.join(", ")}"
+      
+      # For now, implement a basic file finder that looks in common directories
+      import_from_common_directories(project, supported_extensions)
+    end
+    
+    private def import_from_common_directories(project : Core::Project, extensions : Array(String))
+      # Look for assets in common directories relative to the project
+      search_paths = [
+        File.join(project.project_path, "assets"),
+        File.join(project.project_path, "resources"), 
+        File.join(project.project_path, @current_category),
+        File.join(Dir.current, "assets"),
+        File.join(Dir.current, "sample_assets"),
+      ]
+      
+      found_files = [] of String
+      
+      search_paths.each do |search_path|
+        next unless Dir.exists?(search_path)
+        
+        Dir.glob(File.join(search_path, "**/*")).each do |file_path|
+          next unless File.file?(file_path)
+          
+          extension = File.extname(file_path).downcase
+          if extensions.includes?(extension)
+            found_files << file_path
+          end
+        end
+      end
+      
+      if found_files.empty?
+        puts "No #{@current_category} assets found in common directories."
+        puts "Try placing assets in: #{File.join(project.project_path, "assets")}"
+        return
+      end
+      
+      # Show found files and import the first few
+      puts "Found #{found_files.size} potential assets:"
+      found_files[0, 5].each_with_index do |file, index|
+        filename = File.basename(file)
+        puts "  #{index + 1}. #{filename}"
+        
+        # Import this file
+        import_file_to_project(file, project)
+      end
+      
+      if found_files.size > 5
+        puts "  ... and #{found_files.size - 5} more files"
+      end
+    end
+    
+    private def import_file_to_project(source_path : String, project : Core::Project)
+      filename = File.basename(source_path)
+      
+      # Determine target directory based on category
+      target_dir = case @current_category
+      when "backgrounds"
+        project.backgrounds_path
+      when "characters"
+        project.characters_path
+      when "sounds"
+        project.sounds_path
+      when "music"
+        project.music_path
+      when "scripts"
+        project.scripts_path
+      else
+        File.join(project.project_path, @current_category)
+      end
+      
+      # Create target directory if it doesn't exist
+      Dir.mkdir_p(target_dir) unless Dir.exists?(target_dir)
+      
+      target_path = File.join(target_dir, filename)
+      
+      # Check if file already exists
+      if File.exists?(target_path)
+        puts "Asset already exists: #{filename}"
+        return
+      end
+      
+      begin
+        # Copy file to project
+        File.copy(source_path, target_path)
+        puts "Imported asset: #{filename} -> #{File.basename(target_dir)}"
+        
+        # Add to project's asset list
+        case @current_category
+        when "backgrounds"
+          project.backgrounds << target_path unless project.backgrounds.includes?(target_path)
+        when "characters"
+          project.characters << target_path unless project.characters.includes?(target_path)
+        when "sounds"
+          project.sounds << target_path unless project.sounds.includes?(target_path)
+        when "music"
+          project.music << target_path unless project.music.includes?(target_path)
+        when "scripts"
+          project.scripts << target_path unless project.scripts.includes?(target_path)
+        end
+        
+        # Mark project as dirty to trigger save
+        @state.is_dirty = true
+        
+      rescue ex
+        puts "Error importing asset #{filename}: #{ex.message}"
+      end
     end
   end
 end
