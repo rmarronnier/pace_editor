@@ -5,6 +5,16 @@ require "point_click_engine"
 
 # RL alias is already defined in point_click_engine
 
+# Core foundation modules (required first)
+require "./pace_editor/constants"
+require "./pace_editor/errors"
+
+# Core system modules
+require "./pace_editor/core/dirty_flag"
+require "./pace_editor/core/camera_manager"
+require "./pace_editor/core/selection_manager"
+require "./pace_editor/core/texture_cache"
+
 # Require models module
 require "./pace_editor/models"
 

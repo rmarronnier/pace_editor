@@ -6,13 +6,18 @@ require "../../src/pace_editor/editors/character_editor"
 require "../../src/pace_editor/editors/dialog_editor"
 
 describe "Complete Editor Workflow Integration" do
-  let(:state) { PaceEditor::Core::EditorState.new }
-  let(:project) { create_full_test_project }
-  let(:scene) { create_full_test_scene }
+  temp_dir = ""
+  project_dir = ""
 
-  # All editors
-  let(:scene_editor) { PaceEditor::Editors::SceneEditor.new(state) }
-  let(:hotspot_editor) { PaceEditor::Editors::HotspotEditor.new(state) }
+  before_each do
+    temp_dir = File.tempname
+    project_dir = File.join(temp_dir, "workflow_test_project")
+    Dir.mkdir_p(temp_dir)
+  end
+
+  after_each do
+    FileUtils.rm_rf(temp_dir) if Dir.exists?(temp_dir)
+  end
   let(:character_editor) { PaceEditor::Editors::CharacterEditor.new(state) }
   let(:dialog_editor) { PaceEditor::Editors::DialogEditor.new(state) }
 

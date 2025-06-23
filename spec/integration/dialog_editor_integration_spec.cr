@@ -270,12 +270,12 @@ describe "Dialog Editor Integration" do
 
       # Test different mood values
       moods = [
-        PointClickEngine::Characters::NPCMood::Friendly,
-        PointClickEngine::Characters::NPCMood::Neutral,
-        PointClickEngine::Characters::NPCMood::Hostile,
-        PointClickEngine::Characters::NPCMood::Happy,
-        PointClickEngine::Characters::NPCMood::Sad,
-        PointClickEngine::Characters::NPCMood::Angry,
+        PointClickEngine::Characters::CharacterMood::Friendly,
+        PointClickEngine::Characters::CharacterMood::Neutral,
+        PointClickEngine::Characters::CharacterMood::Hostile,
+        PointClickEngine::Characters::CharacterMood::Happy,
+        PointClickEngine::Characters::CharacterMood::Sad,
+        PointClickEngine::Characters::CharacterMood::Angry,
       ]
 
       moods.each do |mood|
@@ -297,7 +297,7 @@ describe "Dialog Editor Integration" do
       npc.position.y.should eq(150.0_f32)
 
       # Plus NPC-specific properties - NPCs have mood
-      npc.mood.should be_a(PointClickEngine::Characters::NPCMood)
+      npc.mood.should be_a(PointClickEngine::Characters::CharacterMood)
     end
   end
 
