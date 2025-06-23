@@ -89,7 +89,7 @@ describe "Background Import Workflow" do
 
       # 5. Verify import functionality would work
       # (Actual file selection and import would require UI interaction)
-      
+
       # Simulate successful import by setting file manually
       dialog.selected_file = test_bg_file
 
@@ -216,7 +216,7 @@ describe "Background Import Workflow" do
 
       # Test with non-existent file
       dialog.selected_file = "/non/existent/path/image.png"
-      
+
       # Dialog should handle this gracefully (no crash)
       dialog.should_not be_nil
     end
@@ -259,7 +259,7 @@ describe "Background Import Workflow" do
       )
 
       scene = PointClickEngine::Scenes::Scene.new("property_test")
-      
+
       state = PaceEditor::Core::EditorState.new
       state.current_project = project
       state.current_scene = scene

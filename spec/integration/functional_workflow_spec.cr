@@ -26,7 +26,7 @@ describe "Functional Workflow Tests" do
       )
 
       scene = PointClickEngine::Scenes::Scene.new("test_scene")
-      
+
       state = PaceEditor::Core::EditorState.new
       state.current_project = project
       state.current_scene = scene
@@ -71,14 +71,14 @@ describe "Functional Workflow Tests" do
       # Test for background import dialog that should exist but doesn't
       # In a full implementation, pressing 'B' or clicking background button
       # should open a file browser dialog
-      
+
       # EXPECTED: Background import dialog with file browser
       # ACTUAL: No such dialog exists in current codebase
-      
+
       # This test documents the missing functionality
       asset_browser = PaceEditor::UI::AssetBrowser.new(state)
       asset_browser.should_not be_nil
-      
+
       # TODO: Asset browser should have background import functionality
       # Currently it only displays existing assets, not import new ones
     end
@@ -104,7 +104,7 @@ describe "Functional Workflow Tests" do
       Dir.mkdir_p(bg_dir)
       bg_file = File.join(bg_dir, "main_room.png")
       File.write(bg_file, "fake_background_data")
-      
+
       scene.background_path = "backgrounds/main_room.png"
 
       # 4. Add hotspot
@@ -137,7 +137,7 @@ describe "Functional Workflow Tests" do
       # 7. Create dialog for NPC
       dialogs_dir = File.join(project_dir, "assets", "dialogs")
       Dir.mkdir_p(dialogs_dir)
-      
+
       dialog_tree = PointClickEngine::Characters::Dialogue::DialogTree.new("shopkeeper_dialog")
       greeting_node = PointClickEngine::Characters::Dialogue::DialogNode.new(
         "greeting",
@@ -168,19 +168,19 @@ describe "Functional Workflow Tests" do
 
     it "detects missing scene creation helpers" do
       state = PaceEditor::Core::EditorState.new
-      
+
       # EXPECTED: Scene creation wizard or dialog
       # ACTUAL: Scenes must be created programmatically
-      
+
       # EXPECTED: Template scenes or scene presets
       # ACTUAL: No scene templates available
-      
+
       # EXPECTED: Asset assignment workflow
       # ACTUAL: Must manually set paths as strings
-      
+
       # This test documents these missing features
       state.current_scene.should be_nil
-      
+
       # TODO: Implement scene creation workflow
       # TODO: Implement asset assignment workflow
       # TODO: Implement scene templates
@@ -207,7 +207,7 @@ describe "Functional Workflow Tests" do
       # - No walking animation setup
       # - No idle animation configuration
       # - No talking animation setup
-      
+
       # Character system exists but animation workflow is incomplete
     end
   end
@@ -363,7 +363,7 @@ describe "Functional Workflow Tests" do
 
       # MISSING FUNCTIONALITY DETECTED:
       # - Paint tool has no implementation
-      # - Zoom tool has no implementation  
+      # - Zoom tool has no implementation
       # - Delete tool may not work properly
       # - No undo/redo for tool actions
       # - No tool-specific options/settings

@@ -34,7 +34,7 @@ describe "Asset Import Workflow" do
       dialog = PaceEditor::UI::AssetImportDialog.new(state)
 
       categories = ["backgrounds", "characters", "sounds", "music", "scripts"]
-      
+
       categories.each do |category|
         dialog.show(category)
         dialog.visible.should be_true
@@ -109,10 +109,10 @@ describe "Asset Import Workflow" do
 
       # Create test files for each category
       test_files = {
-        "room_bg.png" => "fake_png_data",
-        "hero.png" => "fake_character_sprite",
-        "click.wav" => "fake_audio_data",
-        "theme.ogg" => "fake_music_data",
+        "room_bg.png"     => "fake_png_data",
+        "hero.png"        => "fake_character_sprite",
+        "click.wav"       => "fake_audio_data",
+        "theme.ogg"       => "fake_music_data",
         "door_script.lua" => "function on_click() end",
       }
 
@@ -134,10 +134,10 @@ describe "Asset Import Workflow" do
       # 5. Test import for each category
       categories_and_files = {
         "backgrounds" => ["room_bg.png"],
-        "characters" => ["hero.png"],
-        "sounds" => ["click.wav"],
-        "music" => ["theme.ogg"],
-        "scripts" => ["door_script.lua"],
+        "characters"  => ["hero.png"],
+        "sounds"      => ["click.wav"],
+        "music"       => ["theme.ogg"],
+        "scripts"     => ["door_script.lua"],
       }
 
       categories_and_files.each do |category, files|
@@ -192,32 +192,32 @@ describe "Asset Import Workflow" do
       # Test supported extensions for each category
       test_cases = {
         "backgrounds" => {
-          valid: [".png", ".jpg", ".jpeg", ".bmp", ".gif", ".tga"],
-          invalid: [".txt", ".doc", ".mp3", ".wav"]
+          valid:   [".png", ".jpg", ".jpeg", ".bmp", ".gif", ".tga"],
+          invalid: [".txt", ".doc", ".mp3", ".wav"],
         },
         "characters" => {
-          valid: [".png", ".jpg", ".jpeg", ".bmp", ".gif", ".tga"],
-          invalid: [".txt", ".lua", ".ogg", ".mp3"]
+          valid:   [".png", ".jpg", ".jpeg", ".bmp", ".gif", ".tga"],
+          invalid: [".txt", ".lua", ".ogg", ".mp3"],
         },
         "sounds" => {
-          valid: [".wav", ".ogg", ".mp3", ".flac"],
-          invalid: [".png", ".jpg", ".txt", ".lua"]
+          valid:   [".wav", ".ogg", ".mp3", ".flac"],
+          invalid: [".png", ".jpg", ".txt", ".lua"],
         },
         "music" => {
-          valid: [".ogg", ".mp3", ".wav", ".flac"],
-          invalid: [".png", ".txt", ".lua", ".bmp"]
+          valid:   [".ogg", ".mp3", ".wav", ".flac"],
+          invalid: [".png", ".txt", ".lua", ".bmp"],
         },
         "scripts" => {
-          valid: [".lua", ".cr"],
-          invalid: [".png", ".wav", ".txt", ".doc"]
-        }
+          valid:   [".lua", ".cr"],
+          invalid: [".png", ".wav", ".txt", ".doc"],
+        },
       }
 
       test_cases.each do |category, extensions|
         dialog.show(category)
         dialog.asset_category.should eq(category)
-        
-        # Note: Actual file filtering would be tested through the dialog's 
+
+        # Note: Actual file filtering would be tested through the dialog's
         # file list functionality during real usage
         dialog.hide
       end
@@ -278,7 +278,7 @@ describe "Asset Import Workflow" do
 
       # Test with non-existent file
       dialog.selected_files << "/non/existent/path/image.png"
-      
+
       # Dialog should handle this gracefully (no crash)
       dialog.should_not be_nil
     end

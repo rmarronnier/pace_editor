@@ -62,7 +62,7 @@ module PaceEditor::Core
 
       # Initialize UI state for progressive disclosure
       @ui_state = UI::UIState.new
-      
+
       # Initialize progressive UI components
       @progressive_menu = UI::ProgressiveMenu.new(@state, @ui_state)
       @guided_workflow = UI::GuidedWorkflow.new(@state, @ui_state)
@@ -110,7 +110,7 @@ module PaceEditor::Core
 
       # Track mode switch
       @ui_state.track_mode_switch(new_mode)
-      
+
       # Set new mode
       @state.current_mode = new_mode
     end
@@ -149,6 +149,32 @@ module PaceEditor::Core
       @ui_state.track_action("export_dialog_opened")
     end
 
+    def show_project_file_dialog(open : Bool)
+      # Show file dialog for opening or saving projects
+      if open
+        # TODO: Implement file dialog for opening projects
+        puts "Open project file dialog would appear here"
+        @ui_state.track_action("open_project_dialog_shown")
+      else
+        # TODO: Implement file dialog for saving projects
+        puts "Save project as dialog would appear here"
+        @ui_state.track_action("save_as_dialog_shown")
+      end
+    end
+
+    def show_confirm_dialog(title : String, message : String, &callback : -> Nil)
+      # TODO: Implement confirmation dialog
+      puts "Confirm dialog: #{title} - #{message}"
+      puts "Auto-confirming for now..."
+      callback.call
+    end
+
+    def show_animation_editor(character_name : String)
+      # TODO: Implement animation editor
+      puts "Animation editor would open for character: #{character_name}"
+      @ui_state.track_action("animation_editor_opened")
+    end
+
     def run
       # Initialize Raylib
       RL.init_window(@window_width, @window_height, "PACE - Point & Click Adventure Creator Editor")
@@ -156,7 +182,7 @@ module PaceEditor::Core
       RL.set_target_fps(60)
 
       # Main loop
-      while !RL.close_window?
+      while !RL.close_window? && !@state.should_exit
         update
         draw
       end
@@ -175,15 +201,15 @@ module PaceEditor::Core
       # Handle progressive UI input first (highest priority)
       mouse_pos = RL.get_mouse_position
       mouse_clicked = RL.mouse_button_pressed?(RL::MouseButton::Left)
-      
+
       # Check progressive menu input
       if @progressive_menu.handle_input(mouse_pos, mouse_clicked)
-        return  # Input consumed by progressive menu
+        return # Input consumed by progressive menu
       end
-      
+
       # Check guided workflow input
       if @guided_workflow.handle_input(mouse_pos, mouse_clicked)
-        return  # Input consumed by guided workflow
+        return # Input consumed by guided workflow
       end
 
       # Handle global shortcuts
@@ -244,7 +270,7 @@ module PaceEditor::Core
       if @ui_state.get_component_visibility("scene_hierarchy", @state).visible?
         @scene_hierarchy.draw
       end
-      
+
       if @ui_state.get_component_visibility("property_panel", @state).visible?
         @property_panel.draw
       end

@@ -4,7 +4,7 @@ require "../core/editor_state"
 module PaceEditor::UI
   class SceneCreationWizard
     property visible : Bool = false
-    
+
     @step : Int32 = 1
     @max_steps : Int32 = 4
     @scene_name : String = ""
@@ -64,7 +64,7 @@ module PaceEditor::UI
       # Step content
       content_y = dialog_y + 80
       content_height = dialog_height - 160
-      
+
       case @step
       when 1
         draw_step_1_scene_info(dialog_x, content_y, dialog_width, content_height)
@@ -95,11 +95,11 @@ module PaceEditor::UI
       bar_y = y + 50
       bar_width = width - 40
       bar_height = 6
-      
+
       # Background
       RL.draw_rectangle(x + 20, bar_y, bar_width, bar_height,
         RL::Color.new(r: 80, g: 80, b: 80, a: 255))
-      
+
       # Progress
       progress_fill = (bar_width * @step) // @max_steps
       RL.draw_rectangle(x + 20, bar_y, progress_fill, bar_height,
@@ -116,13 +116,13 @@ module PaceEditor::UI
     private def draw_step_1_scene_info(x : Int32, y : Int32, width : Int32, height : Int32)
       # Step title
       RL.draw_text("Scene Information", x + 20, y + 20, 18, RL::WHITE)
-      
+
       current_y = y + 60
 
       # Scene name input
       RL.draw_text("Scene Name:", x + 40, current_y, 14, RL::WHITE)
       current_y += 25
-      
+
       # Name input field
       input_width = width - 80
       draw_text_input("scene_name", @scene_name, x + 40, current_y, input_width, 30)
@@ -147,47 +147,47 @@ module PaceEditor::UI
     private def draw_step_2_template_selection(x : Int32, y : Int32, width : Int32, height : Int32)
       # Step title
       RL.draw_text("Choose Scene Template", x + 20, y + 20, 18, RL::WHITE)
-      
+
       current_y = y + 60
 
       templates = [
         {
-          id: "empty",
-          name: "Empty Scene",
-          description: "Start with a blank scene and add objects manually"
+          id:          "empty",
+          name:        "Empty Scene",
+          description: "Start with a blank scene and add objects manually",
         },
         {
-          id: "room",
-          name: "Room Template",
-          description: "Indoor scene with door hotspot and basic lighting"
+          id:          "room",
+          name:        "Room Template",
+          description: "Indoor scene with door hotspot and basic lighting",
         },
         {
-          id: "outdoor",
-          name: "Outdoor Template", 
-          description: "Outdoor scene with path hotspots and natural elements"
+          id:          "outdoor",
+          name:        "Outdoor Template",
+          description: "Outdoor scene with path hotspots and natural elements",
         },
         {
-          id: "menu",
-          name: "Menu Template",
-          description: "UI scene with buttons and navigation elements"
-        }
+          id:          "menu",
+          name:        "Menu Template",
+          description: "UI scene with buttons and navigation elements",
+        },
       ]
 
       templates.each_with_index do |template, index|
         template_y = current_y + index * 80
         is_selected = @scene_template == template[:id]
-        
+
         # Template card
         card_color = is_selected ? RL::Color.new(r: 70, g: 100, b: 70, a: 255) : RL::Color.new(r: 60, g: 60, b: 60, a: 255)
         border_color = is_selected ? RL::GREEN : RL::GRAY
-        
+
         RL.draw_rectangle(x + 40, template_y, width - 80, 70, card_color)
         RL.draw_rectangle_lines(x + 40, template_y, width - 80, 70, border_color)
-        
+
         # Template info
         RL.draw_text(template[:name], x + 60, template_y + 15, 16, RL::WHITE)
         RL.draw_text(template[:description], x + 60, template_y + 40, 12, RL::LIGHTGRAY)
-        
+
         # Check for click
         mouse_pos = RL.get_mouse_position
         if mouse_pos.x >= x + 40 && mouse_pos.x <= x + width - 40 &&
@@ -201,7 +201,7 @@ module PaceEditor::UI
     private def draw_step_3_background_selection(x : Int32, y : Int32, width : Int32, height : Int32)
       # Step title
       RL.draw_text("Select Background", x + 20, y + 20, 18, RL::WHITE)
-      
+
       current_y = y + 60
 
       # Option to skip
@@ -215,7 +215,7 @@ module PaceEditor::UI
       if @background_list.empty?
         RL.draw_text("No backgrounds available.", x + 40, current_y, 14, RL::LIGHTGRAY)
         current_y += 20
-        
+
         # Import button
         if draw_button("Import Background...", x + 40, current_y, 200, 30)
           if window = @state.editor_window
@@ -241,7 +241,7 @@ module PaceEditor::UI
     private def draw_step_4_scene_settings(x : Int32, y : Int32, width : Int32, height : Int32)
       # Step title
       RL.draw_text("Scene Settings", x + 20, y + 20, 18, RL::WHITE)
-      
+
       current_y = y + 60
 
       # Scene dimensions
@@ -253,7 +253,7 @@ module PaceEditor::UI
       draw_number_input("width", @scene_width, x + 120, current_y, 100, 25)
       current_y += 35
 
-      # Height  
+      # Height
       RL.draw_text("Height:", x + 60, current_y, 12, RL::LIGHTGRAY)
       draw_number_input("height", @scene_height, x + 120, current_y, 100, 25)
       current_y += 50
@@ -261,11 +261,11 @@ module PaceEditor::UI
       # Common presets
       RL.draw_text("Presets:", x + 60, current_y, 12, RL::LIGHTGRAY)
       current_y += 25
-      
+
       presets = [
         {name: "1024x768 (4:3)", width: 1024, height: 768},
         {name: "1280x720 (16:9)", width: 1280, height: 720},
-        {name: "1920x1080 (16:9)", width: 1920, height: 1080}
+        {name: "1920x1080 (16:9)", width: 1920, height: 1080},
       ]
 
       presets.each_with_index do |preset, index|
@@ -293,12 +293,12 @@ module PaceEditor::UI
       # Input background
       RL.draw_rectangle(x, y, width, height, RL::Color.new(r: 40, g: 40, b: 40, a: 255))
       RL.draw_rectangle_lines(x, y, width, height, RL::GRAY)
-      
+
       # Text
       RL.draw_text(value, x + 10, y + (height - 14) // 2, 14, RL::WHITE)
-      
+
       # Cursor (simple implementation)
-      if @step == 1  # Only show cursor on name input step
+      if @step == 1 # Only show cursor on name input step
         cursor_x = x + 10 + RL.measure_text(value, 14)
         RL.draw_line(cursor_x, y + 5, cursor_x, y + height - 5, RL::WHITE)
       end
@@ -308,7 +308,7 @@ module PaceEditor::UI
       # Input background
       RL.draw_rectangle(x, y, width, height, RL::Color.new(r: 40, g: 40, b: 40, a: 255))
       RL.draw_rectangle_lines(x, y, width, height, RL::GRAY)
-      
+
       # Text
       RL.draw_text(value.to_s, x + 10, y + (height - 12) // 2, 12, RL::WHITE)
     end
@@ -321,22 +321,22 @@ module PaceEditor::UI
       # Draw backgrounds
       item_height = 25
       visible_items = height // item_height
-      
+
       @background_list.each_with_index do |bg, index|
         break if index >= visible_items
-        
+
         item_y = y + index * item_height
         is_selected = @selected_background == bg
-        
+
         # Highlight selected
         if is_selected
           RL.draw_rectangle(x + 2, item_y, width - 4, item_height,
             RL::Color.new(r: 70, g: 130, b: 180, a: 255))
         end
-        
+
         # Background name
         RL.draw_text("○ #{bg}", x + 10, item_y + 5, 12, RL::WHITE)
-        
+
         # Check for click
         mouse_pos = RL.get_mouse_position
         if mouse_pos.x >= x && mouse_pos.x <= x + width &&
@@ -358,27 +358,27 @@ module PaceEditor::UI
         scale = [width.to_f / preview.width, height.to_f / preview.height].min
         scaled_width = (preview.width * scale).to_i
         scaled_height = (preview.height * scale).to_i
-        
+
         # Center the image
         preview_x = x + (width - scaled_width) // 2
         preview_y = y + (height - scaled_height) // 2
-        
+
         dest_rect = RL::Rectangle.new(
           x: preview_x.to_f32,
           y: preview_y.to_f32,
           width: scaled_width.to_f32,
           height: scaled_height.to_f32
         )
-        
+
         source_rect = RL::Rectangle.new(
           x: 0.0_f32,
           y: 0.0_f32,
           width: preview.width.to_f32,
           height: preview.height.to_f32
         )
-        
+
         RL.draw_texture_pro(preview, source_rect, dest_rect, RL::Vector2.new(0.0_f32, 0.0_f32), 0.0_f32, RL::WHITE)
-        
+
         # Image info
         info_text = "#{preview.width}x#{preview.height}"
         RL.draw_text(info_text, x + 10, y + height - 20, 12, RL::LIGHTGRAY)
@@ -390,12 +390,12 @@ module PaceEditor::UI
     private def draw_navigation_buttons(x : Int32, y : Int32, width : Int32)
       button_width = 100
       button_height = 30
-      
+
       # Cancel button
       if draw_button("Cancel", x + 20, y, button_width, button_height, RL::LIGHTGRAY)
         hide
       end
-      
+
       # Previous button (only if not on first step)
       if @step > 1
         prev_x = x + width // 2 - button_width - 10
@@ -403,7 +403,7 @@ module PaceEditor::UI
           @step -= 1
         end
       end
-      
+
       # Next/Create button
       next_x = x + width // 2 + 10
       if @step < @max_steps
@@ -429,13 +429,13 @@ module PaceEditor::UI
       bg_color = RL::Color.new(r: 60, g: 60, b: 60, a: 255)
       RL.draw_rectangle(x, y, width, height, bg_color)
       RL.draw_rectangle_lines(x, y, width, height, color)
-      
+
       # Button text
       text_width = RL.measure_text(text, 14)
       text_x = x + (width - text_width) // 2
       text_y = y + (height - 14) // 2
       RL.draw_text(text, text_x, text_y, 14, color)
-      
+
       # Check if clicked
       mouse_pos = RL.get_mouse_position
       if mouse_pos.x >= x && mouse_pos.x <= x + width &&
@@ -444,23 +444,23 @@ module PaceEditor::UI
           return true
         end
       end
-      
+
       false
     end
 
     private def draw_clickable_text(text : String, x : Int32, y : Int32, size : Int32, color : RL::Color) : Bool
       RL.draw_text(text, x, y, size, color)
-      
+
       text_width = RL.measure_text(text, size)
       mouse_pos = RL.get_mouse_position
-      
+
       if mouse_pos.x >= x && mouse_pos.x <= x + text_width &&
          mouse_pos.y >= y && mouse_pos.y <= y + size
         if RL.mouse_button_pressed?(RL::MouseButton::Left)
           return true
         end
       end
-      
+
       false
     end
 
@@ -471,7 +471,7 @@ module PaceEditor::UI
       elsif @step == 4
         handle_scene_settings_input
       end
-      
+
       # Handle escape key
       if RL.key_pressed?(RL::KeyboardKey::Escape)
         hide
@@ -514,7 +514,7 @@ module PaceEditor::UI
       when 2
         !@scene_template.empty?
       when 3
-        true  # Background is optional
+        true # Background is optional
       else
         false
       end
@@ -526,10 +526,10 @@ module PaceEditor::UI
 
     private def refresh_background_list
       return unless project = @state.current_project
-      
+
       @background_list.clear
       bg_dir = File.join(project.project_path, "assets", "backgrounds")
-      
+
       if Dir.exists?(bg_dir)
         Dir.glob(File.join(bg_dir, "*")).each do |file_path|
           if File.file?(file_path)
@@ -544,9 +544,9 @@ module PaceEditor::UI
 
     private def load_background_preview(background : String)
       return unless project = @state.current_project
-      
+
       unload_preview_texture
-      
+
       bg_path = File.join(project.project_path, "assets", "backgrounds", background)
       if File.exists?(bg_path)
         begin
@@ -571,7 +571,7 @@ module PaceEditor::UI
       # Create new scene
       scene = PointClickEngine::Scenes::Scene.new(@scene_name)
       scene.scale = 1.0_f32
-      
+
       # Set background if selected
       if bg = @selected_background
         scene.background_path = "backgrounds/#{bg}"
@@ -587,7 +587,7 @@ module PaceEditor::UI
       # Save scene file
       scenes_dir = File.join(project.project_path, "scenes")
       Dir.mkdir_p(scenes_dir) unless Dir.exists?(scenes_dir)
-      
+
       scene_file = File.join(scenes_dir, "#{@scene_name}.yml")
       File.write(scene_file, scene.to_yaml)
 
@@ -608,7 +608,7 @@ module PaceEditor::UI
         apply_outdoor_template(scene)
       when "menu"
         apply_menu_template(scene)
-      # "empty" template needs no additional setup
+        # "empty" template needs no additional setup
       end
     end
 

@@ -268,7 +268,7 @@ module PaceEditor::UI
       if scene = @state.current_scene
         y = draw_property_field("Name:", scene.name, x, y, width)
         y = draw_property_field("Background:", scene.background_path || "None", x, y, width)
-        
+
         # Import Background button
         if draw_action_button("Import Background...", x + 10, y, width - 20)
           if window = @state.editor_window
@@ -276,7 +276,7 @@ module PaceEditor::UI
           end
         end
         y += 35
-        
+
         y = draw_property_field("Scale:", scene.scale.to_s, x, y, width)
 
         y += 15

@@ -31,7 +31,7 @@ describe PaceEditor::Core::Project do
 
         # After CB-003 fix: no automatic default scene creation
         # Scenes will be added by EditorState.create_new_project instead
-        project.scenes.size.should be >= 0  # Allow empty or with scenes added by EditorState
+        project.scenes.size.should be >= 0 # Allow empty or with scenes added by EditorState
 
         # Check that project file was created
         project_file = File.join(test_dir, "#{project.name}.pace")

@@ -85,7 +85,7 @@ module PaceEditor::Core
     private def create_default_files
       # Note: Default scene creation is handled by EditorState.create_new_project
       # This avoids duplicate scene creation
-      
+
       # Create project file
       save
     end

@@ -6,7 +6,7 @@ module PaceEditor::UI
     property visible : Bool = false
     property selected_files : Array(String) = [] of String
     property asset_category : String = "backgrounds"
-    
+
     @file_list : Array(String) = [] of String
     @current_directory : String = ""
     @scroll_offset : Int32 = 0
@@ -33,7 +33,7 @@ module PaceEditor::UI
 
     def update
       return unless @visible
-      
+
       handle_input
     end
 
@@ -99,21 +99,21 @@ module PaceEditor::UI
 
     private def refresh_file_list
       return unless Dir.exists?(@current_directory)
-      
+
       @file_list.clear
-      
+
       # Add parent directory option
       unless @current_directory == Dir.current
         @file_list << ".."
       end
-      
+
       # Add directories first
       Dir.glob(File.join(@current_directory, "*")).each do |path|
         if Dir.exists?(path)
           @file_list << File.basename(path) + "/"
         end
       end
-      
+
       # Add supported files
       supported_extensions = get_supported_extensions
       Dir.glob(File.join(@current_directory, "*")).each do |path|
@@ -140,17 +140,17 @@ module PaceEditor::UI
 
       (start_index...end_index).each do |i|
         item_y = y + (i - start_index) * item_height
-        
+
         # Highlight selected items
         if @selected_indices.includes?(i)
           RL.draw_rectangle(x + 2, item_y, width - 4, item_height,
             RL::Color.new(r: 70, g: 130, b: 180, a: 255))
         end
-        
+
         # File/directory icon and name
         file_name = @file_list[i]
         color = file_name.ends_with?("/") || file_name == ".." ? RL::YELLOW : RL::WHITE
-        
+
         # Add file type icon
         icon = get_file_icon(file_name)
         RL.draw_text(icon, x + 5, item_y + 2, 14, color)
@@ -161,7 +161,7 @@ module PaceEditor::UI
       if @file_list.size > visible_items
         scroll_height = (visible_items.to_f / @file_list.size * height).to_i
         scroll_y = (@scroll_offset.to_f / (@file_list.size - visible_items) * (height - scroll_height)).to_i
-        
+
         RL.draw_rectangle(x + width - 10, y + scroll_y, 8, scroll_height,
           RL::Color.new(r: 150, g: 150, b: 150, a: 255))
       end
@@ -170,7 +170,7 @@ module PaceEditor::UI
     private def get_file_icon(filename : String) : String
       return "📁" if filename.ends_with?("/")
       return "⬆️" if filename == ".."
-      
+
       ext = File.extname(filename).downcase
       case ext
       when ".png", ".jpg", ".jpeg", ".bmp", ".gif", ".tga"
@@ -190,7 +190,7 @@ module PaceEditor::UI
       else
         text = "Selected: #{@selected_files.size} file#{@selected_files.size > 1 ? "s" : ""}"
         RL.draw_text(text, x, y, 14, RL::WHITE)
-        
+
         # Show first few filenames
         if @selected_files.size <= 3
           @selected_files.each_with_index do |file, index|
@@ -207,7 +207,7 @@ module PaceEditor::UI
 
     private def draw_preview_grid(x : Int32, y : Int32, width : Int32, height : Int32)
       return if @selected_files.empty?
-      
+
       # Preview background
       RL.draw_rectangle(x, y, width, height,
         RL::Color.new(r: 20, g: 20, b: 20, a: 255))
@@ -217,11 +217,11 @@ module PaceEditor::UI
       preview_size = height - 10
       preview_x = x + 5
       max_previews = (width - 10) // (preview_size + 5)
-      
+
       shown = 0
       @selected_files.each do |file_path|
         break if shown >= max_previews
-        
+
         ext = File.extname(file_path).downcase
         if [".png", ".jpg", ".jpeg", ".bmp", ".gif", ".tga"].includes?(ext)
           draw_file_preview(file_path, preview_x, y + 5, preview_size - 10)
@@ -229,7 +229,7 @@ module PaceEditor::UI
           shown += 1
         end
       end
-      
+
       if shown == 0
         RL.draw_text("No image preview available", x + 10, y + height//2 - 7, 14, RL::GRAY)
       end
@@ -249,48 +249,48 @@ module PaceEditor::UI
       end
 
       texture = @preview_textures[file_path]
-      
+
       # Scale to fit preview area
       scale = [size.to_f / texture.width, size.to_f / texture.height].min
       scaled_width = (texture.width * scale).to_i
       scaled_height = (texture.height * scale).to_i
-      
+
       # Center the image
       img_x = x + (size - scaled_width) // 2
       img_y = y + (size - scaled_height) // 2
-      
+
       dest_rect = RL::Rectangle.new(
         x: img_x.to_f32,
         y: img_y.to_f32,
         width: scaled_width.to_f32,
         height: scaled_height.to_f32
       )
-      
+
       source_rect = RL::Rectangle.new(
         x: 0.0_f32,
         y: 0.0_f32,
         width: texture.width.to_f32,
         height: texture.height.to_f32
       )
-      
+
       RL.draw_texture_pro(texture, source_rect, dest_rect, RL::Vector2.new(0.0_f32, 0.0_f32), 0.0_f32, RL::WHITE)
     end
 
     private def draw_buttons(x : Int32, y : Int32, width : Int32)
       button_width = 100
       button_height = 30
-      
+
       # Cancel button
       cancel_x = x + width - 220
       if draw_button("Cancel", cancel_x, y, button_width, button_height)
         hide
       end
-      
+
       # Import button (only enabled if files selected)
       import_x = x + width - 110
       import_enabled = !@selected_files.empty?
       import_color = import_enabled ? RL::WHITE : RL::GRAY
-      
+
       if draw_button("Import", import_x, y, button_width, button_height, import_color) && import_enabled
         import_selected_files
       end
@@ -301,13 +301,13 @@ module PaceEditor::UI
       bg_color = RL::Color.new(r: 60, g: 60, b: 60, a: 255)
       RL.draw_rectangle(x, y, width, height, bg_color)
       RL.draw_rectangle_lines(x, y, width, height, color)
-      
+
       # Button text
       text_width = RL.measure_text(text, 14)
       text_x = x + (width - text_width) // 2
       text_y = y + (height - 14) // 2
       RL.draw_text(text, text_x, text_y, 14, color)
-      
+
       # Check if clicked
       mouse_pos = RL.get_mouse_position
       if mouse_pos.x >= x && mouse_pos.x <= x + width &&
@@ -316,39 +316,38 @@ module PaceEditor::UI
           return true
         end
       end
-      
+
       false
     end
 
     private def handle_input
       # Handle mouse clicks in file list
       mouse_pos = RL.get_mouse_position
-      
+
       # Calculate file list area
       dialog_width = 700
       dialog_height = 600
       dialog_x = (Core::EditorWindow::WINDOW_WIDTH - dialog_width) // 2
       dialog_y = (Core::EditorWindow::WINDOW_HEIGHT - dialog_height) // 2
-      
+
       list_x = dialog_x + 20
       list_y = dialog_y + 80
       list_width = dialog_width - 40
       list_height = 300
-      
+
       if RL.mouse_button_pressed?(RL::MouseButton::Left)
         if mouse_pos.x >= list_x && mouse_pos.x <= list_x + list_width &&
            mouse_pos.y >= list_y && mouse_pos.y <= list_y + list_height
-          
           # Calculate clicked item
           item_height = 20
           clicked_index = @scroll_offset + ((mouse_pos.y - list_y) / item_height).to_i
-          
+
           if clicked_index >= 0 && clicked_index < @file_list.size
             handle_item_click(clicked_index)
           end
         end
       end
-      
+
       # Handle scroll wheel
       wheel_move = RL.get_mouse_wheel_move
       if wheel_move != 0
@@ -356,7 +355,7 @@ module PaceEditor::UI
         max_scroll = [@file_list.size - 15, 0].max
         @scroll_offset = [@scroll_offset, max_scroll].min
       end
-      
+
       # Handle escape key
       if RL.key_pressed?(RL::KeyboardKey::Escape)
         hide
@@ -365,9 +364,9 @@ module PaceEditor::UI
 
     private def handle_item_click(index : Int32)
       return if index < 0 || index >= @file_list.size
-      
+
       selected_item = @file_list[index]
-      
+
       if selected_item == ".."
         # Go to parent directory
         parent_dir = File.dirname(@current_directory)
@@ -406,40 +405,39 @@ module PaceEditor::UI
     private def import_selected_files
       return if @selected_files.empty?
       return unless project = @state.current_project
-      
+
       # Create target directory
       target_dir = File.join(project.project_path, "assets", @asset_category)
       Dir.mkdir_p(target_dir) unless Dir.exists?(target_dir)
-      
+
       imported_count = 0
-      
+
       @selected_files.each do |file_path|
         begin
           filename = File.basename(file_path)
           dest_path = File.join(target_dir, filename)
-          
+
           # Check if file already exists
           if File.exists?(dest_path)
             puts "File already exists: #{filename} (skipping)"
             next
           end
-          
+
           # Copy file
           File.copy(file_path, dest_path)
           imported_count += 1
           puts "Imported: #{filename}"
-          
         rescue ex : Exception
           puts "Failed to import #{File.basename(file_path)}: #{ex.message}"
         end
       end
-      
+
       # Refresh project assets
       project.refresh_assets
-      
+
       # Close dialog
       hide
-      
+
       puts "Import complete: #{imported_count} file#{imported_count != 1 ? "s" : ""} imported"
     end
 

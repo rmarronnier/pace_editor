@@ -111,16 +111,16 @@ describe "Scene Creation Workflow" do
 
       # 5. Verify wizard workflow would create scene
       # (In actual usage, user would go through steps)
-      
+
       # Step 1: Scene name
       test_scene_name = "forest_clearing"
-      
+
       # Step 2: Template selection
       test_template = "outdoor"
-      
+
       # Step 3: Background selection (optional)
       test_background = "forest.png"
-      
+
       # Step 4: Scene settings
       test_width = 1024
       test_height = 768
@@ -168,10 +168,10 @@ describe "Scene Creation Workflow" do
 
       # Test template creation
       templates = ["empty", "room", "outdoor", "menu"]
-      
+
       templates.each do |template|
         scene = PointClickEngine::Scenes::Scene.new("test_#{template}")
-        
+
         # Simulate template application
         case template
         when "empty"
@@ -240,7 +240,7 @@ describe "Scene Creation Workflow" do
       # Create some background assets
       bg_dir = File.join(project_dir, "assets", "backgrounds")
       Dir.mkdir_p(bg_dir)
-      
+
       backgrounds = ["castle.png", "forest.jpg", "dungeon.bmp"]
       backgrounds.each do |bg_file|
         File.write(File.join(bg_dir, bg_file), "fake_background_data")
@@ -257,10 +257,10 @@ describe "Scene Creation Workflow" do
       # Scene created with background should reference it correctly
       scene = PointClickEngine::Scenes::Scene.new("test_scene")
       scene.background_path = "backgrounds/castle.png"
-      
+
       # Verify background path format
       scene.background_path.should eq("backgrounds/castle.png")
-      
+
       # Verify actual background file exists
       if bg_path = scene.background_path
         full_path = File.join(project_dir, "assets", bg_path)
@@ -317,7 +317,7 @@ describe "Scene Creation Workflow" do
       # Manually remove the backgrounds directory if it was created
       bg_dir = File.join(project_dir, "assets", "backgrounds")
       FileUtils.rm_rf(bg_dir) if Dir.exists?(bg_dir)
-      
+
       # Verify it doesn't exist
       Dir.exists?(bg_dir).should be_false
 
@@ -347,7 +347,7 @@ describe "Scene Creation Workflow" do
       # 2. Template Selection
       # 3. Background Selection
       # 4. Scene Settings
-      
+
       # Wizard tracks progress through these steps
       # (Step management would be tested through UI interaction)
     end

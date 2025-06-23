@@ -2,7 +2,7 @@ module PaceEditor::UI
   # Tool palette for selecting editing tools
   class ToolPalette
     include PaceEditor::Constants
-    
+
     def initialize(@state : Core::EditorState)
     end
 
@@ -13,10 +13,10 @@ module PaceEditor::UI
     def draw
       # Draw tool palette background
       palette_rect = RL::Rectangle.new(
-        x: 0,
-        y: Core::EditorWindow::MENU_HEIGHT.to_f,
-        width: Core::EditorWindow::TOOL_PALETTE_WIDTH.to_f,
-        height: (Core::EditorWindow::WINDOW_HEIGHT - Core::EditorWindow::MENU_HEIGHT).to_f
+        x: 0.0_f32,
+        y: Core::EditorWindow::MENU_HEIGHT.to_f32,
+        width: Core::EditorWindow::TOOL_PALETTE_WIDTH.to_f32,
+        height: (Core::EditorWindow::WINDOW_HEIGHT - Core::EditorWindow::MENU_HEIGHT).to_f32
       )
 
       RL.draw_rectangle_rec(palette_rect, RL::Color.new(r: 45, g: 45, b: 45, a: 255))
@@ -100,11 +100,9 @@ module PaceEditor::UI
       y += 20
 
       if UIHelpers.button(5, y, 70, 22, "Add BG")
-        # Show background selector dialog
+        # Show background import dialog
         if editor_window = @state.editor_window
-          if scene_editor = editor_window.scene_editor
-            scene_editor.show_background_selector
-          end
+          editor_window.show_background_import_dialog
         end
       end
       y += 25
@@ -160,12 +158,12 @@ module PaceEditor::UI
       y += 20
 
       if UIHelpers.button(5, y, 70, 22, "Rectangle")
-        # Create rectangular hotspot
+        create_rectangular_hotspot
       end
       y += 25
 
       if UIHelpers.button(5, y, 70, 22, "Circle")
-        # Create circular hotspot
+        create_circular_hotspot
       end
     end
 
@@ -225,6 +223,40 @@ module PaceEditor::UI
       puts "   ✓ Node connection tool activated"
       puts "   ✓ This button is working!"
       # In a real implementation, this would activate connection mode
+    end
+
+    # Hotspot creation methods
+    private def create_rectangular_hotspot
+      if scene = @state.current_scene
+        # Create a new rectangular hotspot at viewport center
+        hotspot_name = "rect_hotspot_#{Time.utc.to_unix}"
+        new_hotspot = PointClickEngine::Scenes::Hotspot.new(
+          hotspot_name,
+          RL::Rectangle.new(x: 300.0_f32, y: 200.0_f32, width: 100.0_f32, height: 100.0_f32),
+          "Rectangle hotspot"
+        )
+        scene.add_hotspot(new_hotspot)
+        @state.selected_object = hotspot_name
+        @state.mark_dirty
+        puts "Created rectangular hotspot: #{hotspot_name}"
+      end
+    end
+
+    private def create_circular_hotspot
+      if scene = @state.current_scene
+        # Create a new circular hotspot (using Rectangle with equal width/height)
+        hotspot_name = "circle_hotspot_#{Time.utc.to_unix}"
+        new_hotspot = PointClickEngine::Scenes::Hotspot.new(
+          hotspot_name,
+          RL::Rectangle.new(x: 300.0_f32, y: 200.0_f32, width: 80.0_f32, height: 80.0_f32),
+          "Circle hotspot"
+        )
+        new_hotspot.shape = "circle" # If hotspot supports shape property
+        scene.add_hotspot(new_hotspot)
+        @state.selected_object = hotspot_name
+        @state.mark_dirty
+        puts "Created circular hotspot: #{hotspot_name}"
+      end
     end
   end
 end

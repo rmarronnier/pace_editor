@@ -127,7 +127,7 @@ describe "Game Export Workflow" do
 
       # 4. Verify export functionality would work
       # (In actual usage, user would configure export settings)
-      
+
       export_name = "amazing_adventure"
       export_path = File.join(project_dir, "exports", export_name)
 
@@ -137,7 +137,7 @@ describe "Game Export Workflow" do
       # Copy assets
       assets_dest = File.join(export_path, "assets")
       Dir.mkdir_p(assets_dest)
-      
+
       # Copy backgrounds
       bg_dest_dir = File.join(assets_dest, "backgrounds")
       Dir.mkdir_p(bg_dest_dir)
@@ -206,43 +206,41 @@ describe "Game Export Workflow" do
       # Test export format options
       export_formats = ["standalone", "web", "source"]
       export_path = File.join(project_dir, "exports", "format_test")
-      
+
       export_formats.each do |format|
         Dir.mkdir_p(export_path)
-        
+
         case format
         when "standalone"
           # Should generate .cr file and build script
           main_file = File.join(export_path, "format_test.cr")
           build_script = File.join(export_path, "build.sh")
-          
+
           # Simulate standalone export
           File.write(main_file, "# Crystal game file")
           File.write(build_script, "#!/bin/bash\necho 'Building game...'")
-          
+
           File.exists?(main_file).should be_true
           File.exists?(build_script).should be_true
-          
         when "web"
           # Should generate HTML file
           html_file = File.join(export_path, "index.html")
-          
+
           # Simulate web export
           html_content = "<!DOCTYPE html><html><head><title>Web Game</title></head><body></body></html>"
           File.write(html_file, html_content)
-          
+
           File.exists?(html_file).should be_true
-          
         when "source"
           # Should copy project file and create README
           readme_file = File.join(export_path, "README.md")
-          
+
           # Simulate source export
           File.write(readme_file, "# Source Package\n\nThis is the source code.")
-          
+
           File.exists?(readme_file).should be_true
         end
-        
+
         # Clean up for next test
         FileUtils.rm_rf(export_path)
       end
@@ -262,27 +260,27 @@ describe "Game Export Workflow" do
 
       # Test validation with incomplete project
       # Check that validation can detect missing components
-      
+
       scenes_dir = File.join(project_dir, "scenes")
       assets_dir = File.join(project_dir, "assets")
       project_file = File.join(project_dir, "project.pace")
-      
+
       # Remove scenes directory if it was auto-created
       FileUtils.rm_rf(scenes_dir) if Dir.exists?(scenes_dir)
-      
+
       # Now should be missing
       scenes_missing = !Dir.exists?(scenes_dir) || Dir.glob(File.join(scenes_dir, "*.yml")).empty?
       scenes_missing.should be_true
-      
+
       # Add required components
       Dir.mkdir_p(scenes_dir)
       scene_file = File.join(scenes_dir, "main.yml")
       File.write(scene_file, "---\nname: main\n")
-      
+
       Dir.mkdir_p(File.join(assets_dir, "backgrounds"))
       bg_file = File.join(assets_dir, "backgrounds", "bg.png")
       File.write(bg_file, "fake_image")
-      
+
       # Now validation should pass
       File.exists?(scene_file).should be_true
       File.exists?(bg_file).should be_true
@@ -299,11 +297,11 @@ describe "Game Export Workflow" do
       # Create comprehensive asset structure
       asset_types = ["backgrounds", "characters", "sounds", "music", "scripts"]
       assets_src = File.join(project_dir, "assets")
-      
+
       asset_types.each do |asset_type|
         type_dir = File.join(assets_src, asset_type)
         Dir.mkdir_p(type_dir)
-        
+
         # Create sample files for each type
         case asset_type
         when "backgrounds"
@@ -323,11 +321,11 @@ describe "Game Export Workflow" do
       # Simulate export asset copying
       export_path = File.join(project_dir, "exports", "asset_test")
       assets_dest = File.join(export_path, "assets")
-      
+
       asset_types.each do |asset_type|
         src_dir = File.join(assets_src, asset_type)
         dest_dir = File.join(assets_dest, asset_type)
-        
+
         if Dir.exists?(src_dir)
           Dir.mkdir_p(dest_dir)
           Dir.glob(File.join(src_dir, "*")).each do |file|
@@ -356,7 +354,7 @@ describe "Game Export Workflow" do
       # Create multiple scenes
       scenes_src = File.join(project_dir, "scenes")
       Dir.mkdir_p(scenes_src)
-      
+
       scene_files = ["main.yml", "forest.yml", "castle.yml"]
       scene_files.each do |scene_file|
         scene_path = File.join(scenes_src, scene_file)
@@ -369,7 +367,7 @@ describe "Game Export Workflow" do
       export_path = File.join(project_dir, "exports", "scene_test")
       scenes_dest = File.join(export_path, "scenes")
       Dir.mkdir_p(scenes_dest)
-      
+
       Dir.glob(File.join(scenes_src, "*.yml")).each do |scene_file|
         dest_file = File.join(scenes_dest, File.basename(scene_file))
         File.copy(scene_file, dest_file)
@@ -379,7 +377,7 @@ describe "Game Export Workflow" do
       scene_files.each do |scene_file|
         dest_file = File.join(scenes_dest, scene_file)
         File.exists?(dest_file).should be_true
-        
+
         content = File.read(dest_file)
         scene_name = File.basename(scene_file, ".yml")
         content.should contain(scene_name)
@@ -413,7 +411,7 @@ describe "Game Export Workflow" do
 
       # Test with invalid export path
       invalid_export_path = "/invalid/path/that/cannot/be/created"
-      
+
       # Export should handle directory creation failures gracefully
       # (In real implementation, this would show error message)
       begin
@@ -447,7 +445,7 @@ describe "Game Export Workflow" do
       File.exists?(scene_file).should be_true
       content = File.read(scene_file)
       content.should contain("missing.png")
-      
+
       # Referenced background file doesn't exist
       bg_file = File.join(project_dir, "assets", "backgrounds", "missing.png")
       File.exists?(bg_file).should be_false
@@ -497,10 +495,10 @@ describe "Game Export Workflow" do
       # Verify instructions were created
       File.exists?(build_script).should be_true
       File.exists?(readme_file).should be_true
-      
+
       build_content_check = File.read(build_script)
       build_content_check.should contain("crystal build")
-      
+
       readme_content_check = File.read(readme_file)
       readme_content_check.should contain("web server")
     end

@@ -34,6 +34,7 @@ module PaceEditor::Core
     property drag_data : String?
     property drag_type : String?
     property show_new_project_dialog : Bool = false
+    property should_exit : Bool = false
     property new_project_name : String = ""
     property new_project_path : String = ""
     property focused_panel : String = "scene_editor"
@@ -67,7 +68,6 @@ module PaceEditor::Core
       scene_path = IO::SceneIO.get_scene_file_path(project, scene.name)
       IO::SceneIO.save_scene(scene, scene_path)
     end
-
 
     def load_project(project_file : String) : Bool
       begin
@@ -269,6 +269,59 @@ module PaceEditor::Core
       @camera_x = 0.0f32
       @camera_y = 0.0f32
       @zoom = 1.0f32
+    end
+
+    # Scene management methods
+    def duplicate_scene(scene_name : String)
+      return unless project = @current_project
+      return unless project.scenes.includes?(scene_name)
+
+      # Create duplicate with new name
+      new_name = "#{scene_name}_copy"
+      counter = 1
+      while project.scenes.includes?(new_name)
+        new_name = "#{scene_name}_copy#{counter}"
+        counter += 1
+      end
+
+      # TODO: Implement actual scene duplication
+      puts "Duplicating scene '#{scene_name}' as '#{new_name}'"
+      mark_dirty
+    end
+
+    def delete_scene(scene_name : String)
+      return unless project = @current_project
+
+      # TODO: Implement actual scene deletion
+      puts "Deleting scene '#{scene_name}'"
+
+      # If this was the current scene, clear it
+      if scene = @current_scene
+        if scene.name == scene_name
+          @current_scene = nil
+        end
+      end
+
+      mark_dirty
+    end
+
+    # Character management methods
+    def add_player_character(scene : PointClickEngine::Scenes::Scene)
+      # TODO: Implement player character creation
+      puts "Adding player character to scene '#{scene.name}'"
+      mark_dirty
+    end
+
+    def add_npc_character(scene : PointClickEngine::Scenes::Scene)
+      # TODO: Implement NPC character creation
+      puts "Adding NPC character to scene '#{scene.name}'"
+      mark_dirty
+    end
+
+    # Dialog management methods
+    def test_dialog(character_name : String)
+      # TODO: Implement dialog testing
+      puts "Testing dialog for character '#{character_name}'"
     end
   end
 
