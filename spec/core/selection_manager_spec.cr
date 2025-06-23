@@ -1,11 +1,9 @@
 require "../spec_helper"
 
 describe PaceEditor::Core::SelectionManager do
-  let(manager) { PaceEditor::Core::SelectionManager(String).new }
-  let(items) { ["item1", "item2", "item3", "item4"] }
-
   describe "#initialize" do
     it "creates empty selection manager" do
+      manager = PaceEditor::Core::SelectionManager(String).new
       manager.has_selection?.should be_false
       manager.selection_count.should eq(0)
       manager.multi_select_enabled.should be_true
@@ -14,6 +12,7 @@ describe PaceEditor::Core::SelectionManager do
 
   describe "#select" do
     it "selects single item" do
+      manager = PaceEditor::Core::SelectionManager(String).new
       manager.select("item1")
 
       manager.selected?("item1").should be_true
@@ -22,6 +21,7 @@ describe PaceEditor::Core::SelectionManager do
     end
 
     it "replaces previous selection" do
+      manager = PaceEditor::Core::SelectionManager(String).new
       manager.select("item1")
       manager.select("item2")
 
@@ -33,6 +33,7 @@ describe PaceEditor::Core::SelectionManager do
 
   describe "#add_to_selection" do
     it "adds item to selection" do
+      manager = PaceEditor::Core::SelectionManager(String).new
       manager.add_to_selection("item1")
       manager.add_to_selection("item2")
 
@@ -42,6 +43,7 @@ describe PaceEditor::Core::SelectionManager do
     end
 
     it "sets first item as primary" do
+      manager = PaceEditor::Core::SelectionManager(String).new
       manager.add_to_selection("item1")
       manager.add_to_selection("item2")
 
@@ -49,6 +51,7 @@ describe PaceEditor::Core::SelectionManager do
     end
 
     it "ignores duplicate additions" do
+      manager = PaceEditor::Core::SelectionManager(String).new
       manager.add_to_selection("item1")
       manager.add_to_selection("item1")
 
@@ -56,6 +59,7 @@ describe PaceEditor::Core::SelectionManager do
     end
 
     it "respects max selection count" do
+      manager = PaceEditor::Core::SelectionManager(String).new
       manager.max_selection_count = 2
       manager.add_to_selection("item1")
       manager.add_to_selection("item2")
@@ -68,6 +72,7 @@ describe PaceEditor::Core::SelectionManager do
 
   describe "#remove_from_selection" do
     it "removes item from selection" do
+      manager = PaceEditor::Core::SelectionManager(String).new
       manager.select_multiple(["item1", "item2"])
       manager.remove_from_selection("item1")
 
@@ -77,6 +82,7 @@ describe PaceEditor::Core::SelectionManager do
     end
 
     it "updates primary selection when primary is removed" do
+      manager = PaceEditor::Core::SelectionManager(String).new
       manager.select_multiple(["item1", "item2"])
       manager.set_primary("item1")
       manager.remove_from_selection("item1")
@@ -85,6 +91,7 @@ describe PaceEditor::Core::SelectionManager do
     end
 
     it "clears primary when last item is removed" do
+      manager = PaceEditor::Core::SelectionManager(String).new
       manager.select("item1")
       manager.remove_from_selection("item1")
 
@@ -95,12 +102,14 @@ describe PaceEditor::Core::SelectionManager do
   describe "#toggle_selection" do
     context "with multi-select enabled" do
       it "adds item if not selected" do
+        manager = PaceEditor::Core::SelectionManager(String).new
         manager.toggle_selection("item1")
 
         manager.selected?("item1").should be_true
       end
 
       it "removes item if selected" do
+        manager = PaceEditor::Core::SelectionManager(String).new
         manager.select("item1")
         manager.toggle_selection("item1")
 
@@ -109,11 +118,9 @@ describe PaceEditor::Core::SelectionManager do
     end
 
     context "with multi-select disabled" do
-      before_each do
-        manager.multi_select_enabled = false
-      end
-
       it "selects item replacing previous selection" do
+        manager = PaceEditor::Core::SelectionManager(String).new
+        manager.multi_select_enabled = false
         manager.select("item1")
         manager.toggle_selection("item2")
 
@@ -125,6 +132,7 @@ describe PaceEditor::Core::SelectionManager do
 
   describe "#clear_selection" do
     it "clears all selections" do
+      manager = PaceEditor::Core::SelectionManager(String).new
       manager.select_multiple(["item1", "item2"])
       manager.clear_selection
 
@@ -136,6 +144,7 @@ describe PaceEditor::Core::SelectionManager do
 
   describe "#set_primary" do
     it "sets primary selection from current selection" do
+      manager = PaceEditor::Core::SelectionManager(String).new
       manager.select_multiple(["item1", "item2"])
       manager.set_primary("item2")
 
@@ -143,6 +152,7 @@ describe PaceEditor::Core::SelectionManager do
     end
 
     it "ignores setting primary for non-selected item" do
+      manager = PaceEditor::Core::SelectionManager(String).new
       manager.select("item1")
       original_primary = manager.primary_selection
       manager.set_primary("item2")
@@ -153,6 +163,7 @@ describe PaceEditor::Core::SelectionManager do
 
   describe "#select_multiple" do
     it "selects multiple items" do
+      manager = PaceEditor::Core::SelectionManager(String).new
       manager.select_multiple(["item1", "item2", "item3"])
 
       manager.selected?("item1").should be_true
@@ -162,12 +173,14 @@ describe PaceEditor::Core::SelectionManager do
     end
 
     it "sets first item as primary" do
+      manager = PaceEditor::Core::SelectionManager(String).new
       manager.select_multiple(["item1", "item2", "item3"])
 
       manager.primary_selection.should eq("item1")
     end
 
     it "respects max selection count" do
+      manager = PaceEditor::Core::SelectionManager(String).new
       manager.max_selection_count = 2
       manager.select_multiple(["item1", "item2", "item3"])
 
@@ -175,6 +188,7 @@ describe PaceEditor::Core::SelectionManager do
     end
 
     it "clears previous selection" do
+      manager = PaceEditor::Core::SelectionManager(String).new
       manager.select("item1")
       manager.select_multiple(["item2", "item3"])
 
@@ -185,6 +199,8 @@ describe PaceEditor::Core::SelectionManager do
 
   describe "#select_all" do
     it "selects all items up to max count" do
+      manager = PaceEditor::Core::SelectionManager(String).new
+      items = ["item1", "item2", "item3", "item4"]
       manager.select_all(items)
 
       items.each { |item| manager.selected?(item).should be_true }
@@ -192,8 +208,9 @@ describe PaceEditor::Core::SelectionManager do
     end
 
     it "respects max selection count" do
+      manager = PaceEditor::Core::SelectionManager(String).new
       manager.max_selection_count = 2
-      manager.select_all(items)
+      manager.select_all(["item1", "item2", "item3", "item4"])
 
       manager.selection_count.should eq(2)
     end
@@ -201,6 +218,8 @@ describe PaceEditor::Core::SelectionManager do
 
   describe "#invert_selection" do
     it "inverts current selection" do
+      manager = PaceEditor::Core::SelectionManager(String).new
+      items = ["item1", "item2", "item3", "item4"]
       manager.select_multiple(["item1", "item3"])
       manager.invert_selection(items)
 
@@ -212,27 +231,28 @@ describe PaceEditor::Core::SelectionManager do
   end
 
   describe "query methods" do
-    before_each do
-      manager.select_multiple(["item1", "item2"])
-    end
-
     describe "#has_selection?" do
       it "returns true when items are selected" do
+        manager = PaceEditor::Core::SelectionManager(String).new
+        manager.select_multiple(["item1", "item2"])
         manager.has_selection?.should be_true
       end
 
       it "returns false when no items are selected" do
-        manager.clear_selection
+        manager = PaceEditor::Core::SelectionManager(String).new
         manager.has_selection?.should be_false
       end
     end
 
     describe "#is_multi_selection?" do
       it "returns true for multiple items" do
+        manager = PaceEditor::Core::SelectionManager(String).new
+        manager.select_multiple(["item1", "item2"])
         manager.is_multi_selection?.should be_true
       end
 
       it "returns false for single item" do
+        manager = PaceEditor::Core::SelectionManager(String).new
         manager.select("item1")
         manager.is_multi_selection?.should be_false
       end
@@ -240,6 +260,8 @@ describe PaceEditor::Core::SelectionManager do
 
     describe "#selected_items" do
       it "returns array of selected items" do
+        manager = PaceEditor::Core::SelectionManager(String).new
+        manager.select_multiple(["item1", "item2"])
         selected = manager.selected_items
         selected.should contain("item1")
         selected.should contain("item2")
@@ -249,12 +271,16 @@ describe PaceEditor::Core::SelectionManager do
 
     describe "#last_selected" do
       it "returns most recently selected item" do
+        manager = PaceEditor::Core::SelectionManager(String).new
+        manager.select_multiple(["item1", "item2"])
         manager.last_selected.should eq("item2")
       end
     end
 
     describe "#first_selected" do
       it "returns first selected item" do
+        manager = PaceEditor::Core::SelectionManager(String).new
+        manager.select_multiple(["item1", "item2"])
         manager.first_selected.should eq("item1")
       end
     end
@@ -262,6 +288,7 @@ describe PaceEditor::Core::SelectionManager do
 
   describe "#copy_selection and #restore_selection" do
     it "copies and restores selection" do
+      manager = PaceEditor::Core::SelectionManager(String).new
       manager.select_multiple(["item1", "item3"])
       copied = manager.copy_selection
 
@@ -276,16 +303,17 @@ describe PaceEditor::Core::SelectionManager do
 
   describe "#get_selection_bounds" do
     it "calculates bounds for selected items" do
+      manager = PaceEditor::Core::SelectionManager(String).new
       manager.select_multiple(["item1", "item2"])
 
       bounds_proc = ->(item : String) {
         case item
         when "item1"
-          RL::Rectangle.new(10.0_f32, 10.0_f32, 20.0_f32, 20.0_f32)
+          RL::Rectangle.new(x: 10.0_f32, y: 10.0_f32, width: 20.0_f32, height: 20.0_f32)
         when "item2"
-          RL::Rectangle.new(40.0_f32, 40.0_f32, 20.0_f32, 20.0_f32)
+          RL::Rectangle.new(x: 40.0_f32, y: 40.0_f32, width: 20.0_f32, height: 20.0_f32)
         else
-          RL::Rectangle.new(0.0_f32, 0.0_f32, 0.0_f32, 0.0_f32)
+          RL::Rectangle.new(x: 0.0_f32, y: 0.0_f32, width: 0.0_f32, height: 0.0_f32)
         end
       }
 
@@ -301,7 +329,8 @@ describe PaceEditor::Core::SelectionManager do
     end
 
     it "returns nil for empty selection" do
-      bounds_proc = ->(item : String) { RL::Rectangle.new(0.0_f32, 0.0_f32, 0.0_f32, 0.0_f32) }
+      manager = PaceEditor::Core::SelectionManager(String).new
+      bounds_proc = ->(item : String) { RL::Rectangle.new(x: 0.0_f32, y: 0.0_f32, width: 0.0_f32, height: 0.0_f32) }
       bounds = manager.get_selection_bounds(bounds_proc)
       bounds.should be_nil
     end
@@ -309,6 +338,7 @@ describe PaceEditor::Core::SelectionManager do
 
   describe "#filter_selection" do
     it "filters selected items" do
+      manager = PaceEditor::Core::SelectionManager(String).new
       manager.select_multiple(["item1", "item22", "item3"])
 
       filtered = manager.filter_selection(->(item : String) { item.size > 5 })
@@ -320,6 +350,7 @@ describe PaceEditor::Core::SelectionManager do
 
   describe "#find_in_selection" do
     it "finds item in selection" do
+      manager = PaceEditor::Core::SelectionManager(String).new
       manager.select_multiple(["item1", "item22", "item3"])
 
       found = manager.find_in_selection(->(item : String) { item.size > 5 })
@@ -327,6 +358,7 @@ describe PaceEditor::Core::SelectionManager do
     end
 
     it "returns nil if not found" do
+      manager = PaceEditor::Core::SelectionManager(String).new
       manager.select_multiple(["item1", "item2"])
 
       found = manager.find_in_selection(->(item : String) { item.size > 10 })
@@ -336,6 +368,7 @@ describe PaceEditor::Core::SelectionManager do
 
   describe "#get_selection_info" do
     it "returns selection statistics" do
+      manager = PaceEditor::Core::SelectionManager(String).new
       manager.select_multiple(["item1", "item2"])
       manager.max_selection_count = 10
 
@@ -349,6 +382,7 @@ describe PaceEditor::Core::SelectionManager do
 
   describe "serialization" do
     it "serializes and deserializes selection" do
+      manager = PaceEditor::Core::SelectionManager(String).new
       manager.select_multiple(["item1", "item3"])
       manager.set_primary("item3")
 
@@ -368,6 +402,7 @@ describe PaceEditor::Core::SelectionManager do
 
   describe "selection callbacks" do
     it "calls selection changed callback" do
+      manager = PaceEditor::Core::SelectionManager(String).new
       callback_called = false
       callback_items = [] of String
 
@@ -383,6 +418,7 @@ describe PaceEditor::Core::SelectionManager do
     end
 
     it "calls primary changed callback" do
+      manager = PaceEditor::Core::SelectionManager(String).new
       callback_called = false
       callback_primary : String? = nil
 
@@ -400,35 +436,31 @@ describe PaceEditor::Core::SelectionManager do
 end
 
 describe PaceEditor::Core::StringSelectionManager do
-  let(manager) { PaceEditor::Core::StringSelectionManager.new }
-
   it "creates string-based selection manager" do
+    manager = PaceEditor::Core::StringSelectionManager.new
     manager.should be_a(PaceEditor::Core::SelectionManager(String))
   end
 end
 
 describe PaceEditor::Core::HotspotSelectionManager do
-  let(manager) { PaceEditor::Core::HotspotSelectionManager.new }
-
   it "creates hotspot selection manager" do
+    manager = PaceEditor::Core::HotspotSelectionManager.new
     manager.should be_a(PaceEditor::Core::SelectionManager(String))
     manager.max_selection_count.should eq(PaceEditor::Constants::MAX_SCENE_OBJECTS)
   end
 end
 
 describe PaceEditor::Core::CharacterSelectionManager do
-  let(manager) { PaceEditor::Core::CharacterSelectionManager.new }
-
   it "creates character selection manager" do
+    manager = PaceEditor::Core::CharacterSelectionManager.new
     manager.should be_a(PaceEditor::Core::SelectionManager(String))
     manager.max_selection_count.should eq(PaceEditor::Constants::MAX_SCENE_OBJECTS)
   end
 end
 
 describe PaceEditor::Core::DialogNodeSelectionManager do
-  let(manager) { PaceEditor::Core::DialogNodeSelectionManager.new }
-
   it "creates dialog node selection manager" do
+    manager = PaceEditor::Core::DialogNodeSelectionManager.new
     manager.should be_a(PaceEditor::Core::SelectionManager(String))
     manager.max_selection_count.should eq(50)
   end

@@ -174,7 +174,7 @@ describe "Animation Editor Integration" do
 
       # Cleanup
       File.delete(animation_file) if File.exists?(animation_file)
-      Dir.rmdir(temp_dir) if Dir.exists?(temp_dir)
+      FileUtils.rm_rf(temp_dir) if Dir.exists?(temp_dir)
     rescue
       # Handle any file system errors gracefully
     end
@@ -213,7 +213,7 @@ describe "Animation Editor Integration" do
 
       # Cleanup
       File.delete(bad_animation_file) if File.exists?(bad_animation_file)
-      Dir.rmdir(temp_dir) if Dir.exists?(temp_dir)
+      FileUtils.rm_rf(temp_dir) if Dir.exists?(temp_dir)
     rescue
       # Handle any file system errors gracefully
     end

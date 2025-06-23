@@ -178,7 +178,12 @@ describe "Animation File Operations" do
       # Test that data structure is valid
       animation_data["sprite_width"].should eq(32)
       animation_data["sprite_height"].should eq(48)
-      animation_data["animations"].has_key?("test_anim").should be_true
+      animations = animation_data["animations"]
+      if animations.is_a?(Hash)
+        animations.has_key?("test_anim").should be_true
+      else
+        fail "animations should be a Hash"
+      end
     rescue
       # Handle any file system errors gracefully
     end
@@ -301,19 +306,36 @@ describe "Animation File Operations" do
       }
 
       # Test that export format has expected structure
-      hero_data = engine_format["character_animations"]["hero"]
-      hero_data.should have_key("sprite_sheet")
-      hero_data.should have_key("frame_width")
-      hero_data.should have_key("animations")
+      char_animations = engine_format["character_animations"]
+      if char_animations.is_a?(Hash)
+        hero_data = char_animations["hero"]
+        if hero_data.is_a?(Hash)
+          hero_data.has_key?("sprite_sheet").should be_true
+          hero_data.has_key?("frame_width").should be_true
+          hero_data.has_key?("animations").should be_true
 
-      animations = hero_data["animations"]
-      animations.should have_key("idle")
-      animations.should have_key("walk")
+          animations = hero_data["animations"]
+          if animations.is_a?(Hash)
+            animations.has_key?("idle").should be_true
+            animations.has_key?("walk").should be_true
 
-      idle_anim = animations["idle"]
-      idle_anim.should have_key("frames")
-      idle_anim.should have_key("fps")
-      idle_anim.should have_key("loop")
+            idle_anim = animations["idle"]
+            if idle_anim.is_a?(Hash)
+              idle_anim.has_key?("frames").should be_true
+              idle_anim.has_key?("fps").should be_true
+              idle_anim.has_key?("loop").should be_true
+            else
+              fail "idle animation should be a Hash"
+            end
+          else
+            fail "animations should be a Hash"
+          end
+        else
+          fail "hero_data should be a Hash"
+        end
+      else
+        fail "character_animations should be a Hash"
+      end
     end
   end
 

@@ -68,7 +68,7 @@ describe PaceEditor::IO::SceneIO do
       npc.walking_speed = 150.0_f32
       npc.state = PointClickEngine::Characters::CharacterState::Idle
       npc.direction = PointClickEngine::Characters::Direction::Left
-      npc.mood = PointClickEngine::Characters::NPCMood::Hostile
+      npc.mood = PointClickEngine::Characters::CharacterMood::Hostile
       npc.add_dialogue("Halt! Who goes there?")
       scene.characters << npc
 
@@ -224,7 +224,7 @@ describe PaceEditor::IO::SceneIO do
       char.position.y.should eq(300.0_f32)
       char.state.should eq(PointClickEngine::Characters::CharacterState::Talking)
       char.direction.should eq(PointClickEngine::Characters::Direction::Right)
-      char.mood.should eq(PointClickEngine::Characters::NPCMood::Friendly)
+      char.mood.should eq(PointClickEngine::Characters::CharacterMood::Friendly)
       char.walking_speed.should eq(100.0_f32)
       char.use_pathfinding.should be_true
       char.can_repeat_dialogues.should be_true

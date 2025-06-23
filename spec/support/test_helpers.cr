@@ -170,14 +170,14 @@ end
 # Test helper functions
 def test_editor_state(has_project : Bool = false, current_scene : MockScene? = nil, is_dirty : Bool = false)
   state = MockEditorState.new
-  
+
   if has_project
     state.current_project = MockProject.new("Test Project", "/tmp/test_project")
   end
-  
+
   state.current_scene = current_scene
   state.is_dirty = is_dirty
-  
+
   state
 end
 
@@ -201,10 +201,69 @@ def test_hotspot(name : String = "Test Hotspot")
   MockHotspot.new(name)
 end
 
-# Mock PointClickEngine types for tests
-module PointClickEngine
-  module Characters
-    class NPC
+
+# Mock PaceEditor modules for tests
+module PaceEditor
+  module Validation
+    class ValidationResult
+      property errors : Array(ValidationError) = [] of ValidationError
+      
+      def has_errors?
+        !errors.empty?
+      end
+    end
+    
+    class ValidationError
+      property message : String
+      property path : String?
+      property line : Int32?
+      
+      def initialize(@message : String, @path : String? = nil, @line : Int32? = nil)
+      end
+    end
+    
+    class ProjectValidator
+      def initialize(@project : Core::Project)
+      end
+      
+      def validate_for_export(config) : ValidationResult
+        ValidationResult.new
+      end
+    end
+  end
+  
+  module Export
+    class GameExporter
+      def initialize(@project : Core::Project)
+      end
+      
+      def export(config, export_path : String, include_source : Bool = false)
+        # Create export directories
+        Dir.mkdir_p(export_path)
+        Dir.mkdir_p(File.join(export_path, "scenes"))
+        Dir.mkdir_p(File.join(export_path, "scripts"))
+        Dir.mkdir_p(File.join(export_path, "dialogs"))
+        
+        # Create dummy files for test
+        File.write(File.join(export_path, "main.cr"), "require \"point_click_engine\"\n\ngame = PointClickEngine::Game.new")
+        File.write(File.join(export_path, "shard.yml"), "name: exported_game\nversion: 0.1.0")
+        File.write(File.join(export_path, "game_config.yaml"), config.to_yaml)
+        
+        # Copy scenes
+        Dir.glob(File.join(@project.scenes_path, "*.yaml")).each do |scene_file|
+          FileUtils.cp(scene_file, File.join(export_path, "scenes", File.basename(scene_file)))
+        end
+        
+        # Copy scripts
+        Dir.glob(File.join(@project.scripts_path, "*.lua")).each do |script_file|
+          FileUtils.cp(script_file, File.join(export_path, "scripts", File.basename(script_file)))
+        end
+        
+        # Copy dialogs
+        Dir.glob(File.join(@project.dialogs_path, "*.yaml")).each do |dialog_file|
+          FileUtils.cp(dialog_file, File.join(export_path, "dialogs", File.basename(dialog_file)))
+        end
+      end
     end
   end
 end

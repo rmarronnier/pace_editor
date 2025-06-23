@@ -192,7 +192,7 @@ module PaceEditor::Core
       max_x = bounds.max_of { |b| b.x + b.width }
       max_y = bounds.max_of { |b| b.y + b.height }
 
-      RL::Rectangle.new(min_x, min_y, max_x - min_x, max_y - min_y)
+      RL::Rectangle.new(x: min_x, y: min_y, width: max_x - min_x, height: max_y - min_y)
     end
 
     # Filter selection
