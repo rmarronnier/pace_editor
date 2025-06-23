@@ -182,7 +182,7 @@ describe "Undo/Redo System" do
       npc.position.x.should eq(200.0_f32)
       npc.position.y.should eq(300.0_f32)
       npc.state.should eq(PointClickEngine::Characters::CharacterState::Idle)
-      npc.mood.should eq(PointClickEngine::Characters::NPCMood::Neutral)
+      npc.mood.should eq(PointClickEngine::NPCMood::Neutral)
     end
 
     it "provides descriptive text" do

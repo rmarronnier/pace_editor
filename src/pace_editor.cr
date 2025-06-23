@@ -57,6 +57,10 @@ require "./pace_editor/ui/asset_browser"
 require "./pace_editor/ui/hotspot_action_dialog"
 require "./pace_editor/ui/script_editor"
 require "./pace_editor/ui/animation_editor"
+require "./pace_editor/ui/background_import_dialog"
+require "./pace_editor/ui/asset_import_dialog"
+require "./pace_editor/ui/scene_creation_wizard"
+require "./pace_editor/ui/game_export_dialog"
 
 # Editor modules
 require "./pace_editor/editors/scene_editor"

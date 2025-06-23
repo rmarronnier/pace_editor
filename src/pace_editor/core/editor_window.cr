@@ -34,6 +34,10 @@ module PaceEditor::Core
     # Dialogs
     property hotspot_action_dialog : UI::HotspotActionDialog
     property script_editor : UI::ScriptEditor
+    property background_import_dialog : UI::BackgroundImportDialog
+    property asset_import_dialog : UI::AssetImportDialog
+    property scene_creation_wizard : UI::SceneCreationWizard
+    property game_export_dialog : UI::GameExportDialog
 
     # Editor viewport
     @viewport_x : Int32
@@ -69,6 +73,10 @@ module PaceEditor::Core
       # Initialize dialogs
       @hotspot_action_dialog = UI::HotspotActionDialog.new(@state)
       @script_editor = UI::ScriptEditor.new(@state)
+      @background_import_dialog = UI::BackgroundImportDialog.new(@state)
+      @asset_import_dialog = UI::AssetImportDialog.new(@state)
+      @scene_creation_wizard = UI::SceneCreationWizard.new(@state)
+      @game_export_dialog = UI::GameExportDialog.new(@state)
 
       # Initialize dimensions
       @width = @window_width
@@ -91,6 +99,22 @@ module PaceEditor::Core
       @state.current_mode = PaceEditor::EditorMode::Dialog
       # TODO: Load/create dialog tree for the character
       puts "Opening dialog editor for character: #{character_name}"
+    end
+
+    def show_background_import_dialog
+      @background_import_dialog.show
+    end
+
+    def show_asset_import_dialog(category : String = "backgrounds")
+      @asset_import_dialog.show(category)
+    end
+
+    def show_scene_creation_wizard
+      @scene_creation_wizard.show
+    end
+
+    def show_game_export_dialog
+      @game_export_dialog.show
     end
 
     def run
@@ -145,6 +169,10 @@ module PaceEditor::Core
       # Update dialogs
       @hotspot_action_dialog.update
       @script_editor.update
+      @background_import_dialog.update
+      @asset_import_dialog.update
+      @scene_creation_wizard.update
+      @game_export_dialog.update
     end
 
     private def draw
@@ -176,6 +204,10 @@ module PaceEditor::Core
       # Draw dialogs on top of everything
       @hotspot_action_dialog.draw
       @script_editor.draw
+      @background_import_dialog.draw
+      @asset_import_dialog.draw
+      @scene_creation_wizard.draw
+      @game_export_dialog.draw
 
       RL.end_drawing
     end

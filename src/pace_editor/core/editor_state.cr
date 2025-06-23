@@ -68,17 +68,6 @@ module PaceEditor::Core
       IO::SceneIO.save_scene(scene, scene_path)
     end
 
-    def create_new_project(name : String, path : String) : Bool
-      begin
-        @current_project = Project.create_new(name, path)
-        @current_mode = EditorMode::Scene
-        clear_selection
-        true
-      rescue ex
-        puts "Failed to create project: #{ex.message}"
-        false
-      end
-    end
 
     def load_project(project_file : String) : Bool
       begin
@@ -92,8 +81,10 @@ module PaceEditor::Core
       end
     end
 
-    def save_project
-      @current_project.try(&.save)
+    def save_project : Bool
+      project = @current_project
+      return false unless project
+      project.save
     end
 
     def create_new_project(name : String, path : String) : Bool
@@ -392,7 +383,7 @@ module PaceEditor::Core
         character.walking_speed = 100.0_f32
         character.state = PointClickEngine::Characters::CharacterState::Idle
         character.direction = PointClickEngine::Characters::Direction::Right
-        character.mood = PointClickEngine::Characters::NPCMood::Neutral
+        character.mood = PointClickEngine::Characters::CharacterMood::Neutral
         scene.characters << character
       end
 

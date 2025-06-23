@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# Set library paths for miniaudiohelpers (required for audio support)
+export LIBRARY_PATH="$LIBRARY_PATH:${PWD}/lib/raylib-cr/rsrc/miniaudiohelpers"
+export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:${PWD}/lib/raylib-cr/rsrc/miniaudiohelpers"
+
 echo "Running PACE Editor Test Suite"
 echo "=============================="
 echo
@@ -12,7 +16,7 @@ NC='\033[0m' # No Color
 
 # Run core and logic specs (no UI)
 echo -e "${YELLOW}Running Core and Logic Specs...${NC}"
-crystal spec spec/core/**/*_spec.cr spec/models/**/*_spec.cr spec/validation/**/*_spec.cr spec/export/**/*_spec.cr spec/ui/*_logic_spec.cr spec/ui/*_fixed_spec.cr --no-color
+crystal spec spec/core spec/models spec/validation spec/export -Dwith_audio --no-color
 
 if [ $? -eq 0 ]; then
     echo -e "${GREEN}✓ Core and Logic specs passed${NC}"
@@ -24,7 +28,7 @@ echo
 
 # Run headless UI specs
 echo -e "${YELLOW}Running Headless UI Specs...${NC}"
-crystal spec spec/ui/*_headless_spec.cr --no-color
+crystal spec spec/ui -Dwith_audio --no-color
 
 if [ $? -eq 0 ]; then
     echo -e "${GREEN}✓ Headless UI specs passed${NC}"

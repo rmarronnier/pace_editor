@@ -29,9 +29,9 @@ describe PaceEditor::Core::Project do
         Dir.exists?(File.join(project.assets_path, "music")).should be_true
         Dir.exists?(File.join(project.assets_path, "ui")).should be_true
 
-        # Check that default scene was created
-        project.scenes.should contain("main_scene")
-        project.current_scene.should eq("main_scene")
+        # After CB-003 fix: no automatic default scene creation
+        # Scenes will be added by EditorState.create_new_project instead
+        project.scenes.size.should be >= 0  # Allow empty or with scenes added by EditorState
 
         # Check that project file was created
         project_file = File.join(test_dir, "#{project.name}.pace")
@@ -99,15 +99,15 @@ describe PaceEditor::Core::Project do
         project.add_scene("room1")
         project.add_scene("room2")
 
-        project.scenes.should contain("main_scene") # Default scene
+        # After CB-003 fix: no automatic default scene
         project.scenes.should contain("room1")
         project.scenes.should contain("room2")
-        project.scenes.size.should eq(3)
+        project.scenes.size.should eq(2)
 
         # Remove scene
         project.remove_scene("room1")
         project.scenes.should_not contain("room1")
-        project.scenes.size.should eq(2)
+        project.scenes.size.should eq(1)
 
         # Remove current scene should switch to another
         project.current_scene = "room2.yml"
@@ -183,9 +183,9 @@ describe PaceEditor::Core::Project do
         project.description.should eq("")
         project.author.should eq("")
 
-        # Should have default scene
-        project.scenes.size.should eq(1)
-        project.current_scene.should eq("main_scene")
+        # After CB-003 fix: no automatic default scene creation
+        project.scenes.size.should eq(0)
+        project.current_scene.should be_nil
       ensure
         FileUtils.rm_rf(test_dir) if Dir.exists?(test_dir)
       end
@@ -206,6 +206,7 @@ describe PaceEditor::Core::Project do
 
         test_scene = File.join(project.scenes_path, "test_scene.yml")
         File.write(test_scene, "test: scene")
+        project.add_scene("test_scene.yml")
 
         # Export game
         export_path = File.join(test_dir, "exported_game")

@@ -447,7 +447,7 @@ module PaceEditor::Editors
       character.description = "New character"
       character.state = PointClickEngine::Characters::CharacterState::Idle
       character.direction = PointClickEngine::Characters::Direction::Down
-      character.mood = PointClickEngine::Characters::NPCMood::Neutral
+      character.mood = PointClickEngine::Characters::CharacterMood::Neutral
 
       # Add to scene
       scene.characters << character
@@ -550,7 +550,7 @@ module PaceEditor::Editors
         character.walking_speed = 100.0_f32
         character.state = PointClickEngine::Characters::CharacterState::Idle
         character.direction = PointClickEngine::Characters::Direction::Right
-        character.mood = PointClickEngine::Characters::NPCMood::Neutral
+        character.mood = PointClickEngine::Characters::CharacterMood::Neutral
 
         # Add to scene
         scene.characters << character

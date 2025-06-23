@@ -251,6 +251,15 @@ module PaceEditor::UI
       if scene = @state.current_scene
         y = draw_property_field("Name:", scene.name, x, y, width)
         y = draw_property_field("Background:", scene.background_path || "None", x, y, width)
+        
+        # Import Background button
+        if draw_action_button("Import Background...", x + 10, y, width - 20)
+          if window = @state.editor_window
+            window.show_background_import_dialog
+          end
+        end
+        y += 35
+        
         y = draw_property_field("Scale:", scene.scale.to_s, x, y, width)
 
         y += 15
@@ -490,18 +499,18 @@ module PaceEditor::UI
          mouse_pos.y >= y - 2 && mouse_pos.y <= y - 2 + 18
         # Cycle to next mood
         case npc.mood
-        when PointClickEngine::Characters::NPCMood::Friendly
-          npc.mood = PointClickEngine::Characters::NPCMood::Neutral
-        when PointClickEngine::Characters::NPCMood::Neutral
-          npc.mood = PointClickEngine::Characters::NPCMood::Hostile
-        when PointClickEngine::Characters::NPCMood::Hostile
-          npc.mood = PointClickEngine::Characters::NPCMood::Sad
-        when PointClickEngine::Characters::NPCMood::Sad
-          npc.mood = PointClickEngine::Characters::NPCMood::Happy
-        when PointClickEngine::Characters::NPCMood::Happy
-          npc.mood = PointClickEngine::Characters::NPCMood::Angry
-        when PointClickEngine::Characters::NPCMood::Angry
-          npc.mood = PointClickEngine::Characters::NPCMood::Friendly
+        when PointClickEngine::Characters::CharacterMood::Friendly
+          npc.mood = PointClickEngine::Characters::CharacterMood::Neutral
+        when PointClickEngine::Characters::CharacterMood::Neutral
+          npc.mood = PointClickEngine::Characters::CharacterMood::Hostile
+        when PointClickEngine::Characters::CharacterMood::Hostile
+          npc.mood = PointClickEngine::Characters::CharacterMood::Sad
+        when PointClickEngine::Characters::CharacterMood::Sad
+          npc.mood = PointClickEngine::Characters::CharacterMood::Happy
+        when PointClickEngine::Characters::CharacterMood::Happy
+          npc.mood = PointClickEngine::Characters::CharacterMood::Angry
+        when PointClickEngine::Characters::CharacterMood::Angry
+          npc.mood = PointClickEngine::Characters::CharacterMood::Friendly
         end
         save_scene
       end

@@ -31,8 +31,9 @@ describe PaceEditor::UI::ScriptEditor do
 
       it "sets cursor to initial position" do
         editor.show
-        editor.@cursor_line.should eq(0)
-        editor.@cursor_column.should eq(0)
+        line, column = editor.cursor_position
+        line.should eq(0)
+        column.should eq(0)
       end
 
       it "clears error messages" do
@@ -75,9 +76,8 @@ describe PaceEditor::UI::ScriptEditor do
     before_each do
       editor.show
       # Start with a simple script
-      editor.@lines = ["function test()", "    print('hello')", "end"]
-      editor.@cursor_line = 1
-      editor.@cursor_column = 4
+      editor.set_lines(["function test()", "    print('hello')", "end"])
+      editor.set_cursor_position(1, 4)
     end
 
     describe "#insert_character" do

@@ -74,6 +74,7 @@ module PaceEditor::Core
               File.join(@assets_path, "characters"),
               File.join(@assets_path, "sounds"),
               File.join(@assets_path, "music"),
+              File.join(@assets_path, "scripts"),
               File.join(@assets_path, "ui")]
 
       dirs.each do |dir|
@@ -82,17 +83,9 @@ module PaceEditor::Core
     end
 
     private def create_default_files
-      # Only create a default scene if no scenes exist
-      if @scenes.empty?
-        default_scene_path = File.join(@scenes_path, "main_scene.yml")
-        unless File.exists?(default_scene_path)
-          default_scene_yaml = create_default_scene
-          File.write(default_scene_path, default_scene_yaml)
-          @scenes << "main_scene"
-          @current_scene = "main_scene"
-        end
-      end
-
+      # Note: Default scene creation is handled by EditorState.create_new_project
+      # This avoids duplicate scene creation
+      
       # Create project file
       save
     end
@@ -111,9 +104,15 @@ module PaceEditor::Core
       scene_yaml
     end
 
-    def save
-      project_file = File.join(@project_path, "#{@name}.pace")
-      File.write(project_file, to_yaml)
+    def save : Bool
+      begin
+        project_file = File.join(@project_path, "project.pace")
+        File.write(project_file, to_yaml)
+        true
+      rescue ex
+        puts "Failed to save project: #{ex.message}"
+        false
+      end
     end
 
     def self.load(project_file : String) : Project
@@ -154,6 +153,27 @@ module PaceEditor::Core
       when "scripts"
         @scripts << asset_path unless @scripts.includes?(asset_path)
       end
+    end
+
+    def refresh_assets
+      # Refresh asset lists by scanning the filesystem
+      @backgrounds = scan_assets_directory("backgrounds")
+      @characters = scan_assets_directory("characters")
+      @sounds = scan_assets_directory("sounds")
+      @music = scan_assets_directory("music")
+      @scripts = scan_assets_directory("scripts")
+    end
+
+    private def scan_assets_directory(category : String) : Array(String)
+      asset_dir = File.join(@assets_path, category)
+      return [] of String unless Dir.exists?(asset_dir)
+
+      assets = [] of String
+      Dir.glob(File.join(asset_dir, "*")).each do |file_path|
+        next unless File.file?(file_path)
+        assets << File.basename(file_path)
+      end
+      assets.sort
     end
 
     def get_scene_file_path(scene_name : String) : String

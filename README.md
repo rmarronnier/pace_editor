@@ -204,7 +204,15 @@ PACE is a visual editor for creating point-and-click adventure games using the P
    ```
 
 3. **Run PACE:**
+   
+   ⚠️ **RECOMMENDED: Use the provided run script** ⚠️
+   
    ```bash
+   # BEST: Use the run script (handles audio setup automatically)
+   ./run.sh src/pace_editor.cr
+   
+   # OR build first, then run
+   ./build.sh src/pace_editor.cr --release
    ./pace_editor
    ```
 
@@ -348,13 +356,44 @@ The editor validates:
    ```
 
 3. **Run Development Version:**
+   
+   ⚠️ **RECOMMENDED: Use the provided scripts** ⚠️
+   
    ```bash
-   crystal run src/pace_editor.cr
+   # BEST: Use the run script (handles audio setup automatically)
+   ./run.sh src/pace_editor.cr
+   
+   # Alternative: Manual setup
+   export LIBRARY_PATH="$LIBRARY_PATH:${PWD}/lib/raylib-cr/rsrc/miniaudiohelpers"
+   export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:${PWD}/lib/raylib-cr/rsrc/miniaudiohelpers"
+   crystal run src/pace_editor.cr -Dwith_audio
    ```
 
 4. **Run Tests:**
+   
+   ⚠️ **IMPORTANT AUDIO LIBRARY SETUP** ⚠️
+   
+   Use the provided scripts that automatically handle audio library setup:
+   
    ```bash
-   crystal spec
+   # RECOMMENDED: Use the test script (handles everything automatically)
+   ./run_all_specs.sh
+   
+   # For manual testing with audio support
+   ./run.sh src/pace_editor.cr
+   
+   # For building with audio support
+   ./build.sh src/pace_editor.cr --release
+   ```
+   
+   **Manual Setup (if needed):**
+   ```bash
+   # Set library paths for miniaudiohelpers (required for audio support)
+   export LIBRARY_PATH="$LIBRARY_PATH:${PWD}/lib/raylib-cr/rsrc/miniaudiohelpers"
+   export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:${PWD}/lib/raylib-cr/rsrc/miniaudiohelpers"
+   
+   # Run with audio flag
+   crystal spec -Dwith_audio
    ```
    
    All specs should pass. The test suite covers:
@@ -381,6 +420,74 @@ pace_editor/
 ├── lib/                    # Dependencies
 └── shard.yml              # Project configuration
 ```
+
+## 🔧 Audio Troubleshooting
+
+If you encounter `ld: library 'miniaudiohelpers' not found` errors, here's the complete solution:
+
+### **Problem**
+The raylib-cr library requires a compiled `miniaudiohelpers` library for audio support, but it's not automatically built on all systems.
+
+### **Solution**
+PACE Editor now includes the pre-compiled audio library and helper scripts. Use these approaches:
+
+#### **Option 1: Use Provided Scripts (Recommended)**
+```bash
+# For running the editor
+./run.sh src/pace_editor.cr
+
+# For building the editor
+./build.sh src/pace_editor.cr --release
+
+# For running tests
+./run_all_specs.sh
+```
+
+#### **Option 2: Manual Setup**
+If the scripts don't work, manually set up the environment:
+
+```bash
+# Set library paths
+export LIBRARY_PATH="$LIBRARY_PATH:${PWD}/lib/raylib-cr/rsrc/miniaudiohelpers"
+export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:${PWD}/lib/raylib-cr/rsrc/miniaudiohelpers"
+
+# Use the -Dwith_audio flag
+crystal run src/pace_editor.cr -Dwith_audio
+crystal spec -Dwith_audio
+```
+
+#### **Option 3: Missing Library Files**
+If the miniaudiohelpers library files are missing from `lib/raylib-cr/rsrc/miniaudiohelpers/`:
+
+```bash
+# Check if files exist
+ls -la lib/raylib-cr/rsrc/miniaudiohelpers/
+
+# If libminiaudiohelpers.a is missing, copy from the engine:
+cp ../point_click_engine/lib/raylib-cr/rsrc/miniaudiohelpers/libminiaudiohelpers.a lib/raylib-cr/rsrc/miniaudiohelpers/
+cp ../point_click_engine/lib/raylib-cr/rsrc/miniaudiohelpers/miniaudiohelpers.o lib/raylib-cr/rsrc/miniaudiohelpers/
+```
+
+#### **Option 4: Compile from Source (Last Resort)**
+Only if the above options fail:
+
+```bash
+cd lib/raylib-cr/rsrc/miniaudiohelpers
+gcc -c -fPIC miniaudiohelpers.c -o miniaudiohelpers.o
+ar rcs libminiaudiohelpers.a miniaudiohelpers.o
+```
+
+### **Why This Happens**
+- The raylib-cr Crystal library uses miniaudio for audio support
+- miniaudio requires platform-specific compiled helpers
+- PACE Editor maintains full audio compatibility with the Point & Click Engine
+- The solution mirrors the working setup from the engine
+
+### **Verification**
+After applying the solution, you should see:
+- Tests run without linker errors
+- Audio support available in the editor
+- Full compatibility with Point & Click Engine games
 
 ## Upgrading from Previous Versions
 

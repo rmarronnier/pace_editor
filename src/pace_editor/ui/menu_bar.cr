@@ -314,42 +314,9 @@ module PaceEditor::UI
     end
 
     private def create_new_scene
-      return unless project = @state.current_project
-
-      # Generate unique scene name
-      scene_count = 1
-      scene_name = "scene_#{scene_count}"
-      while project.scenes.includes?("#{scene_name}.yml")
-        scene_count += 1
-        scene_name = "scene_#{scene_count}"
-      end
-
-      # Create a simple default scene
-      scene = PointClickEngine::Scenes::Scene.new(scene_name)
-      scene.hotspots = [] of PointClickEngine::Scenes::Hotspot
-      scene.characters = [] of PointClickEngine::Characters::Character
-      scene.scale = 1.0_f32
-      scene.enable_pathfinding = true
-      scene.navigation_cell_size = 16
-
-      # Set it as the current scene
-      @state.current_scene = scene
-
-      # Save scene to file
-      scene_path = File.join(project.scenes_path, "#{scene_name}.yml")
-      if PaceEditor::IO::SceneIO.save_scene(scene, scene_path)
-        # Add scene to project
-        project.add_scene("#{scene_name}.yml")
-
-        # Save project to persist scene list
-        project.save
-
-        # Switch to scene mode
-        @state.current_mode = EditorMode::Scene
-
-        puts "Created and saved new scene: #{scene_name}"
-      else
-        puts "Failed to save new scene"
+      # Show the scene creation wizard
+      if window = @state.editor_window
+        window.show_scene_creation_wizard
       end
     end
 
@@ -371,26 +338,9 @@ module PaceEditor::UI
     end
 
     private def export_game
-      return unless project = @state.current_project
-
-      begin
-        puts "Starting game export for project: #{project.name}"
-
-        # Create export directory
-        export_dir = File.join(project.project_path, "exports")
-        Dir.mkdir_p(export_dir) unless Dir.exists?(export_dir)
-
-        # TODO: Implement actual game export functionality
-        # This would involve:
-        # 1. Creating a playable game executable
-        # 2. Copying all assets
-        # 3. Packaging scripts and dialogs
-        # 4. Creating distribution package
-
-        puts "Export directory created at: #{export_dir}"
-        puts "Note: Full export functionality not yet implemented"
-      rescue ex
-        puts "Error during export: #{ex.message}"
+      # Show the game export dialog
+      if window = @state.editor_window
+        window.show_game_export_dialog
       end
     end
 

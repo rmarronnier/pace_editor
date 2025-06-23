@@ -192,32 +192,10 @@ module PaceEditor::UI
     end
 
     private def import_asset
-      return unless project = @state.current_project
-
-      # Define supported file extensions by category
-      supported_extensions = case @current_category
-                             when "backgrounds", "characters"
-                               [".png", ".jpg", ".jpeg", ".bmp", ".tga"]
-                             when "sounds", "music"
-                               [".wav", ".ogg", ".mp3"]
-                             when "scripts"
-                               [".lua", ".cr"]
-                             else
-                               [] of String
-                             end
-
-      if supported_extensions.empty?
-        puts "No supported file types for category: #{@current_category}"
-        return
+      # Show the asset import dialog
+      if window = @state.editor_window
+        window.show_asset_import_dialog(@current_category)
       end
-
-      # Simple file import dialog using system commands
-      # This is a basic implementation - a full implementation would use native file dialogs
-      puts "Opening file dialog for #{@current_category}..."
-      puts "Supported formats: #{supported_extensions.join(", ")}"
-
-      # For now, implement a basic file finder that looks in common directories
-      import_from_common_directories(project, supported_extensions)
     end
 
     private def import_from_common_directories(project : Core::Project, extensions : Array(String))
