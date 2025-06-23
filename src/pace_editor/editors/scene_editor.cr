@@ -599,6 +599,18 @@ module PaceEditor::Editors
         end
       end
 
+      # Save scene (Ctrl+S)
+      if RL.key_down?(RL::KeyboardKey::LeftControl) && RL.key_pressed?(RL::KeyboardKey::S)
+        save_scene
+        @state.is_dirty = false
+        puts "Scene saved"
+      end
+
+      # Open background selector (B)
+      if RL.key_pressed?(RL::KeyboardKey::B) && !RL.key_down?(RL::KeyboardKey::LeftControl)
+        show_background_selector
+      end
+
       # Select all
       if RL.key_down?(RL::KeyboardKey::LeftControl) && RL.key_pressed?(RL::KeyboardKey::A)
         select_all_objects

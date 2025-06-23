@@ -1,0 +1,64 @@
+---
+name: main
+background_path:
+scale: 1.0
+enable_pathfinding: true
+navigation_cell_size: 16
+script_path:
+hotspots:
+- name: hotspot_1750693191
+  position:
+    x: 350.0
+    y: 250.0
+  size:
+    x: 100.0
+    y: 100.0
+  cursor_type: Hand
+  visible: true
+  description: New hotspot
+- name: hotspot_1750693196306
+  position:
+    x: 281.88672
+    y: 436.54297
+  size:
+    x: 10.0
+    y: 10.0
+  cursor_type: Hand
+  visible: true
+  description: New hotspot
+characters:
+- name: character_1750693183
+  description: A character named character_1750693183
+  position:
+    x: 384.0
+    y: 224.0
+  size:
+    x: 64.0
+    y: 128.0
+  state: Idle
+  direction: Right
+  walking_speed: 100.0
+  use_pathfinding: true
+  type: npc
+  mood: Neutral
+  dialogues: []
+  can_repeat_dialogues: true
+  interaction_distance: 50.0
+- name: character_1750693190
+  description: A character named character_1750693190
+  position:
+    x: 400.0
+    y: 300.0
+  size:
+    x: 64.0
+    y: 128.0
+  state: Idle
+  direction: Right
+  walking_speed: 100.0
+  use_pathfinding: true
+  type: npc
+  mood: Neutral
+  dialogues: []
+  can_repeat_dialogues: true
+  interaction_distance: 50.0
+walkable_areas:

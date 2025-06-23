@@ -143,7 +143,7 @@ module PaceEditor::UI
 
     private def draw_file_dropdown(x : Int32, y : Int32)
       dropdown_width = 140
-      dropdown_height = 216 # Increased for scene menu items
+      dropdown_height = 256 # Increased for export menu item
 
       # Dropdown background
       RL.draw_rectangle(x, y, dropdown_width, dropdown_height, RL::Color.new(r: 70, g: 70, b: 70, a: 255))
@@ -196,6 +196,17 @@ module PaceEditor::UI
       scene_loaded = !@state.current_scene.nil?
       if draw_dropdown_item("Save Scene", x, current_y, dropdown_width, item_height, "Ctrl+S", scene_loaded)
         save_current_scene
+        @show_file_menu = false
+      end
+      current_y += item_height
+
+      # Separator
+      RL.draw_line(x + 5, current_y + 8, x + dropdown_width - 5, current_y + 8, RL::GRAY)
+      current_y += 16
+
+      # Export Game (only enabled if project is loaded)
+      if draw_dropdown_item("Export Game...", x, current_y, dropdown_width, item_height, "", project_loaded)
+        export_game
         @show_file_menu = false
       end
       current_y += item_height
@@ -356,6 +367,30 @@ module PaceEditor::UI
         @state.is_dirty = false
       else
         puts "Failed to save scene: #{scene.name}"
+      end
+    end
+
+    private def export_game
+      return unless project = @state.current_project
+
+      begin
+        puts "Starting game export for project: #{project.name}"
+
+        # Create export directory
+        export_dir = File.join(project.project_path, "exports")
+        Dir.mkdir_p(export_dir) unless Dir.exists?(export_dir)
+
+        # TODO: Implement actual game export functionality
+        # This would involve:
+        # 1. Creating a playable game executable
+        # 2. Copying all assets
+        # 3. Packaging scripts and dialogs
+        # 4. Creating distribution package
+
+        puts "Export directory created at: #{export_dir}"
+        puts "Note: Full export functionality not yet implemented"
+      rescue ex
+        puts "Error during export: #{ex.message}"
       end
     end
 

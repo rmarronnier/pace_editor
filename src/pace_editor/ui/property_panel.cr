@@ -157,6 +157,16 @@ module PaceEditor::UI
         end
       end
       y += 30
+
+      # Edit Script button
+      if draw_action_button("Edit Script...", x + 10, y, width - 20)
+        # Create script file if it doesn't exist and show script editor
+        if window = @state.editor_window
+          script_path = ensure_hotspot_script_exists(hotspot.name)
+          window.show_script_editor(script_path)
+        end
+      end
+      y += 30
     end
 
     private def draw_character_object_properties(character : PointClickEngine::Characters::Character, x : Int32, y : Int32, width : Int32)
@@ -186,6 +196,16 @@ module PaceEditor::UI
       # If NPC, show mood
       if npc = character.as?(PointClickEngine::Characters::NPC)
         y = draw_npc_mood_dropdown(npc, x, y, width)
+
+        # Edit Dialog button for NPCs
+        y += 15
+        if draw_action_button("Edit Dialog...", x + 10, y, width - 20)
+          # Show dialog editor for this NPC
+          if window = @state.editor_window
+            window.show_dialog_editor_for_character(character.name)
+          end
+        end
+        y += 30
       end
     end
 
@@ -575,6 +595,52 @@ module PaceEditor::UI
       scene_path = File.join(project.scenes_path, scene_filename)
       PaceEditor::IO::SceneIO.save_scene(scene, scene_path)
       @state.is_dirty = true
+    end
+
+    private def ensure_hotspot_script_exists(hotspot_name : String) : String?
+      return nil unless project = @state.current_project
+
+      # Create scripts directory if it doesn't exist
+      scripts_dir = File.join(project.project_path, "assets", "scripts")
+      Dir.mkdir_p(scripts_dir) unless Dir.exists?(scripts_dir)
+
+      # Script file path
+      script_filename = "#{hotspot_name}.lua"
+      script_path = File.join(scripts_dir, script_filename)
+
+      # Create script file if it doesn't exist
+      unless File.exists?(script_path)
+        default_script = <<-LUA
+        -- Script for hotspot: #{hotspot_name}
+        -- This script handles interactions with the #{hotspot_name} hotspot
+
+        function on_click()
+            -- Called when the hotspot is clicked
+            show_message("You clicked on #{hotspot_name}")
+        end
+
+        function on_hover()
+            -- Called when the mouse hovers over the hotspot
+            -- set_cursor("hand")
+        end
+
+        function on_use_item(item_name)
+            -- Called when an inventory item is used on this hotspot
+            show_message("You used " .. item_name .. " on #{hotspot_name}")
+        end
+
+        LUA
+
+        begin
+          File.write(script_path, default_script)
+          puts "Created new script file: #{script_path}"
+        rescue ex
+          puts "Error creating script file: #{ex.message}"
+          return nil
+        end
+      end
+
+      script_path
     end
 
     private def draw_action_button(text : String, x : Int32, y : Int32, width : Int32) : Bool

@@ -1,0 +1,37 @@
+---
+name: main
+background_path:
+scale: 1.0
+enable_pathfinding: true
+navigation_cell_size: 16
+script_path:
+hotspots:
+- name: hotspot_1750694536508
+  position:
+    x: 212.86153
+    y: 152.10355
+  size:
+    x: 10.0
+    y: 10.0
+  cursor_type: Hand
+  visible: true
+  description: New htfghfgh
+characters:
+- name: character_1750694464
+  description: A character named character_1750694
+  position:
+    x: 240.0
+    y: 128.0
+  size:
+    x: 64.0
+    y: 128.0
+  state: Idle
+  direction: Down
+  walking_speed: 100.0
+  use_pathfinding: true
+  type: npc
+  mood: Happy
+  dialogues: []
+  can_repeat_dialogues: true
+  interaction_distance: 50.0
+walkable_areas:

@@ -33,6 +33,7 @@ module PaceEditor::Core
 
     # Dialogs
     property hotspot_action_dialog : UI::HotspotActionDialog
+    property script_editor : UI::ScriptEditor
 
     # Editor viewport
     @viewport_x : Int32
@@ -67,6 +68,7 @@ module PaceEditor::Core
 
       # Initialize dialogs
       @hotspot_action_dialog = UI::HotspotActionDialog.new(@state)
+      @script_editor = UI::ScriptEditor.new(@state)
 
       # Initialize dimensions
       @width = @window_width
@@ -78,6 +80,17 @@ module PaceEditor::Core
 
     def show_hotspot_action_dialog(hotspot_name : String)
       @hotspot_action_dialog.show(hotspot_name)
+    end
+
+    def show_script_editor(script_path : String? = nil)
+      @script_editor.show(script_path)
+    end
+
+    def show_dialog_editor_for_character(character_name : String)
+      # Switch to dialog mode and set the dialog editor to edit this character's dialog
+      @state.current_mode = PaceEditor::EditorMode::Dialog
+      # TODO: Load/create dialog tree for the character
+      puts "Opening dialog editor for character: #{character_name}"
     end
 
     def run
@@ -131,6 +144,7 @@ module PaceEditor::Core
 
       # Update dialogs
       @hotspot_action_dialog.update
+      @script_editor.update
     end
 
     private def draw
@@ -161,6 +175,7 @@ module PaceEditor::Core
 
       # Draw dialogs on top of everything
       @hotspot_action_dialog.draw
+      @script_editor.draw
 
       RL.end_drawing
     end
