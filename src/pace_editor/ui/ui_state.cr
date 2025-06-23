@@ -325,8 +325,8 @@ module PaceEditor::UI
       @has_project = editor_state.has_project?
 
       if project = editor_state.current_project
-        @has_scenes = ComponentVisibility.send(:has_any_scenes?, editor_state)
-        @has_assets = ComponentVisibility.send(:has_any_assets?, project)
+        @has_scenes = ComponentVisibility.has_any_scenes?(editor_state)
+        @has_assets = ComponentVisibility.has_any_assets?(project)
 
         if scene = editor_state.current_scene
           @has_characters = scene.characters.any?
@@ -334,7 +334,7 @@ module PaceEditor::UI
           @has_hotspots = scene.hotspots.any?
         end
 
-        @has_dialogs = ComponentVisibility.send(:has_npcs_in_project?, editor_state)
+        @has_dialogs = ComponentVisibility.has_npcs_in_project?(editor_state)
 
         # Check for scripts
         scripts_dir = File.join(project.project_path, "scripts")

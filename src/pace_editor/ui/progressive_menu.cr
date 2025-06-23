@@ -17,6 +17,7 @@ module PaceEditor::UI
       initialize_menu_structure
     end
     
+    
     def draw(screen_width : Int32)
       @menu_bar_rect.width = screen_width.to_f32
       
@@ -43,14 +44,14 @@ module PaceEditor::UI
     
     def handle_input(mouse_pos : RL::Vector2, mouse_clicked : Bool) : Bool
       # Check if mouse is over menu bar
-      return false unless RL.check_collision_point_rec(mouse_pos, @menu_bar_rect)
+      return false unless PaceEditor::Constants.point_in_rect?(mouse_pos, @menu_bar_rect)
       
       # Check menu section clicks
       x_offset = 10.0_f32
       @menu_items.each do |name, section|
         section_rect = RL::Rectangle.new(x: x_offset, y: 0.0_f32, width: section.width, height: MENU_HEIGHT.to_f32)
         
-        if RL.check_collision_point_rec(mouse_pos, section_rect)
+        if PaceEditor::Constants.point_in_rect?(mouse_pos, section_rect)
           @hover_item = name
           
           if mouse_clicked && section.visible?(@editor_state, @ui_state)
@@ -91,71 +92,84 @@ module PaceEditor::UI
           if window = @editor_state.editor_window
             window.show_project_file_dialog(open: true)
           end
-        end,
-        MenuSeparator.new,
-        MenuItem.new("save_project", "Save Project", "Save current project",
+        end.as(MenuItemBase)
+        
+      file_items << MenuSeparator.new.as(MenuItemBase)
+      
+      file_items << MenuItem.new("save_project", "Save Project", "Save current project",
           visibility_check: ->(state : Core::EditorState, ui : UIState) { ComponentVisibility.should_show_file_save?(state) }) do
           @editor_state.save_project
-        end,
-        MenuItem.new("save_as", "Save As...", "Save project with new name",
+        end.as(MenuItemBase)
+        
+      file_items << MenuItem.new("save_as", "Save As...", "Save project with new name",
           visibility_check: ->(state : Core::EditorState, ui : UIState) { state.has_project? }) do
           if window = @editor_state.editor_window
             window.show_project_file_dialog(open: false)
           end
-        end,
-        MenuSeparator.new,
-        MenuItem.new("export_game", "Export Game", "Export playable game",
+        end.as(MenuItemBase)
+        
+      file_items << MenuSeparator.new.as(MenuItemBase)
+      
+      file_items << MenuItem.new("export_game", "Export Game", "Export playable game",
           visibility_check: ->(state : Core::EditorState, ui : UIState) { ComponentVisibility.should_show_file_export?(state) }) do
           if window = @editor_state.editor_window
             window.show_game_export_dialog
           end
-        end,
-        MenuSeparator.new,
-        MenuItem.new("exit", "Exit", "Exit PACE Editor") do
+        end.as(MenuItemBase)
+        
+      file_items << MenuSeparator.new.as(MenuItemBase)
+      
+      file_items << MenuItem.new("exit", "Exit", "Exit PACE Editor") do
           # Set flag to close window on next frame
           @editor_state.should_exit = true
-        end
-      ]
+        end.as(MenuItemBase)
       
       @menu_items["File"] = MenuSection.new("File", file_items)
       
       # Edit menu
-      edit_items = [
-        MenuItem.new("undo", "Undo", "Undo last action",
+      edit_items = [] of MenuItemBase
+      
+      edit_items << MenuItem.new("undo", "Undo", "Undo last action",
           visibility_check: ->(state : Core::EditorState, ui : UIState) { ComponentVisibility.should_show_edit_undo?(state) }) do
           @editor_state.undo
-        end,
-        MenuItem.new("redo", "Redo", "Redo last undone action",
+        end.as(MenuItemBase)
+        
+      edit_items << MenuItem.new("redo", "Redo", "Redo last undone action",
           visibility_check: ->(state : Core::EditorState, ui : UIState) { ComponentVisibility.should_show_edit_redo?(state) }) do
           @editor_state.redo
-        end,
-        MenuSeparator.new,
-        MenuItem.new("preferences", "Preferences", "Open preferences") do
+        end.as(MenuItemBase)
+        
+      edit_items << MenuSeparator.new.as(MenuItemBase)
+      
+      edit_items << MenuItem.new("preferences", "Preferences", "Open preferences") do
           # Show preferences dialog
-        end,
-        MenuItem.new("power_mode", "Power Mode", "Toggle advanced user mode") do
+        end.as(MenuItemBase)
+        
+      edit_items << MenuItem.new("power_mode", "Power Mode", "Toggle advanced user mode") do
           @ui_state.toggle_power_mode
-        end
-      ]
+        end.as(MenuItemBase)
       
       @menu_items["Edit"] = MenuSection.new("Edit", edit_items,
         visibility_check: ->(state : Core::EditorState, ui : UIState) { state.has_project? })
       
       # Scene menu
-      scene_items = [
-        MenuItem.new("new_scene", "New Scene", "Create a new scene") do
+      scene_items = [] of MenuItemBase
+      
+      scene_items << MenuItem.new("new_scene", "New Scene", "Create a new scene") do
           if window = @editor_state.editor_window
             window.show_scene_creation_wizard
           end
-        end,
-        MenuItem.new("duplicate_scene", "Duplicate Scene", "Duplicate current scene",
+        end.as(MenuItemBase)
+        
+      scene_items << MenuItem.new("duplicate_scene", "Duplicate Scene", "Duplicate current scene",
           visibility_check: ->(state : Core::EditorState, ui : UIState) { !state.current_scene.nil? }) do
           if scene = @editor_state.current_scene
             @editor_state.duplicate_scene(scene.name)
             @ui_state.track_action("scene_duplicated")
           end
-        end,
-        MenuItem.new("delete_scene", "Delete Scene", "Delete current scene",
+        end.as(MenuItemBase)
+        
+      scene_items << MenuItem.new("delete_scene", "Delete Scene", "Delete current scene",
           visibility_check: ->(state : Core::EditorState, ui : UIState) { !state.current_scene.nil? }) do
           if scene = @editor_state.current_scene
             if window = @editor_state.editor_window
@@ -165,119 +179,134 @@ module PaceEditor::UI
               end
             end
           end
-        end,
-        MenuSeparator.new,
-        MenuItem.new("scene_properties", "Scene Properties", "Edit scene properties",
+        end.as(MenuItemBase)
+        
+      scene_items << MenuSeparator.new.as(MenuItemBase)
+      
+      scene_items << MenuItem.new("scene_properties", "Scene Properties", "Edit scene properties",
           visibility_check: ->(state : Core::EditorState, ui : UIState) { ComponentVisibility.should_show_scene_properties?(state) }) do
           # Switch to scene mode to show properties in property panel
           if window = @editor_state.editor_window
             window.switch_mode(PaceEditor::EditorMode::Scene)
           end
-        end
-      ]
+        end.as(MenuItemBase)
       
       @menu_items["Scene"] = MenuSection.new("Scene", scene_items,
         visibility_check: ->(state : Core::EditorState, ui : UIState) { ComponentVisibility.should_show_scene_menu?(state) })
       
       # Character menu
-      character_items = [
-        MenuItem.new("add_player", "Add Player", "Add player character") do
+      character_items = [] of MenuItemBase
+      
+      character_items << MenuItem.new("add_player", "Add Player", "Add player character") do
           if scene = @editor_state.current_scene
             @editor_state.add_player_character(scene)
             @ui_state.track_action("player_added")
           end
-        end,
-        MenuItem.new("add_npc", "Add NPC", "Add non-player character") do
+        end.as(MenuItemBase)
+        
+      character_items << MenuItem.new("add_npc", "Add NPC", "Add non-player character") do
           if scene = @editor_state.current_scene
             @editor_state.add_npc_character(scene)
             @ui_state.track_action("npc_added")
           end
-        end,
-        MenuSeparator.new,
-        MenuItem.new("import_character", "Import Character", "Import character sprite") do
+        end.as(MenuItemBase)
+        
+      character_items << MenuSeparator.new.as(MenuItemBase)
+      
+      character_items << MenuItem.new("import_character", "Import Character", "Import character sprite") do
           if window = @editor_state.editor_window
             window.show_asset_import_dialog("characters")
           end
-        end,
-        MenuItem.new("character_animations", "Edit Animations", "Edit character animations",
+        end.as(MenuItemBase)
+        
+      character_items << MenuItem.new("character_animations", "Edit Animations", "Edit character animations",
           visibility_check: ->(state : Core::EditorState, ui : UIState) { !state.selected_object.nil? }) do
           if selected = @editor_state.selected_object
             if window = @editor_state.editor_window
               window.show_animation_editor(selected)
             end
           end
-        end
-      ]
+        end.as(MenuItemBase)
       
       @menu_items["Character"] = MenuSection.new("Character", character_items,
         visibility_check: ->(state : Core::EditorState, ui : UIState) { ComponentVisibility.should_show_character_menu?(state) })
       
       # Dialog menu
-      dialog_items = [
-        MenuItem.new("new_dialog", "New Dialog", "Create new dialog tree") do
+      dialog_items = [] of MenuItemBase
+      
+      dialog_items << MenuItem.new("new_dialog", "New Dialog", "Create new dialog tree") do
           if window = @editor_state.editor_window
             window.switch_mode(PaceEditor::EditorMode::Dialog)
             @ui_state.track_action("new_dialog_started")
           end
-        end,
-        MenuItem.new("edit_dialog", "Edit Dialog", "Edit existing dialog",
+        end.as(MenuItemBase)
+        
+      dialog_items << MenuItem.new("edit_dialog", "Edit Dialog", "Edit existing dialog",
           visibility_check: ->(state : Core::EditorState, ui : UIState) { ComponentVisibility.should_show_dialog_properties?(state) }) do
           if selected = @editor_state.selected_object
             if window = @editor_state.editor_window
               window.show_dialog_editor_for_character(selected)
             end
           end
-        end,
-        MenuItem.new("test_dialog", "Test Dialog", "Test dialog in preview",
+        end.as(MenuItemBase)
+        
+      dialog_items << MenuItem.new("test_dialog", "Test Dialog", "Test dialog in preview",
           visibility_check: ->(state : Core::EditorState, ui : UIState) { ComponentVisibility.should_show_dialog_properties?(state) }) do
           if selected = @editor_state.selected_object
             @editor_state.test_dialog(selected)
             @ui_state.track_action("dialog_tested")
           end
-        end
-      ]
+        end.as(MenuItemBase)
       
       @menu_items["Dialog"] = MenuSection.new("Dialog", dialog_items,
         visibility_check: ->(state : Core::EditorState, ui : UIState) { ComponentVisibility.should_show_dialog_menu?(state) })
       
       # Tools menu
-      tools_items = [
-        MenuItem.new("asset_browser", "Asset Browser", "Open asset browser") do
+      tools_items = [] of MenuItemBase
+      
+      tools_items << MenuItem.new("asset_browser", "Asset Browser", "Open asset browser") do
           @editor_state.current_mode = EditorMode::Assets
-        end,
-        MenuItem.new("script_editor", "Script Editor", "Open script editor") do
+        end.as(MenuItemBase)
+        
+      tools_items << MenuItem.new("script_editor", "Script Editor", "Open script editor") do
           @editor_state.current_mode = EditorMode::Script
-        end,
-        MenuSeparator.new,
-        MenuItem.new("validate_project", "Validate Project", "Check project for errors",
+        end.as(MenuItemBase)
+        
+      tools_items << MenuSeparator.new.as(MenuItemBase)
+      
+      tools_items << MenuItem.new("validate_project", "Validate Project", "Check project for errors",
           visibility_check: ->(state : Core::EditorState, ui : UIState) { state.has_project? }) do
           # Validate project logic
-        end,
-        MenuItem.new("optimize_assets", "Optimize Assets", "Optimize project assets",
+        end.as(MenuItemBase)
+        
+      tools_items << MenuItem.new("optimize_assets", "Optimize Assets", "Optimize project assets",
           visibility_check: ->(state : Core::EditorState, ui : UIState) { ComponentVisibility.should_show_asset_browser?(state) }) do
           # Optimize assets logic
-        end
-      ]
+        end.as(MenuItemBase)
       
       @menu_items["Tools"] = MenuSection.new("Tools", tools_items,
         visibility_check: ->(state : Core::EditorState, ui : UIState) { state.has_project? })
       
       # Help menu
-      help_items = [
-        MenuItem.new("documentation", "Documentation", "Open documentation") do
+      help_items = [] of MenuItemBase
+      
+      help_items << MenuItem.new("documentation", "Documentation", "Open documentation") do
           # Open documentation logic
-        end,
-        MenuItem.new("tutorials", "Tutorials", "View tutorials") do
+        end.as(MenuItemBase)
+        
+      help_items << MenuItem.new("tutorials", "Tutorials", "View tutorials") do
           # Show tutorials logic
-        end,
-        MenuItem.new("shortcuts", "Keyboard Shortcuts", "View keyboard shortcuts") do
+        end.as(MenuItemBase)
+        
+      help_items << MenuItem.new("shortcuts", "Keyboard Shortcuts", "View keyboard shortcuts") do
           # Show shortcuts logic
-        end,
-        MenuSeparator.new,
-        MenuItem.new("about", "About", "About PACE Editor") do
+        end.as(MenuItemBase)
+        
+      help_items << MenuSeparator.new.as(MenuItemBase)
+      
+      help_items << MenuItem.new("about", "About", "About PACE Editor") do
           # Show about dialog
-        end
-      ]
+        end.as(MenuItemBase)
       
       @menu_items["Help"] = MenuSection.new("Help", help_items)
     end
@@ -347,7 +376,7 @@ module PaceEditor::UI
       
       # Hover effect
       mouse_pos = RL.get_mouse_position
-      hovered = RL.check_collision_point_rec(mouse_pos, rect)
+      hovered = PaceEditor::Constants.point_in_rect?(mouse_pos, rect)
       
       if hovered && available
         RL.draw_rectangle_rec(rect, RL::Color.new(r: 230_u8, g: 230_u8, b: 255_u8, a: 255_u8))
@@ -417,7 +446,7 @@ module PaceEditor::UI
       section.visible_items(@editor_state, @ui_state).each do |item|
         item_rect = RL::Rectangle.new(x: section.x + 5.0_f32, y: y_offset, width: 190.0_f32, height: 20.0_f32)
         
-        if RL.check_collision_point_rec(mouse_pos, item_rect)
+        if PaceEditor::Constants.point_in_rect?(mouse_pos, item_rect)
           if item.is_a?(MenuItem)
             menu_item = item.as(MenuItem)
             if menu_item.visible?(@editor_state, @ui_state)

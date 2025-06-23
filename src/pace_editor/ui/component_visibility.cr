@@ -196,7 +196,7 @@ module PaceEditor::UI
 
     # Helper methods for content checking
 
-    private def self.has_any_scenes?(state : Core::EditorState) : Bool
+    def self.has_any_scenes?(state : Core::EditorState) : Bool
       return false unless project = state.current_project
 
       # Check if project has any scene files
@@ -207,7 +207,7 @@ module PaceEditor::UI
       Dir.glob(File.join(scenes_dir, "*.yml")).any?
     end
 
-    private def self.has_npcs_in_project?(state : Core::EditorState) : Bool
+    def self.has_npcs_in_project?(state : Core::EditorState) : Bool
       return false unless project = state.current_project
 
       # Check current scene first
@@ -253,7 +253,7 @@ module PaceEditor::UI
       has_scenes && has_assets
     end
 
-    private def self.has_any_assets?(project : Core::Project) : Bool
+    def self.has_any_assets?(project : Core::Project) : Bool
       assets_dir = File.join(project.project_path, "assets")
       return false unless Dir.exists?(assets_dir)
 

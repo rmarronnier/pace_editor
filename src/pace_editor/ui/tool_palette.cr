@@ -232,9 +232,10 @@ module PaceEditor::UI
         hotspot_name = "rect_hotspot_#{Time.utc.to_unix}"
         new_hotspot = PointClickEngine::Scenes::Hotspot.new(
           hotspot_name,
-          RL::Rectangle.new(x: 300.0_f32, y: 200.0_f32, width: 100.0_f32, height: 100.0_f32),
-          "Rectangle hotspot"
+          RL::Vector2.new(x: 300.0_f32, y: 200.0_f32),
+          RL::Vector2.new(x: 100.0_f32, y: 100.0_f32)
         )
+        new_hotspot.description = "Rectangle hotspot"
         scene.add_hotspot(new_hotspot)
         @state.selected_object = hotspot_name
         @state.mark_dirty
@@ -248,10 +249,10 @@ module PaceEditor::UI
         hotspot_name = "circle_hotspot_#{Time.utc.to_unix}"
         new_hotspot = PointClickEngine::Scenes::Hotspot.new(
           hotspot_name,
-          RL::Rectangle.new(x: 300.0_f32, y: 200.0_f32, width: 80.0_f32, height: 80.0_f32),
-          "Circle hotspot"
+          RL::Vector2.new(x: 300.0_f32, y: 200.0_f32),
+          RL::Vector2.new(x: 80.0_f32, y: 80.0_f32)
         )
-        new_hotspot.shape = "circle" # If hotspot supports shape property
+        new_hotspot.description = "Circle hotspot"
         scene.add_hotspot(new_hotspot)
         @state.selected_object = hotspot_name
         @state.mark_dirty

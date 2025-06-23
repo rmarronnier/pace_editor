@@ -1,6 +1,7 @@
 require "spec"
 require "../src/pace_editor"
 require "./support/test_character"
+require "./support/test_helpers"
 
 # Check if we should use headless mode for UI tests
 HEADLESS_MODE = ENV["HEADLESS_SPECS"]? == "true" || ENV["CI"]? == "true"

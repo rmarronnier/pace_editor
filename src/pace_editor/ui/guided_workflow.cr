@@ -58,7 +58,7 @@ module PaceEditor::UI
 
     def handle_input(mouse_pos : RL::Vector2, mouse_clicked : Bool) : Bool
       # Handle getting started panel
-      if @show_getting_started && RL.check_collision_point_rec(mouse_pos, @getting_started_rect)
+      if @show_getting_started && PaceEditor::Constants.point_in_rect?(mouse_pos, @getting_started_rect)
         return handle_getting_started_input(mouse_pos, mouse_clicked)
       end
 
@@ -152,7 +152,7 @@ module PaceEditor::UI
 
     private def draw_action_button(rect : RL::Rectangle, text : String, color : RL::Color)
       mouse_pos = RL.get_mouse_position
-      hovered = RL.check_collision_point_rec(mouse_pos, rect)
+      hovered = PaceEditor::Constants.point_in_rect?(mouse_pos, rect)
 
       # Button background
       button_color = hovered ? lighten_color(color, 20) : color
@@ -261,7 +261,7 @@ module PaceEditor::UI
       # Dismiss button
       dismiss_rect = RL::Rectangle.new(x: hint_rect.x + hint_rect.width - 25, y: hint_rect.y + 5, width: 20.0_f32, height: 20.0_f32)
       mouse_pos = RL.get_mouse_position
-      if RL.check_collision_point_rec(mouse_pos, dismiss_rect)
+      if PaceEditor::Constants.point_in_rect?(mouse_pos, dismiss_rect)
         RL.draw_rectangle_rec(dismiss_rect, RL::Color.new(r: 200_u8, g: 200_u8, b: 200_u8, a: 100_u8))
       end
       RL.draw_text("×", (dismiss_rect.x + 6).to_i, (dismiss_rect.y + 2).to_i, 14,
@@ -312,15 +312,15 @@ module PaceEditor::UI
         width: button_width, height: button_height
       )
 
-      if RL.check_collision_point_rec(mouse_pos, new_project_rect)
+      if PaceEditor::Constants.point_in_rect?(mouse_pos, new_project_rect)
         @editor_state.show_new_project_dialog = true
         @ui_state.track_action("new_project_from_welcome")
         return true
-      elsif RL.check_collision_point_rec(mouse_pos, open_project_rect)
+      elsif PaceEditor::Constants.point_in_rect?(mouse_pos, open_project_rect)
         # Open project logic
         @ui_state.track_action("open_project_from_welcome")
         return true
-      elsif RL.check_collision_point_rec(mouse_pos, tutorial_rect)
+      elsif PaceEditor::Constants.point_in_rect?(mouse_pos, tutorial_rect)
         start_tutorial("basic_workflow")
         return true
       end
@@ -334,10 +334,10 @@ module PaceEditor::UI
       next_rect = RL::Rectangle.new(x: 200.0_f32, y: 160.0_f32, width: 60.0_f32, height: 25.0_f32)
       skip_rect = RL::Rectangle.new(x: 270.0_f32, y: 160.0_f32, width: 60.0_f32, height: 25.0_f32)
 
-      if RL.check_collision_point_rec(mouse_pos, next_rect)
+      if PaceEditor::Constants.point_in_rect?(mouse_pos, next_rect)
         complete_current_step
         return true
-      elsif RL.check_collision_point_rec(mouse_pos, skip_rect)
+      elsif PaceEditor::Constants.point_in_rect?(mouse_pos, skip_rect)
         skip_tutorial
         return true
       end
@@ -375,7 +375,7 @@ module PaceEditor::UI
           "Characters bring your game to life. Use 'Character > Add NPC' to create your first character.",
           completion_condition: ->(state : Core::EditorState, ui : UIState) {
             scene = state.current_scene
-            scene && scene.characters.any?
+            scene ? scene.characters.any? : false
           }
         ),
         WorkflowStep.new(
@@ -383,7 +383,7 @@ module PaceEditor::UI
           "Create hotspots to make objects interactive. Use the tool palette to add hotspots to your scene.",
           completion_condition: ->(state : Core::EditorState, ui : UIState) {
             scene = state.current_scene
-            scene && scene.hotspots.any?
+            scene ? scene.hotspots.any? : false
           }
         ),
         WorkflowStep.new(
@@ -403,18 +403,18 @@ module PaceEditor::UI
 
     private def lighten_color(color : RL::Color, amount : UInt8) : RL::Color
       RL::Color.new(
-        r: Math.min(255_u8, color.r + amount),
-        g: Math.min(255_u8, color.g + amount),
-        b: Math.min(255_u8, color.b + amount),
+        r: Math.min(255_u8, (color.r.to_i32 + amount.to_i32).clamp(0, 255).to_u8),
+        g: Math.min(255_u8, (color.g.to_i32 + amount.to_i32).clamp(0, 255).to_u8),
+        b: Math.min(255_u8, (color.b.to_i32 + amount.to_i32).clamp(0, 255).to_u8),
         a: color.a
       )
     end
 
     private def darken_color(color : RL::Color, amount : UInt8) : RL::Color
       RL::Color.new(
-        r: Math.max(0_u8, color.r - amount),
-        g: Math.max(0_u8, color.g - amount),
-        b: Math.max(0_u8, color.b - amount),
+        r: Math.max(0_u8, (color.r.to_i32 - amount.to_i32).clamp(0, 255).to_u8),
+        g: Math.max(0_u8, (color.g.to_i32 - amount.to_i32).clamp(0, 255).to_u8),
+        b: Math.max(0_u8, (color.b.to_i32 - amount.to_i32).clamp(0, 255).to_u8),
         a: color.a
       )
     end

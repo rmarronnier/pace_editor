@@ -5,6 +5,12 @@ module PaceEditor::Constants
   PROPERTY_PANEL_WIDTH = 300
   STATUS_BAR_HEIGHT    =  25
   SEPARATOR_WIDTH      =   2
+  
+  # Helper method for point-rectangle collision detection
+  def self.point_in_rect?(point : RL::Vector2, rect : RL::Rectangle) : Bool
+    point.x >= rect.x && point.x <= (rect.x + rect.width) && 
+    point.y >= rect.y && point.y <= (rect.y + rect.height)
+  end
 
   # Editor Settings
   DEFAULT_GRID_SIZE =      16
