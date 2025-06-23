@@ -1,6 +1,8 @@
 module PaceEditor::UI
   # Tool palette for selecting editing tools
   class ToolPalette
+    include PaceEditor::Constants
+    
     def initialize(@state : Core::EditorState)
     end
 
@@ -45,15 +47,22 @@ module PaceEditor::UI
       RL.draw_line(10, y, Core::EditorWindow::TOOL_PALETTE_WIDTH - 10, y, RL::GRAY)
       y += 20
 
-      # Draw mode-specific tools
+      # Draw mode-specific tools based on availability
       case @state.current_mode
       when .scene?
-        draw_scene_tools(y)
+        if ComponentVisibility.should_show_scene_tools?(@state)
+          draw_scene_tools(y)
+        end
       when .character?
-        draw_character_tools(y)
+        if ComponentVisibility.should_show_character_tools?(@state)
+          draw_character_tools(y)
+        end
       when .hotspot?
-        draw_hotspot_tools(y)
+        if ComponentVisibility.should_show_hotspot_tools?(@state)
+          draw_hotspot_tools(y)
+        end
       when .dialog?
+        # Dialog tools always available in dialog mode
         draw_dialog_tools(y)
       end
     end

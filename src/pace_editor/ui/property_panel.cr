@@ -1,6 +1,7 @@
 module PaceEditor::UI
   # Property panel for editing selected object properties
   class PropertyPanel
+    include PaceEditor::Constants
     @active_field : String?
     @scroll_y : Float32
     @edit_buffer : String
@@ -232,13 +233,29 @@ module PaceEditor::UI
     private def draw_mode_properties(x : Int32, y : Int32, width : Int32)
       case @state.current_mode
       when .scene?
-        draw_scene_properties(x, y, width)
+        if ComponentVisibility.should_show_scene_properties?(@state)
+          draw_scene_properties(x, y, width)
+        else
+          draw_no_content_message("Create a scene to edit scene properties", x, y, width)
+        end
       when .character?
-        draw_character_properties(x, y, width)
+        if ComponentVisibility.should_show_character_properties?(@state)
+          draw_character_properties(x, y, width)
+        else
+          draw_no_content_message("Select a character to edit properties", x, y, width)
+        end
       when .hotspot?
-        draw_hotspot_properties(x, y, width)
+        if ComponentVisibility.should_show_hotspot_properties?(@state)
+          draw_hotspot_properties(x, y, width)
+        else
+          draw_no_content_message("Select a hotspot to edit properties", x, y, width)
+        end
       when .dialog?
-        draw_dialog_properties(x, y, width)
+        if ComponentVisibility.should_show_dialog_properties?(@state)
+          draw_dialog_properties(x, y, width)
+        else
+          draw_no_content_message("Select an NPC to edit dialog properties", x, y, width)
+        end
       when .assets?
         draw_asset_properties(x, y, width)
       end
@@ -650,6 +667,13 @@ module PaceEditor::UI
       end
 
       script_path
+    end
+
+    private def draw_no_content_message(message : String, x : Int32, y : Int32, width : Int32)
+      # Draw centered message in italics
+      text_width = RL.measure_text(message, 12)
+      text_x = x + (width - text_width) // 2
+      RL.draw_text(message, text_x, y + 20, 12, RL::Color.new(r: 150_u8, g: 150_u8, b: 150_u8, a: 255_u8))
     end
 
     private def draw_action_button(text : String, x : Int32, y : Int32, width : Int32) : Bool

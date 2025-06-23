@@ -59,6 +59,10 @@ require "./pace_editor/core/editor_window"
 
 # UI modules
 require "./pace_editor/ui/ui_helpers"
+require "./pace_editor/ui/component_visibility"
+require "./pace_editor/ui/ui_state"
+require "./pace_editor/ui/progressive_menu"
+require "./pace_editor/ui/guided_workflow"
 require "./pace_editor/ui/menu_bar"
 require "./pace_editor/ui/tool_palette"
 require "./pace_editor/ui/property_panel"

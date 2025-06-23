@@ -7,7 +7,7 @@
 *.dwarf
 
 # Compiled binaries
-pace_editor
+# pace_editor
 simple_editor
 test_simple
 

@@ -17,6 +17,9 @@ module PaceEditor::Core
     @is_fullscreen : Bool
 
     property state : EditorState
+    property ui_state : UI::UIState
+    property progressive_menu : UI::ProgressiveMenu
+    property guided_workflow : UI::GuidedWorkflow
     property menu_bar : UI::MenuBar
     property tool_palette : UI::ToolPalette
     property property_panel : UI::PropertyPanel
@@ -57,6 +60,13 @@ module PaceEditor::Core
       @viewport_width = @window_width - TOOL_PALETTE_WIDTH - PROPERTY_PANEL_WIDTH
       @viewport_height = @window_height - MENU_HEIGHT
 
+      # Initialize UI state for progressive disclosure
+      @ui_state = UI::UIState.new
+      
+      # Initialize progressive UI components
+      @progressive_menu = UI::ProgressiveMenu.new(@state, @ui_state)
+      @guided_workflow = UI::GuidedWorkflow.new(@state, @ui_state)
+
       # Initialize UI components
       @menu_bar = UI::MenuBar.new(@state)
       @tool_palette = UI::ToolPalette.new(@state)
@@ -86,6 +96,25 @@ module PaceEditor::Core
       @state.editor_window = self
     end
 
+    # Switch editor mode with progressive disclosure validation
+    def switch_mode(new_mode : PaceEditor::EditorMode)
+      # Check if mode is available
+      unless UI::ComponentVisibility.is_mode_available?(@state, new_mode)
+        # Show hint about why mode is not available
+        reason = UI::ComponentVisibility.get_visibility_reason("#{new_mode.to_s.downcase}_editor", @state)
+        if reason
+          @ui_state.add_hint(UI::UIHint.new("mode_unavailable", reason, UI::UIHintType::Warning))
+        end
+        return
+      end
+
+      # Track mode switch
+      @ui_state.track_mode_switch(new_mode)
+      
+      # Set new mode
+      @state.current_mode = new_mode
+    end
+
     def show_hotspot_action_dialog(hotspot_name : String)
       @hotspot_action_dialog.show(hotspot_name)
     end
@@ -96,7 +125,8 @@ module PaceEditor::Core
 
     def show_dialog_editor_for_character(character_name : String)
       # Switch to dialog mode and set the dialog editor to edit this character's dialog
-      @state.current_mode = PaceEditor::EditorMode::Dialog
+      switch_mode(PaceEditor::EditorMode::Dialog)
+      @ui_state.track_action("dialog_editor_opened")
       # TODO: Load/create dialog tree for the character
       puts "Opening dialog editor for character: #{character_name}"
     end
@@ -111,10 +141,12 @@ module PaceEditor::Core
 
     def show_scene_creation_wizard
       @scene_creation_wizard.show
+      @ui_state.track_action("scene_creation_wizard_opened")
     end
 
     def show_game_export_dialog
       @game_export_dialog.show
+      @ui_state.track_action("export_dialog_opened")
     end
 
     def run
@@ -140,6 +172,20 @@ module PaceEditor::Core
         calculate_viewport_dimensions
       end
 
+      # Handle progressive UI input first (highest priority)
+      mouse_pos = RL.get_mouse_position
+      mouse_clicked = RL.mouse_button_pressed?(RL::MouseButton::Left)
+      
+      # Check progressive menu input
+      if @progressive_menu.handle_input(mouse_pos, mouse_clicked)
+        return  # Input consumed by progressive menu
+      end
+      
+      # Check guided workflow input
+      if @guided_workflow.handle_input(mouse_pos, mouse_clicked)
+        return  # Input consumed by guided workflow
+      end
+
       # Handle global shortcuts
       handle_shortcuts
 
@@ -158,6 +204,10 @@ module PaceEditor::Core
       when .project?
         # Project settings handled by property panel
       end
+
+      # Update progressive UI state
+      @ui_state.update_project_progress(@state)
+      @guided_workflow.update
 
       # Update UI components
       @menu_bar.update
@@ -179,27 +229,36 @@ module PaceEditor::Core
       RL.begin_drawing
       RL.clear_background(RL::Color.new(r: 50, g: 50, b: 50, a: 255))
 
-      # Draw menu bar background first
-      @menu_bar.draw_background
+      # Draw progressive menu instead of old menu bar
+      @progressive_menu.draw(@window_width)
 
-      # Draw tool palette
-      @tool_palette.draw
+      # Draw tool palette if visible
+      if @ui_state.get_component_visibility("tool_palette", @state).visible?
+        @tool_palette.draw
+      end
 
       # Draw main editor area
       draw_editor_viewport
 
-      # Draw side panels
-      @scene_hierarchy.draw
-      @property_panel.draw
+      # Draw side panels with visibility checks
+      if @ui_state.get_component_visibility("scene_hierarchy", @state).visible?
+        @scene_hierarchy.draw
+      end
+      
+      if @ui_state.get_component_visibility("property_panel", @state).visible?
+        @property_panel.draw
+      end
 
-      # Draw asset browser if in assets mode
-      @asset_browser.draw if @state.current_mode.assets?
+      # Draw asset browser if in assets mode and visible
+      if @state.current_mode.assets? && @ui_state.get_component_visibility("asset_browser", @state).visible?
+        @asset_browser.draw
+      end
 
       # Draw status bar
       draw_status_bar
 
-      # Draw menu bar content and dropdowns LAST (on top of everything)
-      @menu_bar.draw_content
+      # Draw guided workflow (getting started, hints, tutorials)
+      @guided_workflow.draw
 
       # Draw dialogs on top of everything
       @hotspot_action_dialog.draw
