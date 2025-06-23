@@ -6,7 +6,7 @@ module PaceEditor::UI
     @edit_buffer : String
     @cursor_position : Int32
     @cursor_blink_timer : Float32
-    
+
     def initialize(@state : Core::EditorState)
       @scroll_y = 0.0f32
       @active_field = nil
@@ -20,13 +20,13 @@ module PaceEditor::UI
       if field = @active_field
         handle_text_input
       end
-      
+
       # Update cursor blink
       @cursor_blink_timer += RL.get_frame_time
       if @cursor_blink_timer > 1.0f32
         @cursor_blink_timer = 0.0f32
       end
-      
+
       # Handle scrolling
       if RL.get_mouse_wheel_move != 0
         mouse_pos = RL.get_mouse_position
@@ -37,7 +37,7 @@ module PaceEditor::UI
         end
       end
     end
-    
+
     private def handle_text_input
       # Handle character input
       key = RL.get_char_pressed
@@ -48,39 +48,39 @@ module PaceEditor::UI
         end
         key = RL.get_char_pressed
       end
-      
+
       # Handle special keys
       if RL.key_pressed?(RL::KeyboardKey::Backspace) && @cursor_position > 0
         @edit_buffer = @edit_buffer.delete_at(@cursor_position - 1)
         @cursor_position -= 1
       end
-      
+
       if RL.key_pressed?(RL::KeyboardKey::Delete) && @cursor_position < @edit_buffer.size
         @edit_buffer = @edit_buffer.delete_at(@cursor_position)
       end
-      
+
       if RL.key_pressed?(RL::KeyboardKey::Left) && @cursor_position > 0
         @cursor_position -= 1
       end
-      
+
       if RL.key_pressed?(RL::KeyboardKey::Right) && @cursor_position < @edit_buffer.size
         @cursor_position += 1
       end
-      
+
       if RL.key_pressed?(RL::KeyboardKey::Home)
         @cursor_position = 0
       end
-      
+
       if RL.key_pressed?(RL::KeyboardKey::End)
         @cursor_position = @edit_buffer.size
       end
-      
+
       # Apply changes on Enter
       if RL.key_pressed?(RL::KeyboardKey::Enter)
         apply_property_change(@active_field.not_nil!, @edit_buffer)
         @active_field = nil
       end
-      
+
       # Cancel on Escape
       if RL.key_pressed?(RL::KeyboardKey::Escape)
         @active_field = nil
@@ -116,7 +116,7 @@ module PaceEditor::UI
     private def draw_object_properties(x : Int32, y : Int32, width : Int32)
       return unless scene = @state.current_scene
       return unless obj_name = @state.selected_object
-      
+
       # Find the selected object
       if hotspot = scene.hotspots.find { |h| h.name == obj_name }
         draw_hotspot_object_properties(hotspot, x, y, width)
@@ -126,11 +126,11 @@ module PaceEditor::UI
         RL.draw_text("Object not found", x + 10, y, 14, RL::RED)
       end
     end
-    
+
     private def draw_hotspot_object_properties(hotspot : PointClickEngine::Scenes::Hotspot, x : Int32, y : Int32, width : Int32)
       RL.draw_text("Hotspot: #{hotspot.name}", x + 10, y, 14, RL::YELLOW)
       y += 25
-      
+
       # Transform properties
       draw_property_section("Transform", x, y, width)
       y += 25
@@ -138,16 +138,16 @@ module PaceEditor::UI
       y = draw_editable_property("hotspot_y", "Y:", hotspot.position.y.to_s, x, y, width)
       y = draw_editable_property("hotspot_width", "Width:", hotspot.size.x.to_s, x, y, width)
       y = draw_editable_property("hotspot_height", "Height:", hotspot.size.y.to_s, x, y, width)
-      
+
       y += 15
       draw_property_section("Properties", x, y, width)
       y += 25
       y = draw_editable_property("hotspot_desc", "Description:", hotspot.description, x, y, width)
       y = draw_editable_property("hotspot_visible", "Visible:", hotspot.visible.to_s, x, y, width)
-      
+
       # Cursor type dropdown
       y = draw_cursor_type_dropdown(hotspot, x, y, width)
-      
+
       # Edit Actions button
       y += 15
       if draw_action_button("Edit Actions...", x + 10, y, width - 20)
@@ -158,11 +158,11 @@ module PaceEditor::UI
       end
       y += 30
     end
-    
+
     private def draw_character_object_properties(character : PointClickEngine::Characters::Character, x : Int32, y : Int32, width : Int32)
       RL.draw_text("Character: #{character.name}", x + 10, y, 14, RL::YELLOW)
       y += 25
-      
+
       # Transform properties
       draw_property_section("Transform", x, y, width)
       y += 25
@@ -170,19 +170,19 @@ module PaceEditor::UI
       y = draw_editable_property("char_y", "Y:", character.position.y.to_s, x, y, width)
       y = draw_editable_property("char_width", "Width:", character.size.x.to_s, x, y, width)
       y = draw_editable_property("char_height", "Height:", character.size.y.to_s, x, y, width)
-      
+
       y += 15
       draw_property_section("Properties", x, y, width)
       y += 25
       y = draw_editable_property("char_desc", "Description:", character.description, x, y, width)
       y = draw_editable_property("char_speed", "Walk Speed:", character.walking_speed.to_s, x, y, width)
-      
+
       # State dropdown
       y = draw_character_state_dropdown(character, x, y, width)
-      
+
       # Direction dropdown
       y = draw_character_direction_dropdown(character, x, y, width)
-      
+
       # If NPC, show mood
       if npc = character.as?(PointClickEngine::Characters::NPC)
         y = draw_npc_mood_dropdown(npc, x, y, width)
@@ -309,21 +309,21 @@ module PaceEditor::UI
 
       y + 25
     end
-    
+
     private def draw_editable_property(field_id : String, label : String, value : String, x : Int32, y : Int32, width : Int32) : Int32
       label_width = 80
-      
+
       # Draw label
       RL.draw_text(label, x + 10, y, 12, RL::LIGHTGRAY)
-      
+
       # Draw value field
       field_x = x + 10 + label_width
       field_width = width - label_width - 30
       field_height = 18
-      
+
       # Check if this field is active
       is_active = @active_field == field_id
-      
+
       # Handle click to activate field
       mouse_pos = RL.get_mouse_position
       if RL.mouse_button_pressed?(RL::MouseButton::Left)
@@ -338,35 +338,35 @@ module PaceEditor::UI
           @active_field = nil
         end
       end
-      
+
       # Draw field background
       bg_color = is_active ? RL::Color.new(r: 50, g: 50, b: 50, a: 255) : RL::Color.new(r: 30, g: 30, b: 30, a: 255)
       border_color = is_active ? RL::WHITE : RL::GRAY
-      
+
       RL.draw_rectangle(field_x, y - 2, field_width, field_height, bg_color)
       RL.draw_rectangle_lines(field_x, y - 2, field_width, field_height, border_color)
-      
+
       # Draw value text
       display_value = is_active ? @edit_buffer : value
       value_to_draw = display_value.size > 20 ? display_value[0...17] + "..." : display_value
       RL.draw_text(value_to_draw, field_x + 5, y, 12, RL::WHITE)
-      
+
       # Draw cursor if active
       if is_active && @cursor_blink_timer < 0.5f32
         cursor_x = field_x + 5 + RL.measure_text(value_to_draw[0...@cursor_position], 12)
         RL.draw_line(cursor_x, y, cursor_x, y + 12, RL::WHITE)
       end
-      
+
       y + 25
     end
-    
+
     private def draw_cursor_type_dropdown(hotspot : PointClickEngine::Scenes::Hotspot, x : Int32, y : Int32, width : Int32) : Int32
       label = "Cursor:"
       current_value = hotspot.cursor_type.to_s
-      
+
       # Simple dropdown - for now just cycle through values on click
       y_ret = draw_property_field(label, current_value, x, y, width)
-      
+
       # Check for click
       mouse_pos = RL.get_mouse_position
       field_x = x + 10 + 80
@@ -389,16 +389,16 @@ module PaceEditor::UI
         end
         save_scene
       end
-      
+
       y_ret
     end
-    
+
     private def draw_character_state_dropdown(character : PointClickEngine::Characters::Character, x : Int32, y : Int32, width : Int32) : Int32
       label = "State:"
       current_value = character.state.to_s
-      
+
       y_ret = draw_property_field(label, current_value, x, y, width)
-      
+
       # Check for click to cycle states
       mouse_pos = RL.get_mouse_position
       field_x = x + 10 + 80
@@ -421,16 +421,16 @@ module PaceEditor::UI
         end
         save_scene
       end
-      
+
       y_ret
     end
-    
+
     private def draw_character_direction_dropdown(character : PointClickEngine::Characters::Character, x : Int32, y : Int32, width : Int32) : Int32
       label = "Direction:"
       current_value = character.direction.to_s
-      
+
       y_ret = draw_property_field(label, current_value, x, y, width)
-      
+
       # Check for click to cycle directions
       mouse_pos = RL.get_mouse_position
       field_x = x + 10 + 80
@@ -451,16 +451,16 @@ module PaceEditor::UI
         end
         save_scene
       end
-      
+
       y_ret
     end
-    
+
     private def draw_npc_mood_dropdown(npc : PointClickEngine::Characters::NPC, x : Int32, y : Int32, width : Int32) : Int32
       label = "Mood:"
       current_value = npc.mood.to_s
-      
+
       y_ret = draw_property_field(label, current_value, x, y, width)
-      
+
       # Check for click to cycle moods
       mouse_pos = RL.get_mouse_position
       field_x = x + 10 + 80
@@ -485,14 +485,14 @@ module PaceEditor::UI
         end
         save_scene
       end
-      
+
       y_ret
     end
-    
+
     private def apply_property_change(field_id : String, new_value : String)
       return unless scene = @state.current_scene
       return unless obj_name = @state.selected_object
-      
+
       # Find the object and apply the change
       if field_id.starts_with?("hotspot_")
         if hotspot = scene.hotspots.find { |h| h.name == obj_name }
@@ -566,34 +566,34 @@ module PaceEditor::UI
         end
       end
     end
-    
+
     private def save_scene
       return unless scene = @state.current_scene
       return unless project = @state.current_project
-      
+
       scene_filename = "#{scene.name}.yml"
       scene_path = File.join(project.scenes_path, scene_filename)
       PaceEditor::IO::SceneIO.save_scene(scene, scene_path)
       @state.is_dirty = true
     end
-    
+
     private def draw_action_button(text : String, x : Int32, y : Int32, width : Int32) : Bool
       height = 25
-      
+
       mouse_pos = RL.get_mouse_position
       is_hover = mouse_pos.x >= x && mouse_pos.x <= x + width &&
                  mouse_pos.y >= y && mouse_pos.y <= y + height
-      
+
       bg_color = is_hover ? RL::Color.new(r: 70, g: 100, b: 70, a: 255) : RL::Color.new(r: 50, g: 80, b: 50, a: 255)
-      
+
       RL.draw_rectangle(x, y, width, height, bg_color)
       RL.draw_rectangle_lines(x, y, width, height, RL::WHITE)
-      
+
       text_width = RL.measure_text(text, 14)
       text_x = x + (width - text_width) // 2
       text_y = y + (height - 14) // 2
       RL.draw_text(text, text_x, text_y, 14, RL::WHITE)
-      
+
       is_hover && RL.mouse_button_pressed?(RL::MouseButton::Left)
     end
   end

@@ -109,7 +109,7 @@ module PaceEditor::UI
         add_hotspot
       end
     end
-    
+
     private def add_hotspot
       if scene = @state.current_scene
         # Create a new hotspot at viewport center
