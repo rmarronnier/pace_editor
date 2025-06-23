@@ -32,7 +32,7 @@ describe PaceEditor::Core::EditorState do
 
     it "returns true when project is loaded" do
       state = PaceEditor::Core::EditorState.new
-      test_dir = File.tempname("test_project")
+      test_dir = File.tempname("test_project_#{Time.utc.to_unix_ms}")
 
       begin
         project = PaceEditor::Core::Project.new("Test", test_dir)
@@ -47,7 +47,7 @@ describe PaceEditor::Core::EditorState do
   describe "#create_new_project" do
     it "creates and sets a new project" do
       state = PaceEditor::Core::EditorState.new
-      test_dir = File.tempname("test_project")
+      test_dir = File.tempname("test_project_#{Time.utc.to_unix_ms}")
 
       begin
         result = state.create_new_project("Test Game", test_dir)
@@ -66,7 +66,7 @@ describe PaceEditor::Core::EditorState do
 
     it "creates project with proper folder structure" do
       state = PaceEditor::Core::EditorState.new
-      test_dir = File.tempname("test_project")
+      test_dir = File.tempname("test_project_#{Time.utc.to_unix_ms}")
 
       begin
         result = state.create_new_project("My Adventure Game", test_dir)
@@ -116,7 +116,7 @@ describe PaceEditor::Core::EditorState do
   describe "#load_project" do
     it "loads an existing project" do
       state = PaceEditor::Core::EditorState.new
-      test_dir = File.tempname("test_project")
+      test_dir = File.tempname("test_project_#{Time.utc.to_unix_ms}")
 
       begin
         # Create a project to load

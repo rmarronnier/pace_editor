@@ -11,12 +11,12 @@ module PaceEditor::Editors
     property node_positions : Hash(String, RL::Vector2) = {} of String => RL::Vector2
     property dragging_node : String? = nil
     property drag_start : RL::Vector2? = nil
-    
+
     # Connection state
     property connecting_mode : Bool = false
     property source_node : String? = nil
     property connection_preview_pos : RL::Vector2? = nil
-    
+
     @node_dialog : UI::DialogNodeDialog
     @preview_window : UI::DialogPreviewWindow
     @last_click_time : Int64? = nil
@@ -32,7 +32,7 @@ module PaceEditor::Editors
       @preview_window.update
       unless @node_dialog.visible || @preview_window.visible
         handle_node_interaction
-        
+
         # Update connection preview if in connection mode
         if @connecting_mode
           mouse_pos = RL.get_mouse_position
@@ -62,7 +62,7 @@ module PaceEditor::Editors
       else
         draw_no_dialog_message(editor_x, editor_y, editor_width, editor_height)
       end
-      
+
       # Draw node dialog and preview window on top
       @node_dialog.draw
       @preview_window.draw
@@ -101,7 +101,7 @@ module PaceEditor::Editors
 
       # Draw connections between nodes
       draw_node_connections(dialog, x, y)
-      
+
       # Draw connection preview if in connection mode
       draw_connection_preview
 
@@ -199,7 +199,7 @@ module PaceEditor::Editors
       # Node title
       title_text = node.id.size > 15 ? node.id[0...12] + "..." : node.id
       RL.draw_text(title_text, position.x.to_i + 5, position.y.to_i + 5, 12, RL::WHITE)
-      
+
       # Character name (if present)
       if char_name = node.character_name
         RL.draw_text(char_name, position.x.to_i + 5, position.y.to_i + 18, 10, RL::YELLOW)
@@ -307,7 +307,7 @@ module PaceEditor::Editors
         end
         @last_click_time = current_time
       end
-      
+
       # Handle node selection and dragging (or connection)
       if RL.mouse_button_pressed?(RL::MouseButton::Left)
         clicked_node = find_node_at_position(canvas_pos)
@@ -456,7 +456,7 @@ module PaceEditor::Editors
 
     def create_new_node
       return unless dialog = @current_dialog
-      
+
       # Show dialog for creating new node
       @node_dialog.show(nil)
     end
@@ -500,52 +500,52 @@ module PaceEditor::Editors
         @connection_preview_pos = nil
       end
     end
-    
+
     private def start_connection_from_node(node_id : String)
       return unless @connecting_mode
-      
+
       @source_node = node_id
       puts "Starting connection from node: #{node_id}"
     end
-    
+
     private def complete_connection_to_node(target_node_id : String)
       return unless @connecting_mode
       return unless source_id = @source_node
       return unless dialog = @current_dialog
       return unless source_node = dialog.nodes[source_id]?
       return unless target_node = dialog.nodes[target_node_id]?
-      
+
       # Don't connect to the same node
       return if source_id == target_node_id
-      
+
       # Create a new choice that connects to the target node
-      choice_text = "Continue..."  # Default choice text
+      choice_text = "Continue..." # Default choice text
       new_choice = PointClickEngine::Characters::Dialogue::DialogChoice.new(choice_text, target_node_id)
-      
+
       source_node.choices << new_choice
-      
+
       puts "Connected #{source_id} to #{target_node_id}"
-      
+
       # Reset connection state
       @source_node = nil
       @connection_preview_pos = nil
       @connecting_mode = false
-      
+
       # Save the dialog
       save_current_dialog
     end
-    
+
     private def update_connection_preview(mouse_pos : RL::Vector2)
       return unless @connecting_mode && @source_node
       @connection_preview_pos = mouse_pos
     end
-    
+
     private def draw_connection_preview
       return unless @connecting_mode
       return unless source_id = @source_node
       return unless preview_pos = @connection_preview_pos
       return unless source_pos = @node_positions[source_id]?
-      
+
       # Calculate source node center
       node_width = 120
       node_height = 60
@@ -553,10 +553,10 @@ module PaceEditor::Editors
         source_pos.x + node_width / 2,
         source_pos.y + node_height / 2
       )
-      
+
       # Draw preview line
       RL.draw_line_ex(source_center, preview_pos, 2, RL::YELLOW)
-      
+
       # Draw arrowhead at preview position
       RL.draw_circle(preview_pos.x.to_i, preview_pos.y.to_i, 4, RL::YELLOW)
     end

@@ -6,49 +6,49 @@ require "yaml"
 class MinimalGameTest
   property project_path : String
   property export_path : String
-  
+
   def initialize
     @project_path = "/tmp/minimal_game_project"
     @export_path = "/tmp/minimal_game_export"
     @editor_state = PaceEditor::Core::EditorState.new
   end
-  
+
   def run
     puts "=== PACE Editor Minimal Game Test ==="
     puts "Creating a complete game project..."
     puts ""
-    
+
     # Phase 1: Setup
     setup_project
-    
+
     # Phase 2: Create scene
     create_main_scene
-    
+
     # Phase 3: Create scripts
     create_lua_scripts
-    
+
     # Phase 4: Copy assets
     copy_game_assets
-    
+
     # Phase 5: Export game
     export_game
-    
+
     # Phase 6: Build and run
     build_and_run_game
-    
+
     puts ""
     puts "=== Test Complete! ==="
     puts "Game exported to: #{@export_path}"
     puts "To run manually: cd #{@export_path} && crystal run main.cr"
   end
-  
+
   private def setup_project
     puts "1. Setting up project structure..."
-    
+
     # Clean up old test
     FileUtils.rm_rf(@project_path) if Dir.exists?(@project_path)
     FileUtils.rm_rf(@export_path) if Dir.exists?(@export_path)
-    
+
     # Create project
     project = PaceEditor::Core::Project.new
     project.name = "Minimal Adventure"
@@ -56,7 +56,7 @@ class MinimalGameTest
     project.title = "Minimal Adventure Game"
     project.window_width = 800
     project.window_height = 600
-    
+
     # Create directories
     Dir.mkdir_p(@project_path)
     Dir.mkdir_p("#{@project_path}/scenes")
@@ -65,67 +65,67 @@ class MinimalGameTest
     Dir.mkdir_p("#{@project_path}/assets/characters/knight")
     Dir.mkdir_p("#{@project_path}/assets/characters/farmer")
     Dir.mkdir_p("#{@project_path}/assets/ui")
-    
+
     # Save project
     project.save_project
     @editor_state.current_project = project
-    
+
     puts "  ✓ Project created at: #{@project_path}"
   end
-  
+
   private def create_main_scene
     puts "2. Creating main scene..."
-    
+
     # Create scene YAML manually for compatibility
     scene_data = {
-      "name" => "main_scene",
+      "name"       => "main_scene",
       "background" => "backgrounds/background_layer_3.png",
-      "width" => 800,
-      "height" => 600,
-      "hotspots" => [
+      "width"      => 800,
+      "height"     => 600,
+      "hotspots"   => [
         {
-          "name" => "door",
-          "position" => {"x" => 400, "y" => 300},
-          "size" => {"x" => 100, "y" => 150},
+          "name"        => "door",
+          "position"    => {"x" => 400, "y" => 300},
+          "size"        => {"x" => 100, "y" => 150},
           "description" => "A wooden door",
           "cursor_type" => "hand",
-          "on_click" => "open_door"
+          "on_click"    => "open_door",
         },
         {
-          "name" => "sign",
-          "position" => {"x" => 700, "y" => 350},
-          "size" => {"x" => 60, "y" => 80},
+          "name"        => "sign",
+          "position"    => {"x" => 700, "y" => 350},
+          "size"        => {"x" => 60, "y" => 80},
           "description" => "Village sign - click to read",
           "cursor_type" => "look",
-          "on_click" => "read_sign"
-        }
+          "on_click"    => "read_sign",
+        },
       ],
       "characters" => [
         {
-          "name" => "player",
-          "type" => "Player",
+          "name"     => "player",
+          "type"     => "Player",
           "position" => {"x" => 200, "y" => 400},
-          "sprite" => "characters/knight/Idle.png",
-          "size" => {"x" => 64, "y" => 128}
+          "sprite"   => "characters/knight/Idle.png",
+          "size"     => {"x" => 64, "y" => 128},
         },
         {
-          "name" => "merchant",
-          "type" => "NPC",
-          "position" => {"x" => 600, "y" => 400},
-          "sprite" => "characters/farmer/fbas_1body_human_00.png",
-          "size" => {"x" => 64, "y" => 128},
-          "on_interact" => "talk_to_merchant"
-        }
-      ]
+          "name"        => "merchant",
+          "type"        => "NPC",
+          "position"    => {"x" => 600, "y" => 400},
+          "sprite"      => "characters/farmer/fbas_1body_human_00.png",
+          "size"        => {"x" => 64, "y" => 128},
+          "on_interact" => "talk_to_merchant",
+        },
+      ],
     }
-    
+
     File.write("#{@project_path}/scenes/main_scene.yml", scene_data.to_yaml)
     puts "  ✓ Scene created: main_scene.yml"
   end
-  
+
   private def create_lua_scripts
     puts "3. Creating Lua scripts..."
-    
+
     game_script = <<-LUA
 -- Minimal Adventure Game Script
 
@@ -157,50 +157,50 @@ function show_message(text)
     print("[MESSAGE] " .. text)
 end
 LUA
-    
+
     File.write("#{@project_path}/scripts/game.lua", game_script)
     puts "  ✓ Lua script created: game.lua"
   end
-  
+
   private def copy_game_assets
     puts "4. Copying game assets..."
-    
+
     # Copy backgrounds
     if File.exists?("assets/backgrounds/background_layer_3.png")
-      FileUtils.cp("assets/backgrounds/background_layer_3.png", 
-                   "#{@project_path}/assets/backgrounds/")
+      FileUtils.cp("assets/backgrounds/background_layer_3.png",
+        "#{@project_path}/assets/backgrounds/")
       puts "  ✓ Copied background"
     end
-    
+
     # Copy knight sprite
     if File.exists?("assets/characters/knight/Idle.png")
       FileUtils.cp("assets/characters/knight/Idle.png",
-                   "#{@project_path}/assets/characters/knight/")
+        "#{@project_path}/assets/characters/knight/")
       puts "  ✓ Copied knight sprite"
     end
-    
-    # Copy farmer sprite  
+
+    # Copy farmer sprite
     if File.exists?("assets/characters/farmer/fbas_1body_human_00.png")
       FileUtils.cp("assets/characters/farmer/fbas_1body_human_00.png",
-                   "#{@project_path}/assets/characters/farmer/")
+        "#{@project_path}/assets/characters/farmer/")
       puts "  ✓ Copied farmer sprite"
     end
-    
+
     # Copy UI elements (optional)
     Dir.glob("assets/ui/cursors/*.png").each do |cursor|
       FileUtils.cp(cursor, "#{@project_path}/assets/ui/")
     end
     puts "  ✓ Copied UI elements"
   end
-  
+
   private def export_game
     puts "5. Exporting game..."
-    
+
     Dir.mkdir_p(@export_path)
-    
+
     # Copy entire project to export
     FileUtils.cp_r("#{@project_path}/.", @export_path)
-    
+
     # Create main.cr launcher
     launcher_code = <<-CRYSTAL
 require "point_click_engine"
@@ -317,9 +317,9 @@ end
 game = MinimalAdventure.new
 game.run
 CRYSTAL
-    
+
     File.write("#{@export_path}/main.cr", launcher_code)
-    
+
     # Create shard.yml
     shard_yml = <<-YAML
 name: minimal_adventure
@@ -335,17 +335,17 @@ targets:
 
 crystal: ">= 1.16.3"
 YAML
-    
+
     File.write("#{@export_path}/shard.yml", shard_yml)
-    
+
     puts "  ✓ Game exported to: #{@export_path}"
     puts "  ✓ Created launcher: main.cr"
     puts "  ✓ Created dependencies: shard.yml"
   end
-  
+
   private def build_and_run_game
     puts "6. Building exported game..."
-    
+
     Dir.cd(@export_path) do
       # Install dependencies
       puts "  → Installing dependencies..."
@@ -357,7 +357,7 @@ YAML
         puts result
         return
       end
-      
+
       # Build the game
       puts "  → Building game..."
       result = `crystal build main.cr -o minimal_adventure 2>&1`

@@ -72,9 +72,9 @@ end
 
 # Auto-run if this is the main file
 program_basename = File.basename(PROGRAM_NAME)
-is_pace_editor = program_basename.includes?("pace_editor") || 
+is_pace_editor = program_basename.includes?("pace_editor") ||
                  program_basename.includes?("crystal-run") ||
-                 PROGRAM_NAME.ends_with?("pace_editor") || 
+                 PROGRAM_NAME.ends_with?("pace_editor") ||
                  PROGRAM_NAME.ends_with?("pace_editor.cr")
 
 if is_pace_editor

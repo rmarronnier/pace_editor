@@ -6,6 +6,7 @@ module PaceEditor::Core
     property current_tool : Tool = Tool::Select
     property current_scene : PointClickEngine::Scenes::Scene?
     property selected_object : String?
+    property selected_objects : Set(String) = Set(String).new
     property camera_x : Float32 = 0.0f32
     property camera_y : Float32 = 0.0f32
     property zoom : Float32 = 1.0f32
@@ -46,10 +47,10 @@ module PaceEditor::Core
     property auto_save : Bool = true
     property auto_save_interval : Int32 = 300
     property editor_mode : EditorMode = EditorMode::Scene
-    
+
     # Reference to the main editor window (set after initialization)
     property editor_window : EditorWindow?
-    
+
     # Editor references
     property dialog_editor : Editors::DialogEditor?
 
@@ -60,10 +61,9 @@ module PaceEditor::Core
       !@current_project.nil?
     end
 
-
     def save_current_scene(scene : PointClickEngine::Scenes::Scene)
       return unless project = @current_project
-      
+
       scene_path = IO::SceneIO.get_scene_file_path(project, scene.name)
       IO::SceneIO.save_scene(scene, scene_path)
     end
@@ -101,16 +101,16 @@ module PaceEditor::Core
         @current_project = Project.create_new(name, path)
         @current_mode = EditorMode::Scene
         clear_selection
-        
+
         # Create a default scene
         scene = PointClickEngine::Scenes::Scene.new("main")
         scene.hotspots = [] of PointClickEngine::Scenes::Hotspot
         scene.characters = [] of PointClickEngine::Characters::Character
         @current_scene = scene
-        
+
         # Add scene to project
         @current_project.not_nil!.add_scene("main.yml")
-        
+
         # Save the project
         save_project
         true
@@ -154,6 +154,7 @@ module PaceEditor::Core
 
     def clear_selection
       @selected_object = nil
+      @selected_objects.clear
       @selected_hotspots.clear
       @selected_characters.clear
     end
@@ -194,7 +195,48 @@ module PaceEditor::Core
         clear_selection
       end
 
-      @selected_object = object_name
+      # Set primary selection only if no objects are selected yet
+      if @selected_object.nil?
+        @selected_object = object_name
+      end
+
+      @selected_objects.add(object_name)
+
+      # Also add to specific type arrays based on object type
+      if scene = @current_scene
+        if scene.hotspots.any? { |h| h.name == object_name }
+          @selected_hotspots << object_name unless @selected_hotspots.includes?(object_name)
+        elsif scene.characters.any? { |c| c.name == object_name }
+          @selected_characters << object_name unless @selected_characters.includes?(object_name)
+        end
+      end
+    end
+
+    def toggle_object_selection(object_name : String)
+      if is_selected?(object_name)
+        deselect_object(object_name)
+      else
+        select_object(object_name, multi_select: true)
+      end
+    end
+
+    def deselect_object(object_name : String)
+      @selected_objects.delete(object_name)
+      @selected_hotspots.delete(object_name)
+      @selected_characters.delete(object_name)
+
+      # Update primary selection
+      if @selected_object == object_name
+        @selected_object = @selected_objects.first?
+      end
+    end
+
+    def get_selected_objects : Array(String)
+      @selected_objects.to_a
+    end
+
+    def has_multiple_selection? : Bool
+      @selected_objects.size > 1
     end
 
     def world_to_screen(world_pos : RL::Vector2) : RL::Vector2
@@ -253,35 +295,35 @@ module PaceEditor::Core
 
     def undo
       return unless scene = @editor_state.current_scene
-      
+
       # Find and move the object back to old position
       if hotspot = scene.hotspots.find { |h| h.name == @object_name }
         hotspot.position = @old_pos
       elsif character = scene.characters.find { |c| c.name == @object_name }
         character.position = @old_pos
       end
-      
+
       # Auto-save scene after undo
       if project = @editor_state.current_project
         scene_filename = "#{scene.name}.yml"
         scene_path = File.join(project.scenes_path, scene_filename)
         PaceEditor::IO::SceneIO.save_scene(scene, scene_path)
       end
-      
+
       # Mark as dirty
       @editor_state.mark_dirty
     end
 
     def redo
       return unless scene = @editor_state.current_scene
-      
+
       # Find and move the object to new position
       if hotspot = scene.hotspots.find { |h| h.name == @object_name }
         hotspot.position = @new_pos
       elsif character = scene.characters.find { |c| c.name == @object_name }
         character.position = @new_pos
       end
-      
+
       # Auto-save scene after redo
       if project = @editor_state.current_project
         scene_filename = "#{scene.name}.yml"
@@ -303,7 +345,7 @@ module PaceEditor::Core
 
     def undo
       return unless scene = @editor_state.current_scene
-      
+
       # Remove the created object
       case @object_type
       when "hotspot"
@@ -311,12 +353,12 @@ module PaceEditor::Core
       when "character"
         scene.characters.reject! { |c| c.name == @object_name }
       end
-      
+
       # Clear selection if this object was selected
       if @editor_state.selected_object == @object_name
         @editor_state.selected_object = nil
       end
-      
+
       # Auto-save scene
       if project = @editor_state.current_project
         scene_filename = "#{scene.name}.yml"
@@ -327,7 +369,7 @@ module PaceEditor::Core
 
     def redo
       return unless scene = @editor_state.current_scene
-      
+
       # Recreate the object
       case @object_type
       when "hotspot"
@@ -353,10 +395,10 @@ module PaceEditor::Core
         character.mood = PointClickEngine::Characters::NPCMood::Neutral
         scene.characters << character
       end
-      
+
       # Select the recreated object
       @editor_state.selected_object = @object_name
-      
+
       # Auto-save scene
       if project = @editor_state.current_project
         scene_filename = "#{scene.name}.yml"

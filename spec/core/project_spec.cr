@@ -4,7 +4,7 @@ require "file_utils"
 describe PaceEditor::Core::Project do
   describe "#initialize" do
     it "creates a new project with correct structure" do
-      test_dir = File.tempname("test_project")
+      test_dir = File.tempname("test_project_#{Time.utc.to_unix_ms}")
       project = PaceEditor::Core::Project.create_new("Test Game", test_dir)
 
       begin
@@ -45,7 +45,7 @@ describe PaceEditor::Core::Project do
 
   describe "#save and #load" do
     it "saves and loads project correctly" do
-      test_dir = File.tempname("test_project")
+      test_dir = File.tempname("test_project_#{Time.utc.to_unix_ms}")
 
       begin
         # Create and configure project
@@ -90,7 +90,7 @@ describe PaceEditor::Core::Project do
 
   describe "#add_scene and #remove_scene" do
     it "manages scenes correctly" do
-      test_dir = File.tempname("test_project")
+      test_dir = File.tempname("test_project_#{Time.utc.to_unix_ms}")
 
       begin
         project = PaceEditor::Core::Project.new("Scene Test", test_dir)
@@ -121,7 +121,7 @@ describe PaceEditor::Core::Project do
 
   describe "#add_asset" do
     it "categorizes assets correctly" do
-      test_dir = File.tempname("test_project")
+      test_dir = File.tempname("test_project_#{Time.utc.to_unix_ms}")
 
       begin
         project = PaceEditor::Core::Project.new("Asset Test", test_dir)
@@ -154,7 +154,7 @@ describe PaceEditor::Core::Project do
 
   describe "#get_scene_file_path and #get_asset_file_path" do
     it "returns correct file paths" do
-      test_dir = File.tempname("test_project")
+      test_dir = File.tempname("test_project_#{Time.utc.to_unix_ms}")
 
       begin
         project = PaceEditor::Core::Project.new("Path Test", test_dir)
@@ -172,7 +172,7 @@ describe PaceEditor::Core::Project do
 
   describe "#create_new" do
     it "creates a new project with default settings" do
-      test_dir = File.tempname("test_project")
+      test_dir = File.tempname("test_project_#{Time.utc.to_unix_ms}")
 
       begin
         project = PaceEditor::Core::Project.create_new("New Adventure", test_dir)
@@ -194,7 +194,7 @@ describe PaceEditor::Core::Project do
 
   describe "#export_game" do
     it "creates export directory structure" do
-      test_dir = File.tempname("test_project")
+      test_dir = File.tempname("export_test_project_#{Time.utc.to_unix_ms}")
 
       begin
         project = PaceEditor::Core::Project.new("Export Test", test_dir)

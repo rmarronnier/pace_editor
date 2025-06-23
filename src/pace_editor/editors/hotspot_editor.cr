@@ -1,15 +1,21 @@
+require "../ui/hotspot_interaction_preview"
+
 module PaceEditor::Editors
   # Hotspot editor for creating and configuring interactive areas
   class HotspotEditor
-    property current_hotspot : PointClickEngine::Hotspot? = nil
+    property current_hotspot : PointClickEngine::Scenes::Hotspot? = nil
     property creating_hotspot : Bool = false
     property hotspot_start : RL::Vector2? = nil
 
+    @interaction_preview : UI::HotspotInteractionPreview
+
     def initialize(@state : Core::EditorState)
+      @interaction_preview = UI::HotspotInteractionPreview.new(@state)
     end
 
     def update
-      handle_hotspot_creation
+      @interaction_preview.update
+      handle_hotspot_creation unless @interaction_preview.visible
     end
 
     def draw
@@ -32,9 +38,12 @@ module PaceEditor::Editors
       if @creating_hotspot
         draw_creation_overlay(editor_x, editor_y, editor_width, editor_height)
       end
+
+      # Draw interaction preview on top
+      @interaction_preview.draw
     end
 
-    private def get_current_hotspot : PointClickEngine::Hotspot?
+    private def get_current_hotspot : PointClickEngine::Scenes::Hotspot?
       return @current_hotspot if @current_hotspot
 
       # Try to get hotspot from selection
@@ -47,7 +56,7 @@ module PaceEditor::Editors
       @current_hotspot
     end
 
-    private def draw_hotspot_workspace(hotspot : PointClickEngine::Hotspot, x : Int32, y : Int32, width : Int32, height : Int32)
+    private def draw_hotspot_workspace(hotspot : PointClickEngine::Scenes::Hotspot, x : Int32, y : Int32, width : Int32, height : Int32)
       # Split workspace
       preview_width = width // 2
       controls_width = width - preview_width
@@ -325,9 +334,16 @@ module PaceEditor::Editors
       end
     end
 
-    private def test_hotspot_interaction(hotspot : PointClickEngine::Hotspot)
-      puts "Testing interaction with hotspot: #{hotspot.name}"
-      puts "Description: #{hotspot.description}"
+    private def test_hotspot_interaction(hotspot : PointClickEngine::Scenes::Hotspot)
+      # Try to load hotspot action data if available
+      hotspot_data = load_hotspot_data(hotspot.name)
+      @interaction_preview.show(hotspot, hotspot_data)
+    end
+
+    private def load_hotspot_data(hotspot_name : String) : Models::HotspotData?
+      # TODO: Implement hotspot data loading from project files
+      # For now, return nil - the preview will handle this gracefully
+      nil
     end
 
     private def edit_action(action_type : String)

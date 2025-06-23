@@ -163,24 +163,24 @@ module PaceEditor::Core
     def get_asset_file_path(asset_name : String, category : String) : String
       File.join(@assets_path, category, asset_name)
     end
-    
+
     # Convenience methods for asset directory paths
     def backgrounds_path : String
       File.join(@assets_path, "backgrounds")
     end
-    
+
     def characters_path : String
       File.join(@assets_path, "characters")
     end
-    
+
     def sounds_path : String
       File.join(@assets_path, "sounds")
     end
-    
+
     def music_path : String
       File.join(@assets_path, "music")
     end
-    
+
     def ui_path : String
       File.join(@assets_path, "ui")
     end
@@ -189,11 +189,10 @@ module PaceEditor::Core
       # Use the new game exporter
       exporter = PaceEditor::Export::GameExporter.new(self)
       validation_result = exporter.export(output_path)
-      
+
       # Return validation result so UI can show errors
       validation_result
     end
-
 
     def save_project
       setup_project_structure
@@ -214,6 +213,5 @@ module PaceEditor::Core
 
       project
     end
-
   end
 end

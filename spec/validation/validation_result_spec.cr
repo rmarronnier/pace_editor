@@ -5,7 +5,7 @@ describe PaceEditor::Validation::ValidationResult do
   describe "#initialize" do
     it "creates an empty result" do
       result = PaceEditor::Validation::ValidationResult.new
-      
+
       result.errors.should be_empty
       result.warnings.should be_empty
       result.valid?.should be_true
@@ -18,7 +18,7 @@ describe PaceEditor::Validation::ValidationResult do
     it "adds an error with message only" do
       result = PaceEditor::Validation::ValidationResult.new
       result.add_error("Test error")
-      
+
       result.errors.size.should eq 1
       result.errors[0].message.should eq "Test error"
       result.errors[0].path.should be_nil
@@ -29,7 +29,7 @@ describe PaceEditor::Validation::ValidationResult do
     it "adds an error with path and line" do
       result = PaceEditor::Validation::ValidationResult.new
       result.add_error("Syntax error", "config.yaml", 42)
-      
+
       result.errors.size.should eq 1
       result.errors[0].message.should eq "Syntax error"
       result.errors[0].path.should eq "config.yaml"
@@ -41,7 +41,7 @@ describe PaceEditor::Validation::ValidationResult do
     it "adds a warning" do
       result = PaceEditor::Validation::ValidationResult.new
       result.add_warning("Deprecated feature", "scene.yaml")
-      
+
       result.warnings.size.should eq 1
       result.warnings[0].message.should eq "Deprecated feature"
       result.warnings[0].path.should eq "scene.yaml"
@@ -54,14 +54,14 @@ describe PaceEditor::Validation::ValidationResult do
     it "returns true when no errors" do
       result = PaceEditor::Validation::ValidationResult.new
       result.add_warning("Just a warning")
-      
+
       result.valid?.should be_true
     end
 
     it "returns false when there are errors" do
       result = PaceEditor::Validation::ValidationResult.new
       result.add_error("An error")
-      
+
       result.valid?.should be_false
     end
   end
@@ -72,7 +72,7 @@ describe PaceEditor::Validation::ValidationResult do
       result.add_error("Error 1")
       result.add_error("Error 2")
       result.add_warning("Warning 1")
-      
+
       result.issue_count.should eq 3
     end
   end
@@ -82,13 +82,13 @@ describe PaceEditor::Validation::ValidationResult do
       result1 = PaceEditor::Validation::ValidationResult.new
       result1.add_error("Error from result1")
       result1.add_warning("Warning from result1")
-      
+
       result2 = PaceEditor::Validation::ValidationResult.new
       result2.add_error("Error from result2")
       result2.add_warning("Warning from result2")
-      
+
       result1.merge(result2)
-      
+
       result1.errors.size.should eq 2
       result1.warnings.size.should eq 2
       result1.issue_count.should eq 4
@@ -98,7 +98,7 @@ describe PaceEditor::Validation::ValidationResult do
   describe "#to_s" do
     it "formats output for valid result with no warnings" do
       result = PaceEditor::Validation::ValidationResult.new
-      
+
       result.to_s.should eq "Validation passed with no issues."
     end
 
@@ -106,7 +106,7 @@ describe PaceEditor::Validation::ValidationResult do
       result = PaceEditor::Validation::ValidationResult.new
       result.add_warning("Large file size", "asset.png")
       result.add_warning("Missing optional field", "config.yaml")
-      
+
       output = result.to_s
       output.should contain "Validation passed with 2 warning(s):"
       output.should contain "1. [asset.png] Large file size"
@@ -118,7 +118,7 @@ describe PaceEditor::Validation::ValidationResult do
       result.add_error("File not found", "missing.png")
       result.add_error("Invalid format", "scene.yaml", 10)
       result.add_warning("Unused asset", "old.png")
-      
+
       output = result.to_s
       output.should contain "Validation failed with 2 error(s) and 1 warning(s):"
       output.should contain "Errors:"
