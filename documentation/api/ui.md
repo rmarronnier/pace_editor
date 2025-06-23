@@ -1,6 +1,6 @@
 # UI Components API Reference
 
-The UI API provides the interface components that make up PACE's editor interface, including menus, panels, and interactive widgets.
+The UI API provides the interface components that make up PACE's editor interface, including menus, panels, interactive widgets, and the new Script Editor and Animation Editor added in version 2.0.
 
 ## Module: PaceEditor::UI
 
@@ -291,6 +291,134 @@ Applies a text search filter to assets.
 Returns currently selected assets.
 
 **Returns:** Array of selected asset objects
+
+---
+
+### Class: ScriptEditor (NEW)
+
+A full-featured script editor for editing Lua files with syntax highlighting and validation.
+
+#### Properties
+
+```crystal
+property visible : Bool                   # Whether editor is shown
+property script_path : String?            # Path to current script
+property script_content : String          # Current script content
+property is_modified : Bool               # Whether script has changes
+property cursor_line : Int32              # Current cursor line
+property cursor_column : Int32            # Current cursor column
+property syntax_tokens : Array(SyntaxToken) # Highlighted syntax tokens
+property error_messages : Array(String)   # Validation errors
+```
+
+#### Instance Methods
+
+##### `initialize(state : EditorState)`
+
+Creates a new script editor.
+
+##### `show(script_path : String? = nil)`
+
+Shows the editor, optionally loading a script file.
+
+**Parameters:**
+- `script_path` - Optional path to script to load
+
+##### `hide`
+
+Hides the editor, prompting to save if modified.
+
+##### `update`
+
+Handles input, text editing, and keyboard shortcuts.
+
+##### `draw`
+
+Renders the editor interface with syntax highlighting.
+
+##### `save_script`
+
+Saves the current script to file.
+
+##### `validate_syntax`
+
+Validates Lua syntax and reports errors.
+
+##### `extract_functions : Array(String)`
+
+Extracts function names for navigation.
+
+**Returns:** Array of function names found
+
+---
+
+### Class: AnimationEditor (NEW)
+
+A timeline-based animation editor for creating sprite animations.
+
+#### Properties
+
+```crystal
+property visible : Bool                   # Whether editor is shown
+property animation_data : AnimationData?  # Current animation data
+property current_animation : String?      # Selected animation name
+property current_frame : Int32            # Current frame index
+property playing : Bool                   # Animation playback state
+property playback_speed : Float32         # Playback speed multiplier
+property sprite_texture : Texture2D?      # Loaded sprite sheet
+```
+
+#### Instance Methods
+
+##### `initialize(state : EditorState)`
+
+Creates a new animation editor.
+
+##### `show(character_name : String? = nil)`
+
+Shows the editor for a specific character.
+
+**Parameters:**
+- `character_name` - Character to edit animations for
+
+##### `hide`
+
+Hides the editor, prompting to save if modified.
+
+##### `update`
+
+Handles timeline manipulation and playback controls.
+
+##### `draw`
+
+Renders the animation editor with timeline and preview.
+
+##### `save_animations`
+
+Saves animation data to file.
+
+##### `create_animation(name : String)`
+
+Creates a new animation sequence.
+
+**Parameters:**
+- `name` - Animation name
+
+##### `add_frame(animation_name : String, duration : Float32 = 0.1)`
+
+Adds a frame to an animation.
+
+**Parameters:**
+- `animation_name` - Target animation
+- `duration` - Frame duration in seconds
+
+##### `play_animation`
+
+Starts animation playback.
+
+##### `pause_animation`
+
+Pauses animation playback.
 
 ---
 
@@ -691,6 +819,48 @@ asset_browser.set_category_filter("sprites")
 
 # Search for specific assets
 asset_browser.set_search_filter("hero")
+```
+
+### Using the Script Editor (NEW)
+
+```crystal
+# Create script editor
+script_editor = PaceEditor::UI::ScriptEditor.new(editor_state)
+
+# Open a script file
+script_editor.show("scripts/hotspot_interactions.lua")
+
+# Validate syntax
+script_editor.validate_syntax
+
+# Save the script
+script_editor.save_script
+
+# Hide the editor
+script_editor.hide
+```
+
+### Using the Animation Editor (NEW)
+
+```crystal
+# Create animation editor
+anim_editor = PaceEditor::UI::AnimationEditor.new(editor_state)
+
+# Open for character
+anim_editor.show("hero")
+
+# Create new animation
+anim_editor.create_animation("walk_cycle")
+
+# Add frames
+anim_editor.add_frame("walk_cycle", 0.1)
+anim_editor.add_frame("walk_cycle", 0.1)
+
+# Play animation
+anim_editor.play_animation
+
+# Save animations
+anim_editor.save_animations
 ```
 
 ### Scene Hierarchy Operations

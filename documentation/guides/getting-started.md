@@ -148,12 +148,103 @@ Your scene now has a background!
 2. Select your hotspot
 3. In the Property Panel, set **Dialog**: "key_dialog"
 
+## Adding Scripts to Hotspots (NEW)
+
+### 1. Create Interactive Scripts
+
+1. Switch to **Hotspot Mode** and select your hotspot
+2. In the Property Panel, click **Edit Scripts**
+3. The **Script Editor** will open with a template script
+4. Modify the interaction functions:
+   ```lua
+   function on_click()
+       show_message("You found a mysterious key!")
+       give_item("old_key")
+   end
+   
+   function on_look()
+       show_message("It's an old, rusty key.")
+   end
+   ```
+5. Press `Ctrl+S` to save the script
+6. Press `F5` to validate syntax
+7. Press `Esc` to close the script editor
+
+### 2. Script Editor Features
+
+- **Syntax Highlighting** - Lua keywords, functions, and strings are color-coded
+- **Error Checking** - Real-time validation with error messages
+- **Auto-completion** - Hints for Lua syntax and functions
+- **File Management** - Automatic script creation and organization
+
+## Adding Character Animations (NEW)
+
+### 1. Prepare Sprite Sheets
+
+1. Create or obtain sprite sheets for your character
+2. Name them using the pattern: `character_name.png` or `character_name_spritesheet.png`
+3. Place them in your project's `assets/characters/` folder
+
+### 2. Edit Character Animations
+
+1. Switch to **Character Mode** and select your character
+2. In the Property Panel, click **Edit Animations**
+3. The **Animation Editor** will open
+4. Create animations:
+   - Click **+ New** to create a new animation
+   - Name it (e.g., "walk", "idle", "run")
+   - Add frames by clicking the **+** button in the timeline
+   - Adjust frame duration and properties
+5. Use playback controls to preview animations:
+   - **Play/Pause** button or `Space` key
+   - **Speed** slider to adjust playback speed
+   - **Previous/Next Frame** buttons or arrow keys
+
+### 3. Animation Editor Features
+
+- **Timeline** - Visual frame-by-frame editing
+- **Real-time Preview** - See animations as you create them
+- **Frame Properties** - Adjust duration, offset, and sprite coordinates
+- **Multiple Animations** - Manage idle, walk, run, and custom animations
+- **Sprite Sheet Support** - Automatic frame detection from sprite sheets
+
 ## Testing Your Game
+
+### 1. Test Basic Interactions
 
 1. Switch to **Project Mode**
 2. Click **Test Game** to run your scene
 3. Click on hotspots to test interactions
 4. Use `Esc` to return to the editor
+
+### 2. Test Dialog Trees (NEW)
+
+1. Switch to **Dialog Mode**
+2. Select your dialog tree
+3. Click **Test Dialog** in the toolbar
+4. Navigate through the conversation using:
+   - **Up/Down arrows** to select choices
+   - **Enter** to choose an option
+   - **Esc** to close the preview
+
+### 3. Test Hotspot Interactions (NEW)
+
+1. Switch to **Hotspot Mode**
+2. Select a hotspot
+3. Click **Test Interaction** in the properties
+4. Try different interaction types (click, look, use, talk)
+5. Review the simulation log for script execution results
+6. Use **Clear Log** to reset the test session
+
+### 4. Preview Character Animations (NEW)
+
+1. Switch to **Character Mode**
+2. Select a character with animations
+3. In the Animation Editor:
+   - Use **Play** button to preview animations
+   - Adjust **Speed** to test different playback rates
+   - Switch between animations to test all states
+   - Verify smooth transitions and timing
 
 ## Saving and Exporting
 
@@ -194,7 +285,6 @@ Congratulations! You've created your first adventure game. Here are some next st
 ### Recommended Tutorials
 - [Beginner Tutorial](../tutorials/beginner-tutorial.md) - More detailed walkthrough
 - [Advanced Tutorial](../tutorials/advanced-tutorial.md) - Complex scenes and mechanics
-- [Scripting Tutorial](../tutorials/scripting-tutorial.md) - Custom Lua scripting
 
 ### Get Help
 - Check the [User Interface Guide](user-interface.md) for detailed UI explanations
@@ -247,4 +337,4 @@ Congratulations! You've created your first adventure game. Here are some next st
 - Limit number of objects per scene
 - Check for infinite loops in scripts
 
-Need more help? Check our [Troubleshooting Guide](troubleshooting.md) or contact support.
+Need more help? Check the documentation or contact support.

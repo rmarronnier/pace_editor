@@ -15,6 +15,10 @@ PACE is a visual editor for creating point-and-click adventure games using the P
 - **Scene background management** - Background selector with thumbnails
 - **Asset import system** - Multi-format support with auto-discovery
 - **Enhanced export** - Generate fully playable games with proper structure
+- **🆕 Script Editor** - Full-featured Lua script editor with syntax highlighting
+- **🆕 Animation Editor** - Timeline-based sprite animation system
+- **🆕 Hotspot Scripting** - Seamless script editing for interactive objects
+- **🆕 Character Animation** - Complete animation workflow for characters
 
 ### 🔧 Core Implementation Status
 - ✅ **Complete scene persistence** - Full YAML save/load with all object types
@@ -27,6 +31,10 @@ PACE is a visual editor for creating point-and-click adventure games using the P
 - ✅ **Background selection** - Visual selector with thumbnails
 - ✅ **Grid snapping** - Precise object placement
 - ✅ **Scene validation** - Comprehensive error checking
+- ✅ **Script editing** - Lua script editor with syntax highlighting
+- ✅ **Animation system** - Timeline-based character animation editor
+- ✅ **Hotspot scripting** - Integrated script editing for interactions
+- ✅ **Dialog preview** - Test dialog trees with interactive preview
 
 ## Features
 
@@ -106,6 +114,45 @@ PACE is a visual editor for creating point-and-click adventure games using the P
 - Audio synchronization
 - Conditional sequences
 
+### 📝 Script Editor (NEW)
+- Full-featured Lua script editor with syntax highlighting
+- Real-time syntax validation and error checking
+- Function extraction and code navigation
+- Auto-completion hints for Lua keywords
+- Integrated with hotspot and character interactions
+- Automatic script file creation with templates
+- Save/load functionality with modification tracking
+- Text editing features: cut, copy, paste, undo/redo
+- Customizable editor settings (font size, tab size)
+
+### 🎬 Animation Editor (NEW)
+- Timeline-based sprite animation system
+- Visual frame-by-frame editing with preview
+- Animation playback controls (play, pause, speed adjustment)
+- Sprite sheet support with automatic frame detection
+- Multiple animation management (idle, walk, run, etc.)
+- Frame properties editing (duration, offset, sprite coordinates)
+- Animation properties (FPS, looping, frame count)
+- Real-time animation preview with zoom controls
+- Export animations compatible with Point & Click Engine
+- Integration with character editor for seamless workflow
+
+### 🔧 Enhanced Hotspot Scripting (NEW)
+- Seamless script editing directly from hotspot properties
+- Automatic script file generation for each hotspot
+- Template scripts with all interaction functions (on_click, on_look, etc.)
+- Integration with script editor for advanced editing
+- Script validation and error reporting
+- Hot-reloading of scripts during development
+
+### 🎭 Enhanced Character Animation (NEW)
+- Character-specific animation editing
+- Automatic sprite sheet detection and loading
+- Multiple animation state management
+- Animation preview integration in character editor
+- Sprite path resolution with multiple naming conventions
+- Character animation properties synchronized with engine
+
 ### 📁 Asset Management
 - Centralized asset browser with category tabs
 - Multi-format import functionality (PNG, JPG, WAV, OGG, MP3, LUA, etc.)
@@ -150,7 +197,7 @@ PACE is a visual editor for creating point-and-click adventure games using the P
 
 2. **Clone and Build:**
    ```bash
-   git clone https://github.com/yourusername/pace_editor.git
+   git clone [repository-url]
    cd pace_editor
    shards install
    crystal build src/pace_editor.cr --release
@@ -205,14 +252,16 @@ For detailed installation instructions, see [Installation Guide](documentation/g
 PACE operates in several distinct modes, each optimized for different aspects of game creation:
 
 - **Scene Mode** - Design game scenes with backgrounds, objects, and layouts
-- **Character Mode** - Create and animate characters with sprite management
-- **Hotspot Mode** - Define interactive areas and behaviors
-- **Dialog Mode** - Create branching conversations and character interactions
+- **Character Mode** - Create and animate characters with advanced animation editor
+- **Hotspot Mode** - Define interactive areas with integrated script editing
+- **Dialog Mode** - Create branching conversations with interactive preview
 - **Assets Mode** - Manage project resources and imports
 - **Project Mode** - Configure game settings and export options
 - **Quest Mode** (NEW) - Design quests with objectives and rewards
 - **Item Mode** (NEW) - Create inventory items and interactions
 - **Cutscene Mode** (NEW) - Script cinematic sequences
+- **Script Editing** (NEW) - Full-featured Lua script editor accessible from any mode
+- **Animation Editing** (NEW) - Timeline-based sprite animation system
 
 ## Exporting Your Game
 
@@ -268,6 +317,20 @@ The editor validates:
 - `F` - Focus on selected object
 - `Home` - Reset camera view
 
+### Script Editor
+- `Ctrl+S` - Save script
+- `F5` - Validate syntax
+- `Ctrl+Z` / `Ctrl+Y` - Undo/Redo in script
+- `Esc` - Close script editor
+- `Tab` - Insert tab (configurable spaces)
+- `Ctrl+F` - Find text (planned)
+
+### Animation Editor
+- `Space` - Play/pause animation
+- `Left/Right Arrow` - Previous/next frame
+- `Ctrl+S` - Save animation data
+- `Esc` - Close animation editor
+
 ## Development
 
 ### Building from Source
@@ -279,7 +342,7 @@ The editor validates:
 
 2. **Development Setup:**
    ```bash
-   git clone https://github.com/yourusername/pace_editor.git
+   git clone [repository-url]
    cd pace_editor
    shards install
    ```
@@ -347,7 +410,7 @@ We welcome contributions to PACE! Here's how to get started:
 
 1. **Fork the Repository**
    ```bash
-   git clone https://github.com/your-fork/pace_editor.git
+   git clone [your-fork-repository-url]
    ```
 
 2. **Create a Feature Branch**
@@ -384,13 +447,13 @@ PACE is released under the MIT License. See [LICENSE](LICENSE) for details.
 ## Support
 
 - **Documentation**: Complete guides in [documentation/](documentation/)
-- **Issues**: Report bugs on [GitHub Issues](https://github.com/yourusername/pace_editor/issues)
+- **Issues**: Report bugs via GitHub Issues
 - **Community**: Join our Discord server for real-time help
 - **Email**: Contact support@pace-editor.com
 
 ## Contributors
 
-- [Remy Marronnier](https://github.com/your-github-user) - creator and maintainer
+- Remy Marronnier - creator and maintainer
 
 ## Acknowledgments
 

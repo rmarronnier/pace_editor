@@ -284,7 +284,7 @@ examples/projects/your_example/
 
 ### Getting Help
 
-- Check the [Troubleshooting Guide](../guides/troubleshooting.md)
+- Check the documentation for troubleshooting tips
 - Visit our [Community Forum](https://forum.pace-editor.com)
 - Ask questions in our [Discord Server](https://discord.gg/pace-editor)
 

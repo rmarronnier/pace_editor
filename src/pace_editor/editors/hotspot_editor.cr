@@ -1,4 +1,5 @@
 require "../ui/hotspot_interaction_preview"
+require "../ui/script_editor"
 
 module PaceEditor::Editors
   # Hotspot editor for creating and configuring interactive areas
@@ -8,14 +9,17 @@ module PaceEditor::Editors
     property hotspot_start : RL::Vector2? = nil
 
     @interaction_preview : UI::HotspotInteractionPreview
+    @script_editor : UI::ScriptEditor
 
     def initialize(@state : Core::EditorState)
       @interaction_preview = UI::HotspotInteractionPreview.new(@state)
+      @script_editor = UI::ScriptEditor.new(@state)
     end
 
     def update
       @interaction_preview.update
-      handle_hotspot_creation unless @interaction_preview.visible
+      @script_editor.update
+      handle_hotspot_creation unless (@interaction_preview.visible || @script_editor.visible)
     end
 
     def draw
@@ -41,6 +45,9 @@ module PaceEditor::Editors
 
       # Draw interaction preview on top
       @interaction_preview.draw
+
+      # Draw script editor on top of everything
+      @script_editor.draw
     end
 
     private def get_current_hotspot : PointClickEngine::Scenes::Hotspot?
@@ -351,7 +358,13 @@ module PaceEditor::Editors
     end
 
     private def edit_hotspot_scripts
-      puts "Would open script editor for hotspot"
+      if selected_hotspot = get_selected_hotspot
+        # Create or open script file for this hotspot
+        script_path = get_hotspot_script_path(selected_hotspot.name)
+        @script_editor.show(script_path)
+      else
+        puts "No hotspot selected for script editing"
+      end
     end
 
     private def delete_current_hotspot
@@ -362,6 +375,72 @@ module PaceEditor::Editors
           @state.clear_selection
           @state.save_current_scene(scene)
         end
+      end
+    end
+
+    private def get_selected_hotspot : PointClickEngine::Scenes::Hotspot?
+      return @current_hotspot if @current_hotspot
+
+      # Try to get from editor state selection
+      if selected = @state.selected_object
+        if scene = @state.current_scene
+          return scene.hotspots.find { |h| h.name == selected }
+        end
+      end
+
+      nil
+    end
+
+    private def get_hotspot_script_path(hotspot_name : String) : String?
+      return nil unless project = @state.current_project
+
+      script_filename = "#{hotspot_name.downcase.gsub(" ", "_")}_hotspot.lua"
+      script_path = File.join(project.scripts_path, script_filename)
+
+      # Create default script if it doesn't exist
+      unless File.exists?(script_path)
+        create_default_hotspot_script(script_path, hotspot_name)
+      end
+
+      script_path
+    end
+
+    private def create_default_hotspot_script(path : String, hotspot_name : String)
+      begin
+        default_content = <<-LUA
+-- Script for hotspot: #{hotspot_name}
+-- This script handles interactions with the #{hotspot_name} hotspot
+
+function on_click()
+    -- Called when the hotspot is clicked
+    print("#{hotspot_name} was clicked!")
+end
+
+function on_look()
+    -- Called when the player examines the hotspot
+    print("Looking at #{hotspot_name}")
+end
+
+function on_use()
+    -- Called when the player uses an item with the hotspot
+    print("Using item with #{hotspot_name}")
+end
+
+function on_talk()
+    -- Called when the player tries to talk to the hotspot
+    print("Trying to talk to #{hotspot_name}")
+end
+
+-- Custom functions can be added here
+function custom_action()
+    -- Your custom code here
+end
+LUA
+
+        File.write(path, default_content)
+        puts "Created default script for hotspot: #{hotspot_name}"
+      rescue ex
+        puts "Error creating script file: #{ex.message}"
       end
     end
   end

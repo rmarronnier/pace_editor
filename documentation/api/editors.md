@@ -1,6 +1,6 @@
 # Editors API Reference
 
-The Editors API provides specialized editing interfaces for different aspects of game creation including scenes, characters, hotspots, dialogs, quests, items, and cutscenes.
+The Editors API provides specialized editing interfaces for different aspects of game creation including scenes, characters, hotspots, dialogs, scripts, and animations. With the addition of the Script Editor and Animation Editor in version 2.0, PACE now offers comprehensive editing capabilities for all game elements.
 
 ## Module: PaceEditor::Editors
 
@@ -154,6 +154,13 @@ Starts playing an animation in the preview.
 
 Stops the current animation preview.
 
+##### `edit_character_animations(character : Character)`
+
+Opens the Animation Editor for editing character sprite animations.
+
+**Parameters:**
+- `character` - Character to edit animations for
+
 ---
 
 ### Class: HotspotEditor
@@ -226,10 +233,17 @@ Sets the action script for a hotspot.
 
 ##### `test_hotspot_interaction(hotspot : Hotspot)`
 
-Tests a hotspot's interaction in preview mode.
+Tests a hotspot's interaction in preview mode, including script execution simulation.
 
 **Parameters:**
 - `hotspot` - Hotspot to test
+
+##### `edit_hotspot_scripts(hotspot : Hotspot)`
+
+Opens the Script Editor for editing hotspot interaction scripts.
+
+**Parameters:**
+- `hotspot` - Hotspot to edit scripts for
 
 ---
 
@@ -330,6 +344,164 @@ Automatically arranges all nodes in a readable layout.
 ##### `preview_dialog_tree`
 
 Runs the dialog tree in preview mode for testing.
+
+---
+
+### Class: ScriptEditor (NEW)
+
+The Script Editor provides a full-featured Lua script editing environment with syntax highlighting, validation, and file management.
+
+#### Properties
+
+```crystal
+property visible : Bool                   # Editor visibility state
+property script_path : String?            # Path to current script file
+property script_content : String          # Current script content
+property is_modified : Bool               # Modification state
+property cursor_line : Int32              # Current cursor line
+property cursor_column : Int32            # Current cursor column
+property error_messages : Array(String)   # Validation errors
+property syntax_tokens : Array(SyntaxToken) # Syntax highlighting tokens
+```
+
+#### Instance Methods
+
+##### `initialize(state : EditorState)`
+
+Creates a new script editor.
+
+##### `show(script_path : String? = nil)`
+
+Shows the script editor, optionally loading a specific script file.
+
+**Parameters:**
+- `script_path` - Optional path to script file to load
+
+##### `hide`
+
+Hides the script editor, prompting to save if there are unsaved changes.
+
+##### `update`
+
+Updates the script editor, handling keyboard input and text editing.
+
+##### `draw`
+
+Renders the script editor interface with syntax highlighting.
+
+##### `save_script`
+
+Saves the current script to file.
+
+##### `validate_syntax`
+
+Validates Lua syntax and reports errors.
+
+##### `load_script(path : String)`
+
+Loads a script file for editing.
+
+**Parameters:**
+- `path` - Path to script file
+
+##### `extract_functions : Array(String)`
+
+Extracts function names from the current script for navigation.
+
+**Returns:** Array of function names found in the script
+
+---
+
+### Class: AnimationEditor (NEW)
+
+The Animation Editor provides timeline-based sprite animation creation and editing with real-time preview.
+
+#### Properties
+
+```crystal
+property visible : Bool                   # Editor visibility state
+property animation_data : AnimationData?  # Current animation data
+property current_animation : String?      # Currently selected animation
+property current_frame : Int32            # Current frame index
+property playing : Bool                   # Playback state
+property playback_speed : Float32         # Playback speed multiplier
+property sprite_texture : Texture2D?      # Loaded sprite sheet
+```
+
+#### Instance Methods
+
+##### `initialize(state : EditorState)`
+
+Creates a new animation editor.
+
+##### `show(character_name : String? = nil)`
+
+Shows the animation editor, optionally for a specific character.
+
+**Parameters:**
+- `character_name` - Optional character name to load animations for
+
+##### `hide`
+
+Hides the animation editor, prompting to save if there are unsaved changes.
+
+##### `update`
+
+Updates the animation editor, handling timeline manipulation and playback.
+
+##### `draw`
+
+Renders the animation editor interface with timeline and preview.
+
+##### `save_animations`
+
+Saves the current animation data to file.
+
+##### `load_animations(character_name : String)`
+
+Loads animation data for a character.
+
+**Parameters:**
+- `character_name` - Character to load animations for
+
+##### `create_animation(name : String)`
+
+Creates a new animation sequence.
+
+**Parameters:**
+- `name` - Animation name
+
+##### `add_frame(animation_name : String, duration : Float32 = 0.1)`
+
+Adds a frame to an animation.
+
+**Parameters:**
+- `animation_name` - Target animation
+- `duration` - Frame duration in seconds
+
+##### `play_animation`
+
+Starts animation playback in the preview.
+
+##### `pause_animation`
+
+Pauses animation playback.
+
+##### `set_playback_speed(speed : Float32)`
+
+Sets the playback speed multiplier.
+
+**Parameters:**
+- `speed` - Speed multiplier (1.0 = normal speed)
+
+##### `detect_sprite_sheet(character_name : String) : String?`
+
+Automatically detects sprite sheet file for a character.
+
+**Parameters:**
+- `character_name` - Character name to search for
+
+**Returns:** Path to sprite sheet if found, nil otherwise
 
 ---
 
@@ -721,6 +893,16 @@ char_editor.add_animation("walk_right", [0, 1, 2, 1], 0.8)
 
 # Preview the animation
 char_editor.play_animation_preview("walk_right")
+
+# Edit character animations (NEW)
+char_editor.edit_character_animations(hero_character)
+
+# Use animation editor directly
+anim_editor = PaceEditor::UI::AnimationEditor.new(state)
+anim_editor.show("hero")
+anim_editor.create_animation("walk_cycle")
+anim_editor.add_frame("walk_cycle", 0.1)
+anim_editor.play_animation
 ```
 
 ### Hotspot Creation
@@ -737,7 +919,15 @@ hotspot_editor.create_hotspot(door_bounds, "examine")
 door_hotspot = hotspot_editor.get_hotspot_at_position(Vector2.new(240, 160))
 if door_hotspot
   hotspot_editor.set_hotspot_action(door_hotspot, "The door is locked.")
+  
+  # Edit hotspot scripts (NEW)
+  hotspot_editor.edit_hotspot_scripts(door_hotspot)
 end
+
+# Use script editor directly
+script_editor = PaceEditor::UI::ScriptEditor.new(state)
+script_editor.show("scripts/door_interactions.lua")
+script_editor.validate_syntax
 ```
 
 ### Dialog Tree Creation

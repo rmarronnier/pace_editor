@@ -5,23 +5,24 @@ All notable changes to PACE Editor will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.0.0] - 2024-01-23
+## [2.0.0] - 2025-06-23
 
 ### Added
 
-#### New Game Systems
-- **Quest System** - Complete quest creation with objectives, rewards, and dependencies
-- **Item System** - Inventory item management with states, combinations, and effects
-- **Cutscene Editor** - Timeline-based cutscene creation with multiple action types
+#### New Editing Features
+- **Script Editor** - Full-featured Lua script editor with syntax highlighting, validation, and real-time error checking
+- **Animation Editor** - Timeline-based sprite animation system with frame management and real-time preview
+- **Enhanced Hotspot Scripting** - Seamless script editing integration with automatic template generation
+- **Enhanced Character Animation** - Complete animation workflow with sprite sheet detection
 - **Validation System** - Comprehensive validation before export with detailed error reporting
 
-#### New Models
-- `GameConfig` - Complete game configuration model matching engine format
-- `Quest`, `QuestObjective`, `Reward` - Quest system models
-- `Item`, `ItemState` - Inventory item models
-- `DialogTree`, `DialogNode`, `DialogChoice` - Enhanced dialog models
-- `Cutscene`, `CutsceneAction` - Cutscene definition models
-- `Condition`, `Effect` - Game logic primitives
+#### New Components
+- `ScriptEditor` - Complete Lua script editor with syntax highlighting
+- `AnimationEditor` - Timeline-based animation editor with sprite sheet support
+- `SyntaxToken` - Syntax highlighting token system for Lua
+- `AnimationData` - Animation data structure with frame management
+- Enhanced `HotspotEditor` with script integration
+- Enhanced `CharacterEditor` with animation integration
 
 #### Export System
 - New `GameExporter` class with full validation
@@ -38,10 +39,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `ValidationResult` - Unified error/warning reporting
 
 #### Testing
-- Comprehensive specs for all new models
-- Validation system specs
-- Export functionality specs
-- 136 new tests ensuring reliability
+- Comprehensive specs for Script Editor functionality
+- Animation Editor testing suite
+- Integration tests for editor workflows
+- Syntax highlighting validation tests
+- File I/O operation testing for scripts and animations
 
 ### Changed
 
@@ -98,7 +100,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 4. Test exported games with Point & Click Engine v1.0
 
 **New Features to Explore:**
-- Try the quest system for complex game progression
-- Use the item system for inventory puzzles
-- Create cutscenes for dramatic moments
-- Leverage validation to catch errors early
+- Use the Script Editor for advanced hotspot interactions with Lua scripting
+- Create character animations with the timeline-based Animation Editor
+- Take advantage of syntax highlighting and error checking for script development
+- Use automatic sprite sheet detection for faster animation setup
+- Leverage real-time animation preview for precise timing adjustments

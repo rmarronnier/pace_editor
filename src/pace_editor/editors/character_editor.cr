@@ -1,14 +1,20 @@
+require "../ui/animation_editor"
+
 module PaceEditor::Editors
   # Character editor for configuring character properties and animations
   class CharacterEditor
     property current_character : PointClickEngine::Characters::Character? = nil
     property animation_preview_time : Float32 = 0.0f32
 
+    @animation_editor : UI::AnimationEditor
+
     def initialize(@state : Core::EditorState)
+      @animation_editor = UI::AnimationEditor.new(@state)
     end
 
     def update
       @animation_preview_time += RL.get_frame_time
+      @animation_editor.update
     end
 
     def draw
@@ -27,6 +33,9 @@ module PaceEditor::Editors
       else
         draw_no_character_message(editor_x, editor_y, editor_width, editor_height)
       end
+
+      # Draw animation editor on top
+      @animation_editor.draw
     end
 
     private def get_current_character : PointClickEngine::Characters::Character?
@@ -88,8 +97,13 @@ module PaceEditor::Editors
         # Toggle animation
       end
 
+      # Edit animations button
+      if draw_button("Edit", x + 80, controls_y + 20, 60, 25)
+        open_animation_editor(character)
+      end
+
       # Animation frame info
-      RL.draw_text("Frame: 0/1", x + 80, controls_y + 25, 12, RL::LIGHTGRAY)
+      RL.draw_text("Frame: 0/1", x + 150, controls_y + 25, 12, RL::LIGHTGRAY)
     end
 
     private def draw_character_controls(character : PointClickEngine::Characters::Character, x : Int32, y : Int32, width : Int32, height : Int32)
@@ -224,6 +238,40 @@ module PaceEditor::Editors
         @state.select_object(new_character.name)
         @state.save_current_scene(scene)
       end
+    end
+
+    private def open_animation_editor(character : PointClickEngine::Characters::Character)
+      # Find character's sprite sheet path
+      sprite_path = get_character_sprite_path(character.name)
+      @animation_editor.show(character.name, sprite_path)
+    end
+
+    private def get_character_sprite_path(character_name : String) : String?
+      return nil unless project = @state.current_project
+
+      # Look for sprite sheet in character assets
+      characters_path = File.join(project.assets_path, "characters")
+      return nil unless Dir.exists?(characters_path)
+
+      # Common sprite sheet extensions
+      extensions = [".png", ".jpg", ".jpeg"]
+      possible_names = [
+        character_name.downcase.gsub(" ", "_"),
+        character_name.downcase,
+        "#{character_name.downcase}_spritesheet",
+        "#{character_name.downcase.gsub(" ", "_")}_sheet",
+      ]
+
+      possible_names.each do |name|
+        extensions.each do |ext|
+          full_path = File.join(characters_path, "#{name}#{ext}")
+          if File.exists?(full_path)
+            return full_path
+          end
+        end
+      end
+
+      nil
     end
   end
 end

@@ -107,12 +107,11 @@ PACE 2.0 brings full compatibility with Point & Click Engine v1.0, along with po
 - **[Installation Guide](guides/installation.md)** - How to install and set up PACE
 - **[Getting Started](guides/getting-started.md)** - Your first adventure game
 - **[User Interface Guide](guides/user-interface.md)** - Complete UI reference
-- **[Project Management](guides/project-management.md)** - Working with projects
+- **[Game Format Guide](guides/game-format.md)** - Understanding PACE game format
 
 ### Tutorials
 - **[Beginner Tutorial](tutorials/beginner-tutorial.md)** - Create your first simple game
 - **[Advanced Tutorial](tutorials/advanced-tutorial.md)** - Complex scenes and interactions
-- **[Scripting Tutorial](tutorials/scripting-tutorial.md)** - Custom Lua scripting
 
 ### API Reference
 - **[Core API](api/core.md)** - Project and editor state management
@@ -297,7 +296,7 @@ PACE is released under the MIT License. See [LICENSE](../LICENSE) for details.
 ## Support
 
 - **Documentation**: Browse the complete documentation in this folder
-- **Issues**: Report bugs or request features on [GitHub Issues](https://github.com/yourusername/pace_editor/issues)
+- **Issues**: Report bugs or request features via GitHub Issues
 - **Community**: Join our Discord server for community support
 - **Email**: Contact us at support@pace-editor.com
 

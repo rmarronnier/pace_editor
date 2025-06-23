@@ -23,7 +23,7 @@ This guide will walk you through installing PACE (Point & Click Adventure Creato
 ### Method 1: Pre-built Binaries (Recommended)
 
 #### Windows
-1. Download the latest PACE release from [GitHub Releases](https://github.com/yourusername/pace_editor/releases)
+1. Download the latest PACE release from the project's GitHub releases page
 2. Extract the ZIP file to your desired location (e.g., `C:\PACE\`)
 3. Add the PACE directory to your system PATH:
    - Open System Properties → Advanced → Environment Variables
@@ -100,7 +100,7 @@ Install dependencies via MSYS2 or use pre-built libraries.
 
 1. **Clone the Repository:**
    ```bash
-   git clone https://github.com/yourusername/pace_editor.git
+   git clone [repository-url]
    cd pace_editor
    ```
 

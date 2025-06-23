@@ -55,6 +55,8 @@ require "./pace_editor/ui/property_panel"
 require "./pace_editor/ui/scene_hierarchy"
 require "./pace_editor/ui/asset_browser"
 require "./pace_editor/ui/hotspot_action_dialog"
+require "./pace_editor/ui/script_editor"
+require "./pace_editor/ui/animation_editor"
 
 # Editor modules
 require "./pace_editor/editors/scene_editor"
