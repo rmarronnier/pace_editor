@@ -12,7 +12,7 @@ PACE is a visual editor for creating point-and-click adventure games using the P
 - **✅ Character Editor Overhaul** - Complete redesign with functional property editing and script integration
 - **✅ Viewport Handling** - All editors now properly adapt to window resizing
 
-*See [SYSTEMATIC_BUGS.md](SYSTEMATIC_BUGS.md) and [CHANGELOG_BUGFIXES.md](CHANGELOG_BUGFIXES.md) for complete details*
+*See [docs/development/](docs/development/) for technical details and [docs/releases/](docs/releases/) for complete changelogs*
 
 ### Previous Fixes (Version 2.0.1)
 - **Fixed Modal Positioning** - All dialogs now center correctly on any screen size
@@ -570,9 +570,17 @@ See [MISSING_IMPLEMENTATIONS.md](MISSING_IMPLEMENTATIONS.md) for a detailed list
 
 PACE is released under the MIT License. See [LICENSE](LICENSE) for details.
 
+## 📚 Documentation
+
+- **[📖 User Guide](docs/)** - Complete documentation index
+- **[🎭 Character Editor Guide](docs/CHARACTER_EDITOR_GUIDE.md)** - Step-by-step character editing
+- **[🏗️ Installation Guide](documentation/guides/installation.md)** - Setup instructions
+- **[🚀 Getting Started](documentation/guides/getting-started.md)** - First steps tutorial
+- **[🔧 Development Info](docs/development/)** - Technical details and bug fixes
+- **[📋 Release Notes](docs/releases/)** - Version history and changelogs
+
 ## Support
 
-- **Documentation**: Complete guides in [documentation/](documentation/)
 - **Issues**: Report bugs via GitHub Issues
 - **Community**: Join our Discord server for real-time help
 - **Email**: Contact support@pace-editor.com
