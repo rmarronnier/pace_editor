@@ -34,9 +34,6 @@ module PaceEditor::Core
     property music : Array(String) = [] of String
     property scripts : Array(String) = [] of String
 
-    # Current scene being edited
-    property current_scene : String?
-
     def initialize(@name : String, @project_path : String)
       @assets_path = ""
       @scenes_path = ""
@@ -135,9 +132,6 @@ module PaceEditor::Core
 
     def remove_scene(scene_name : String)
       @scenes.delete(scene_name)
-      if @current_scene == scene_name
-        @current_scene = @scenes.first?
-      end
     end
 
     def add_asset(asset_path : String, category : String)

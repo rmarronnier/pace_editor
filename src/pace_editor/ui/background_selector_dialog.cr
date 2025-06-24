@@ -219,8 +219,14 @@ module PaceEditor::UI
       return unless scene = @state.current_scene
       return unless project = @state.current_project
 
+      # Clear existing texture to force reload
+      if old_texture = scene.background
+        RL.unload_texture(old_texture)
+        scene.background = nil
+      end
+
       # Set the background path relative to project
-      scene.background_path = "backgrounds/#{bg}"
+      scene.background_path = File.join("backgrounds", bg)
 
       # Save the scene
       IO::SceneIO.save_scene(scene, IO::SceneIO.get_scene_file_path(project, scene.name))

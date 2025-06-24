@@ -335,7 +335,7 @@ module PaceEditor::UI
         File.copy(file_path, dest_path)
 
         # Add to project's backgrounds list
-        relative_path = "backgrounds/#{filename}"
+        relative_path = File.join("backgrounds", filename)
         unless project.backgrounds.includes?(relative_path)
           project.backgrounds << relative_path
         end

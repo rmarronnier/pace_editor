@@ -76,12 +76,12 @@ module PaceEditor::Export
       # Add music and sounds from project
       @project.music.each do |music_file|
         name = File.basename(music_file, File.extname(music_file))
-        config.assets.audio.music[name] = "assets/music/#{music_file}"
+        config.assets.audio.music[name] = File.join("assets", "music", music_file)
       end
 
       @project.sounds.each do |sound_file|
         name = File.basename(sound_file, File.extname(sound_file))
-        config.assets.audio.sounds[name] = "assets/sounds/#{sound_file}"
+        config.assets.audio.sounds[name] = File.join("assets", "sounds", sound_file)
       end
 
       config

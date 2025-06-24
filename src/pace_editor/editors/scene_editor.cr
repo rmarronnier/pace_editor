@@ -98,11 +98,15 @@ module PaceEditor::Editors
         if scene.background.nil?
           if project = @state.current_project
             # Add "assets/" prefix if not already present
-            asset_path = bg_path.starts_with?("assets/") ? bg_path : "assets/#{bg_path}"
+            asset_path = bg_path.starts_with?("assets/") ? bg_path : File.join("assets", bg_path)
             full_path = File.join(project.project_path, asset_path)
             if File.exists?(full_path)
               begin
                 texture = RL.load_texture(full_path)
+                # Unload existing texture if any
+                if old_texture = scene.background
+                  RL.unload_texture(old_texture)
+                end
                 scene.background = texture
               rescue ex
                 puts "Failed to load background texture: #{ex.message}"

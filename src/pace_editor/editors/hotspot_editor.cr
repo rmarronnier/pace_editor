@@ -22,6 +22,11 @@ module PaceEditor::Editors
       handle_hotspot_creation unless (@interaction_preview.visible || @script_editor.visible)
     end
 
+    def update_viewport(viewport_x : Int32, viewport_y : Int32, viewport_width : Int32, viewport_height : Int32)
+      # Hotspot editor uses full viewport, no special handling needed
+      # This method exists for consistency with other editors
+    end
+
     def draw
       screen_width = RL.get_screen_width
       screen_height = RL.get_screen_height
@@ -250,18 +255,21 @@ module PaceEditor::Editors
         @hotspot_start = world_pos
       elsif RL.mouse_button_down?(RL::MouseButton::Left) && @hotspot_start
         # Draw preview of hotspot being created
-        start_pos = @hotspot_start.not_nil!
-        end_pos = world_pos
+        if start_pos = @hotspot_start
+          end_pos = world_pos
 
-        min_x = [start_pos.x, end_pos.x].min
-        min_y = [start_pos.y, end_pos.y].min
-        width = (end_pos.x - start_pos.x).abs
-        height = (end_pos.y - start_pos.y).abs
+          min_x = [start_pos.x, end_pos.x].min
+          min_y = [start_pos.y, end_pos.y].min
+          width = (end_pos.x - start_pos.x).abs
+          height = (end_pos.y - start_pos.y).abs
 
-        # This would be drawn in the scene editor, not here
+          # This would be drawn in the scene editor, not here
+        end
       elsif RL.mouse_button_released?(RL::MouseButton::Left) && @hotspot_start
         # Create the hotspot
-        create_hotspot_from_drag(@hotspot_start.not_nil!, world_pos)
+        if start_pos = @hotspot_start
+          create_hotspot_from_drag(start_pos, world_pos)
+        end
         @creating_hotspot = false
         @hotspot_start = nil
       elsif RL.key_pressed?(RL::KeyboardKey::Escape)

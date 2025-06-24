@@ -1,4 +1,5 @@
 require "raylib-cr"
+require "./colors"
 
 module PaceEditor::UI
   # Animation editor for creating and managing sprite animations
@@ -123,16 +124,15 @@ module PaceEditor::UI
       window_y = (screen_height - window_height) // 2
 
       # Draw backdrop
-      RL.draw_rectangle(0, 0, screen_width, screen_height,
-        RL::Color.new(r: 0, g: 0, b: 0, a: 150))
+      RL.draw_rectangle(0, 0, screen_width, screen_height, Colors::DARK_OVERLAY)
 
       # Draw editor window
-      RL.draw_rectangle(window_x, window_y, window_width, window_height, RL::Color.new(r: 40, g: 40, b: 40, a: 255))
+      RL.draw_rectangle(window_x, window_y, window_width, window_height, Colors::PANEL_MEDIUM)
       RL.draw_rectangle_lines(window_x, window_y, window_width, window_height, RL::GRAY)
 
       # Title bar
       title_height = 35
-      RL.draw_rectangle(window_x, window_y, window_width, title_height, RL::Color.new(r: 50, g: 50, b: 50, a: 255))
+      RL.draw_rectangle(window_x, window_y, window_width, title_height, Colors::PANEL_LIGHT)
 
       title_text = "Animation Editor"
       if name = @character_name
@@ -192,7 +192,7 @@ module PaceEditor::UI
 
     private def draw_animation_list(x : Int32, y : Int32, width : Int32, height : Int32)
       # Background
-      RL.draw_rectangle(x, y, width, height, RL::Color.new(r: 35, g: 35, b: 35, a: 255))
+      RL.draw_rectangle(x, y, width, height, Colors::WORKSPACE_BG)
       RL.draw_rectangle_lines(x, y, width, height, RL::GRAY)
 
       # Title
@@ -213,7 +213,7 @@ module PaceEditor::UI
         is_selected = name == @current_animation
 
         # Item background
-        bg_color = is_selected ? RL::Color.new(r: 80, g: 80, b: 120, a: 255) : RL::Color.new(r: 0, g: 0, b: 0, a: 0)
+        bg_color = is_selected ? Colors::NODE_SELECTED : Colors::TRANSPARENT
         if bg_color.a > 0
           RL.draw_rectangle(x + 5, item_y, width - 10, item_height, bg_color)
         end
@@ -239,7 +239,7 @@ module PaceEditor::UI
 
     private def draw_preview_area(x : Int32, y : Int32, width : Int32, height : Int32)
       # Background
-      RL.draw_rectangle(x, y, width, height, RL::Color.new(r: 30, g: 30, b: 30, a: 255))
+      RL.draw_rectangle(x, y, width, height, Colors::PANEL_DARK)
       RL.draw_rectangle_lines(x, y, width, height, RL::GRAY)
 
       # Title
@@ -296,10 +296,10 @@ module PaceEditor::UI
         (0..height // checker_size).each do |cy|
           if (cx + cy) % 2 == 0
             RL.draw_rectangle(x + cx * checker_size, y + cy * checker_size,
-              checker_size, checker_size, RL::Color.new(r: 200, g: 200, b: 200, a: 255))
+              checker_size, checker_size, RL::LIGHTGRAY)
           else
             RL.draw_rectangle(x + cx * checker_size, y + cy * checker_size,
-              checker_size, checker_size, RL::Color.new(r: 180, g: 180, b: 180, a: 255))
+              checker_size, checker_size, RL::GRAY)
           end
         end
       end

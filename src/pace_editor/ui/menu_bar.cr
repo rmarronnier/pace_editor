@@ -699,6 +699,9 @@ module PaceEditor::UI
     private def load_scene(scene_filename : String)
       return unless project = @state.current_project
 
+      # Clean up current scene before loading new one
+      @state.cleanup_current_scene
+
       scene_path = File.join(project.scenes_path, scene_filename)
 
       if scene = PaceEditor::IO::SceneIO.load_scene(scene_path)

@@ -372,8 +372,8 @@ module PaceEditor::Core
 
       if project = @state.current_project
         parts << "Project: #{project.name}"
-        if scene_name = project.current_scene
-          parts << "Scene: #{scene_name}"
+        if scene = @state.current_scene
+          parts << "Scene: #{scene.name}"
         end
       else
         parts << "No project"
@@ -454,9 +454,18 @@ module PaceEditor::Core
       @viewport_width = @window_width - TOOL_PALETTE_WIDTH - PROPERTY_PANEL_WIDTH
       @viewport_height = @window_height - MENU_HEIGHT
 
-      # Update scene editor viewport if it exists
+      # Update all editor viewports if they exist
       if @scene_editor
         @scene_editor.update_viewport(@viewport_x, @viewport_y, @viewport_width, @viewport_height)
+      end
+      if @character_editor
+        @character_editor.update_viewport(@viewport_x, @viewport_y, @viewport_width, @viewport_height)
+      end
+      if @hotspot_editor
+        @hotspot_editor.update_viewport(@viewport_x, @viewport_y, @viewport_width, @viewport_height)
+      end
+      if @dialog_editor
+        @dialog_editor.update_viewport(@viewport_x, @viewport_y, @viewport_width, @viewport_height)
       end
     end
 
@@ -485,11 +494,20 @@ module PaceEditor::Core
       @height = new_height
       calculate_viewport_dimensions
 
-      # Update scene editor with new viewport (only editor that supports viewport updates)
+      # Update all editors with new viewport
       @scene_editor.update_viewport(@viewport_x, @viewport_y, @viewport_width, @viewport_height)
+      @character_editor.update_viewport(@viewport_x, @viewport_y, @viewport_width, @viewport_height)
+      @hotspot_editor.update_viewport(@viewport_x, @viewport_y, @viewport_width, @viewport_height)
+      @dialog_editor.update_viewport(@viewport_x, @viewport_y, @viewport_width, @viewport_height)
     end
 
     private def cleanup
+      # Clean up current scene resources
+      @state.cleanup_current_scene
+
+      # Clean up texture cache
+      Core::TextureCache.cleanup if @state.current_project
+
       RL.close_window
     end
 

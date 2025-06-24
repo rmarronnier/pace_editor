@@ -1,6 +1,7 @@
 require "raylib-cr/rlgl"
 require "../ui/dialog_node_dialog"
 require "../ui/dialog_preview_window"
+require "../ui/colors"
 
 module PaceEditor::Editors
   # Dialog editor for creating and editing dialog trees
@@ -47,6 +48,11 @@ module PaceEditor::Editors
       end
     end
 
+    def update_viewport(viewport_x : Int32, viewport_y : Int32, viewport_width : Int32, viewport_height : Int32)
+      # Dialog editor uses full editor area, no special handling needed
+      # This method exists for consistency with other editors
+    end
+
     def draw
       screen_width = RL.get_screen_width
       screen_height = RL.get_screen_height
@@ -56,8 +62,7 @@ module PaceEditor::Editors
       editor_height = screen_height - Core::EditorWindow::MENU_HEIGHT
 
       # Draw background
-      RL.draw_rectangle(editor_x, editor_y, editor_width, editor_height,
-        RL::Color.new(r: 40, g: 40, b: 40, a: 255))
+      RL.draw_rectangle(editor_x, editor_y, editor_width, editor_height, UI::Colors::PANEL_MEDIUM)
 
       if dialog = get_current_dialog
         draw_dialog_workspace(dialog, editor_x, editor_y, editor_width, editor_height)
@@ -80,7 +85,9 @@ module PaceEditor::Editors
           begin
             yaml_content = File.read(dialog_files.first)
             @current_dialog = PointClickEngine::Characters::Dialogue::DialogTree.from_yaml(yaml_content)
-            initialize_node_positions(@current_dialog.not_nil!)
+            if dialog = @current_dialog
+              initialize_node_positions(dialog)
+            end
           rescue ex
             puts "Error loading dialog: #{ex.message}"
           end
@@ -302,8 +309,10 @@ module PaceEditor::Editors
         if last_time = @last_click_time
           if (current_time - last_time) < 500
             # Double click detected
-            if node = @current_dialog.try(&.nodes[@selected_node.not_nil!]?)
-              @node_dialog.show(node)
+            if selected_node = @selected_node
+              if node = @current_dialog.try(&.nodes[selected_node]?)
+                @node_dialog.show(node)
+              end
             end
           end
         end
@@ -339,17 +348,21 @@ module PaceEditor::Editors
         end
       elsif RL.mouse_button_down?(RL::MouseButton::Left) && @dragging_node && @drag_start
         # Update node position while dragging
-        if node_pos = @node_positions[@dragging_node.not_nil!]?
-          delta = RL::Vector2.new(
-            x: canvas_pos.x - @drag_start.not_nil!.x,
-            y: canvas_pos.y - @drag_start.not_nil!.y
-          )
-          @node_positions[@dragging_node.not_nil!] = RL::Vector2.new(
-            x: node_pos.x + delta.x,
-            y: node_pos.y + delta.y
-          )
-          @drag_start = canvas_pos
+        if dragging_node = @dragging_node
+          if drag_start = @drag_start
+            if node_pos = @node_positions[dragging_node]?
+              delta = RL::Vector2.new(
+                x: canvas_pos.x - drag_start.x,
+                y: canvas_pos.y - drag_start.y
+              )
+              @node_positions[dragging_node] = RL::Vector2.new(
+                x: node_pos.x + delta.x,
+                y: node_pos.y + delta.y
+              )
+            end
+          end
         end
+        @drag_start = canvas_pos
       elsif RL.mouse_button_released?(RL::MouseButton::Left)
         @dragging_node = nil
         @drag_start = nil
@@ -488,9 +501,10 @@ module PaceEditor::Editors
 
       # Create initial node
       start_node = PointClickEngine::Characters::Dialogue::DialogNode.new("start", "Hello! This is the start of a new dialog.")
-      @current_dialog.not_nil!.add_node(start_node)
-
-      initialize_node_positions(@current_dialog.not_nil!)
+      if dialog = @current_dialog
+        dialog.add_node(start_node)
+        initialize_node_positions(dialog)
+      end
       save_current_dialog
     end
 

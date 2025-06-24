@@ -17,6 +17,11 @@ module PaceEditor::Editors
       @animation_editor.update
     end
 
+    def update_viewport(viewport_x : Int32, viewport_y : Int32, viewport_width : Int32, viewport_height : Int32)
+      # Character editor uses full viewport, no special handling needed
+      # This method exists for consistency with other editors
+    end
+
     def draw
       # Character editor takes over the main viewport
       screen_width = RL.get_screen_width

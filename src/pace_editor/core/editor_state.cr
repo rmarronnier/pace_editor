@@ -100,7 +100,9 @@ module PaceEditor::Core
         @current_scene = scene
 
         # Add scene to project
-        @current_project.not_nil!.add_scene("main.yml")
+        if project = @current_project
+          project.add_scene("main.yml")
+        end
 
         # Save the scene file
         save_current_scene(scene)
@@ -151,6 +153,22 @@ module PaceEditor::Core
       @selected_objects.clear
       @selected_hotspots.clear
       @selected_characters.clear
+    end
+
+    # Clean up resources from the current scene before switching
+    def cleanup_current_scene
+      if scene = @current_scene
+        # Unload background texture if any
+        if bg = scene.background
+          RL.unload_texture(bg)
+          scene.background = nil
+        end
+
+        # TODO: Add cleanup for character textures and other scene resources
+        # scene.characters.each do |char|
+        #   # Unload character sprites/textures
+        # end
+      end
     end
 
     # Undo/Redo support

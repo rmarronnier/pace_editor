@@ -504,7 +504,7 @@ module PaceEditor::UI
             end
             
             # Start game
-            game.start("#{project.current_scene || "main"}")
+            game.start("#{@state.current_scene.try(&.name) || "main"}")
           end
         end
         
