@@ -87,6 +87,58 @@ module PaceEditor::Core
       project.save
     end
 
+    def save_project_as(name : String, path : String) : Bool
+      project = @current_project
+      return false unless project
+
+      begin
+        # Create new project instance with new name and path
+        new_project = Project.create_new(name, path)
+        
+        # Copy all data from current project to new project
+        if current_scene = @current_scene
+          # Save current scene first
+          save_current_scene(current_scene)
+          
+          # Copy scenes
+          project.scenes.each do |scene_file|
+            source_path = File.join(project.scenes_path, scene_file)
+            target_path = File.join(new_project.scenes_path, scene_file)
+            
+            if File.exists?(source_path)
+              File.copy(source_path, target_path)
+              new_project.add_scene(scene_file)
+            end
+          end
+          
+          # Copy assets if they exist
+          if Dir.exists?(project.assets_path)
+            copy_directory_recursive(project.assets_path, new_project.assets_path)
+          end
+          
+          # Copy scripts if they exist
+          if Dir.exists?(project.scripts_path)
+            copy_directory_recursive(project.scripts_path, new_project.scripts_path)
+          end
+          
+          # Copy dialogs if they exist
+          if Dir.exists?(project.dialogs_path)
+            copy_directory_recursive(project.dialogs_path, new_project.dialogs_path)
+          end
+        end
+        
+        # Update current project reference
+        @current_project = new_project
+        
+        # Save the new project
+        new_project.save
+        true
+      rescue ex
+        puts "Error saving project as #{name}: #{ex.message}"
+        false
+      end
+    end
+
     def create_new_project(name : String, path : String) : Bool
       begin
         @current_project = Project.create_new(name, path)
@@ -328,21 +380,236 @@ module PaceEditor::Core
 
     # Character management methods
     def add_player_character(scene : PointClickEngine::Scenes::Scene)
-      # TODO: Implement player character creation
-      puts "Adding player character to scene '#{scene.name}'"
+      # Generate unique character name
+      character_count = 1
+      character_name = "player_#{character_count}"
+      
+      while scene.characters.any? { |c| c.name == character_name }
+        character_count += 1
+        character_name = "player_#{character_count}"
+      end
+      
+      # Default position (center of scene)
+      position = RL::Vector2.new(400.0_f32, 300.0_f32)
+      size = RL::Vector2.new(32.0_f32, 64.0_f32)
+      
+      # Create new Player character
+      character = PointClickEngine::Characters::Player.new(
+        character_name,
+        position,
+        size
+      )
+      
+      # Set default properties
+      character.description = "Player character"
+      character.state = PointClickEngine::Characters::CharacterState::Idle
+      character.direction = PointClickEngine::Characters::Direction::Down
+      
+      # Add to scene
+      scene.characters << character
+      
+      # Select the new character
+      @selected_object = character.name
+      
+      # Create undo action for creation
+      action = CreateCharacterAction.new(scene, character, self)
+      add_undo_action(action)
+      
+      puts "Added player character '#{character_name}' to scene '#{scene.name}'"
       mark_dirty
     end
 
     def add_npc_character(scene : PointClickEngine::Scenes::Scene)
-      # TODO: Implement NPC character creation
-      puts "Adding NPC character to scene '#{scene.name}'"
+      # Generate unique character name
+      character_count = 1
+      character_name = "npc_#{character_count}"
+      
+      while scene.characters.any? { |c| c.name == character_name }
+        character_count += 1
+        character_name = "npc_#{character_count}"
+      end
+      
+      # Default position (slightly offset from center)
+      position = RL::Vector2.new(450.0_f32, 300.0_f32)
+      size = RL::Vector2.new(32.0_f32, 64.0_f32)
+      
+      # Create new NPC character
+      character = PointClickEngine::Characters::NPC.new(
+        character_name,
+        position,
+        size
+      )
+      
+      # Set default properties
+      character.description = "Non-player character"
+      character.state = PointClickEngine::Characters::CharacterState::Idle
+      character.direction = PointClickEngine::Characters::Direction::Down
+      character.mood = PointClickEngine::Characters::CharacterMood::Neutral
+      
+      # Add to scene
+      scene.characters << character
+      
+      # Select the new character
+      @selected_object = character.name
+      
+      # Create undo action for creation
+      action = CreateCharacterAction.new(scene, character, self)
+      add_undo_action(action)
+      
+      puts "Added NPC character '#{character_name}' to scene '#{scene.name}'"
       mark_dirty
     end
 
     # Dialog management methods
     def test_dialog(character_name : String)
-      # TODO: Implement dialog testing
-      puts "Testing dialog for character '#{character_name}'"
+      return unless project = @current_project
+      return unless scene = @current_scene
+      
+      # Find the character
+      character = scene.characters.find { |c| c.name == character_name }
+      unless character
+        puts "Character '#{character_name}' not found in current scene"
+        return
+      end
+      
+      # Look for dialog file for this character
+      dialog_path = File.join(project.dialogs_path, "#{character_name}.yml")
+      
+      unless File.exists?(dialog_path)
+        puts "No dialog file found for character '#{character_name}'. Creating default dialog."
+        create_default_dialog_for_character(character_name, dialog_path)
+      end
+      
+      # Load and test the dialog
+      begin
+        yaml_content = File.read(dialog_path)
+        dialog_tree = PointClickEngine::Characters::Dialogue::DialogTree.from_yaml(yaml_content)
+        
+        puts "Testing dialog for character '#{character_name}'"
+        puts "Dialog tree: #{dialog_tree.name}"
+        puts "Number of nodes: #{dialog_tree.nodes.size}"
+        
+        # Find start node
+        start_node = dialog_tree.nodes["start"]?
+        if start_node
+          puts "Start node found: '#{start_node.text}'"
+          puts "Available choices: #{start_node.choices.size}"
+          
+          start_node.choices.each_with_index do |choice, index|
+            puts "  #{index + 1}. #{choice.text} -> #{choice.target_node_id}"
+          end
+        else
+          puts "Warning: No start node found in dialog tree"
+        end
+        
+        # Validate dialog tree
+        validate_dialog_tree(dialog_tree)
+        
+      rescue ex : Exception
+        puts "Error loading dialog for character '#{character_name}': #{ex.message}"
+      end
+    end
+
+    private def create_default_dialog_for_character(character_name : String, dialog_path : String)
+      # Create a simple default dialog tree
+      dialog_tree = PointClickEngine::Characters::Dialogue::DialogTree.new("#{character_name}_dialog")
+      
+      # Create start node
+      start_node = PointClickEngine::Characters::Dialogue::DialogNode.new(
+        "start", 
+        "Hello! I'm #{character_name}. Nice to meet you!"
+      )
+      
+      # Create a simple response node
+      response_node = PointClickEngine::Characters::Dialogue::DialogNode.new(
+        "response",
+        "Thanks for talking to me!"
+      )
+      
+      # Add a choice that leads to the response
+      choice = PointClickEngine::Characters::Dialogue::DialogChoice.new(
+        "Nice to meet you too!",
+        "response"
+      )
+      start_node.choices << choice
+      
+      # Add nodes to dialog tree
+      dialog_tree.nodes["start"] = start_node
+      dialog_tree.nodes["response"] = response_node
+      
+      # Save to file
+      Dir.mkdir_p(File.dirname(dialog_path))
+      File.write(dialog_path, dialog_tree.to_yaml)
+      
+      puts "Created default dialog file for character '#{character_name}' at #{dialog_path}"
+    end
+
+    private def validate_dialog_tree(dialog_tree : PointClickEngine::Characters::Dialogue::DialogTree)
+      errors = [] of String
+      
+      # Check if start node exists
+      unless dialog_tree.nodes.has_key?("start")
+        errors << "Missing required 'start' node"
+      end
+      
+      # Check for orphaned nodes (nodes that can't be reached)
+      reachable_nodes = Set(String).new
+      reachable_nodes << "start"
+      
+      # Traverse from start node to find all reachable nodes
+      to_visit = ["start"]
+      while !to_visit.empty?
+        current_id = to_visit.pop
+        node = dialog_tree.nodes[current_id]?
+        next unless node
+        
+        node.choices.each do |choice|
+          unless reachable_nodes.includes?(choice.target_node_id)
+            reachable_nodes << choice.target_node_id
+            to_visit << choice.target_node_id
+          end
+        end
+      end
+      
+      # Find orphaned nodes
+      dialog_tree.nodes.each do |node_id, node|
+        unless reachable_nodes.includes?(node_id)
+          errors << "Orphaned node found: '#{node_id}'"
+        end
+      end
+      
+      # Check for broken links (choices pointing to non-existent nodes)
+      dialog_tree.nodes.each do |node_id, node|
+        node.choices.each do |choice|
+          unless dialog_tree.nodes.has_key?(choice.target_node_id)
+            errors << "Broken link in node '#{node_id}': choice '#{choice.text}' points to non-existent node '#{choice.target_node_id}'"
+          end
+        end
+      end
+      
+      if errors.empty?
+        puts "Dialog tree validation passed: No issues found"
+      else
+        puts "Dialog tree validation found #{errors.size} issue(s):"
+        errors.each_with_index do |error, index|
+          puts "  #{index + 1}. #{error}"
+        end
+      end
+    end
+
+    private def copy_directory_recursive(source : String, target : String)
+      Dir.mkdir_p(target) unless Dir.exists?(target)
+      
+      Dir.each_child(source) do |entry|
+        source_path = File.join(source, entry)
+        target_path = File.join(target, entry)
+        
+        if Dir.exists?(source_path)
+          copy_directory_recursive(source_path, target_path)
+        else
+          File.copy(source_path, target_path)
+        end
+      end
     end
   end
 
@@ -417,6 +684,10 @@ module PaceEditor::Core
         scene.hotspots.reject! { |h| h.name == @object_name }
       when "character"
         scene.characters.reject! { |c| c.name == @object_name }
+      when "item"
+        scene.hotspots.reject! { |h| h.name == @object_name }
+      when "trigger"
+        scene.hotspots.reject! { |h| h.name == @object_name }
       end
 
       # Clear selection if this object was selected
@@ -459,6 +730,30 @@ module PaceEditor::Core
         character.direction = PointClickEngine::Characters::Direction::Right
         character.mood = PointClickEngine::Characters::CharacterMood::Neutral
         scene.characters << character
+      when "item"
+        item_hotspot = PointClickEngine::Scenes::Hotspot.new(
+          name: @object_name,
+          position: @position,
+          size: RL::Vector2.new(32.0_f32, 32.0_f32)
+        )
+        item_hotspot.cursor_type = PointClickEngine::Scenes::Hotspot::CursorType::Hand
+        item_hotspot.visible = true
+        item_hotspot.description = "Collectable item"
+        item_hotspot.object_type = PointClickEngine::UI::ObjectType::Item
+        item_hotspot.default_verb = PointClickEngine::UI::VerbType::Take
+        scene.hotspots << item_hotspot
+      when "trigger"
+        trigger_hotspot = PointClickEngine::Scenes::Hotspot.new(
+          name: @object_name,
+          position: @position,
+          size: RL::Vector2.new(64.0_f32, 64.0_f32)
+        )
+        trigger_hotspot.cursor_type = PointClickEngine::Scenes::Hotspot::CursorType::Look
+        trigger_hotspot.visible = false
+        trigger_hotspot.description = "Trigger zone"
+        trigger_hotspot.object_type = PointClickEngine::UI::ObjectType::Exit
+        trigger_hotspot.default_verb = PointClickEngine::UI::VerbType::Use
+        scene.hotspots << trigger_hotspot
       end
 
       # Select the recreated object
@@ -509,6 +804,53 @@ module PaceEditor::Core
 
     def description : String
       @description
+    end
+  end
+
+  # Character creation/deletion action for undo/redo
+  class CreateCharacterAction < EditorAction
+    def initialize(@scene : PointClickEngine::Scenes::Scene, @character : PointClickEngine::Characters::Character, @editor_state : EditorState)
+    end
+
+    def undo
+      # Remove the character from the scene
+      @scene.characters.reject! { |c| c.name == @character.name }
+
+      # Clear selection if this character was selected
+      if @editor_state.selected_object == @character.name
+        @editor_state.selected_object = nil
+      end
+
+      # Auto-save scene
+      if project = @editor_state.current_project
+        scene_filename = "#{@scene.name}.yml"
+        scene_path = File.join(project.scenes_path, scene_filename)
+        PaceEditor::IO::SceneIO.save_scene(@scene, scene_path)
+      end
+
+      @editor_state.mark_dirty
+    end
+
+    def redo
+      # Re-add the character to the scene
+      @scene.characters << @character
+
+      # Select the recreated character
+      @editor_state.selected_object = @character.name
+
+      # Auto-save scene
+      if project = @editor_state.current_project
+        scene_filename = "#{@scene.name}.yml"
+        scene_path = File.join(project.scenes_path, scene_filename)
+        PaceEditor::IO::SceneIO.save_scene(@scene, scene_path)
+      end
+
+      @editor_state.mark_dirty
+    end
+
+    def description : String
+      character_type = @character.is_a?(PointClickEngine::Characters::Player) ? "Player" : "NPC"
+      "Create #{character_type} '#{@character.name}'"
     end
   end
 end

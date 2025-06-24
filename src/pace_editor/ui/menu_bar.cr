@@ -4,6 +4,7 @@ module PaceEditor::UI
     def initialize(@state : Core::EditorState)
       @show_new_dialog = false
       @show_open_dialog = false
+      @show_save_dialog = false
       @show_about_dialog = false
       @show_scene_dialog = false
       @show_file_menu = false
@@ -11,6 +12,8 @@ module PaceEditor::UI
       @show_view_menu = false
       @new_project_name = ""
       @new_project_path = ""
+      @save_project_name = ""
+      @save_project_path = "./projects"
     end
 
     def update
@@ -368,6 +371,8 @@ module PaceEditor::UI
         draw_new_project_dialog
       elsif @show_open_dialog
         draw_open_project_dialog
+      elsif @show_save_dialog
+        draw_save_project_dialog
       elsif @show_scene_dialog
         draw_scene_dialog
       elsif @show_about_dialog
@@ -531,6 +536,78 @@ module PaceEditor::UI
       end
     end
 
+    private def draw_save_project_dialog
+      screen_width = RL.get_screen_width
+      screen_height = RL.get_screen_height
+      dialog_width = 600
+      dialog_height = 350
+      dialog_x = (screen_width - dialog_width) // 2
+      dialog_y = (screen_height - dialog_height) // 2
+
+      # Modal overlay
+      RL.draw_rectangle(0, 0, screen_width, screen_height,
+        RL::Color.new(r: 0, g: 0, b: 0, a: 128))
+
+      # Dialog background
+      RL.draw_rectangle(dialog_x, dialog_y, dialog_width, dialog_height,
+        RL::Color.new(r: 80, g: 80, b: 80, a: 255))
+      RL.draw_rectangle_lines(dialog_x, dialog_y, dialog_width, dialog_height, RL::WHITE)
+
+      # Title
+      RL.draw_text("Save Project As", dialog_x + 20, dialog_y + 20, 20, RL::WHITE)
+
+      # Project name input
+      RL.draw_text("Project Name:", dialog_x + 20, dialog_y + 60, 16, RL::WHITE)
+      name_input_rect = RL::Rectangle.new(
+        x: (dialog_x + 120).to_f, y: (dialog_y + 58).to_f,
+        width: 300.0f32, height: 25.0f32
+      )
+      draw_text_input(name_input_rect, @save_project_name)
+      @save_project_name = handle_text_input(@save_project_name)
+
+      # Show save location preview
+      sanitized_name = @save_project_name.downcase.gsub(/[^a-z0-9_\s]/, "").gsub(/\s+/, "_")
+      preview_path = sanitized_name.empty? ? "project_name" : sanitized_name
+      full_path = File.join(@save_project_path, preview_path, "#{preview_path}.pace")
+
+      RL.draw_text("Save Location:", dialog_x + 20, dialog_y + 100, 16, RL::WHITE)
+      RL.draw_text(@save_project_path, dialog_x + 120, dialog_y + 102, 14, RL::LIGHTGRAY)
+
+      RL.draw_text("File Path:", dialog_x + 20, dialog_y + 130, 16, RL::WHITE)
+      RL.draw_text(full_path, dialog_x + 120, dialog_y + 132, 12, RL::LIGHTGRAY)
+
+      # Check if file already exists
+      file_exists = File.exists?(full_path)
+      if file_exists
+        RL.draw_text("⚠ File already exists and will be overwritten!", 
+          dialog_x + 20, dialog_y + 160, 14, RL::YELLOW)
+      end
+
+      # Instructions
+      RL.draw_text("The project will be saved with its complete folder structure including",
+        dialog_x + 20, dialog_y + 190, 12, RL::LIGHTGRAY)
+      RL.draw_text("assets, scenes, scripts, dialogs, and all project settings.",
+        dialog_x + 20, dialog_y + 210, 12, RL::LIGHTGRAY)
+
+      # Buttons
+      save_enabled = !@save_project_name.strip.empty?
+      save_color = save_enabled ? RL::GREEN : RL::GRAY
+
+      if draw_button("Save", dialog_x + dialog_width - 180, dialog_y + dialog_height - 40, save_color) && save_enabled
+        save_project_as(@save_project_name, @save_project_path)
+        @show_save_dialog = false
+      end
+
+      if draw_button("Cancel", dialog_x + dialog_width - 90, dialog_y + dialog_height - 40, RL::RED)
+        @show_save_dialog = false
+      end
+
+      # Handle Escape key
+      if RL.key_pressed?(RL::KeyboardKey::Escape)
+        @show_save_dialog = false
+      end
+    end
+
     private def find_pace_files : Array(String)
       files = [] of String
       begin
@@ -630,6 +707,16 @@ module PaceEditor::UI
     def show_open_project_dialog
       puts "MenuBar: Setting @show_open_dialog = true"
       @show_open_dialog = true
+    end
+
+    def show_save_project_dialog
+      # Pre-populate with current project name if available
+      if project = @state.current_project
+        @save_project_name = project.name
+      else
+        @save_project_name = "Untitled Project"
+      end
+      @show_save_dialog = true
     end
 
     private def draw_scene_dialog
@@ -737,6 +824,24 @@ module PaceEditor::UI
 
       if @state.create_new_project(name, project_path)
         @show_new_dialog = false
+      end
+    end
+
+    private def save_project_as(name : String, base_path : String)
+      return unless project = @state.current_project
+
+      # Create sanitized directory name
+      sanitized_name = name.downcase.gsub(/[^a-z0-9_\s]/, "").gsub(/\s+/, "_")
+      target_dir = File.join(base_path, sanitized_name)
+
+      # Create target directory if it doesn't exist
+      Dir.mkdir_p(target_dir) unless Dir.exists?(target_dir)
+
+      # Save project with new name and location
+      if @state.save_project_as(name, target_dir)
+        puts "Project saved as: #{name} in #{target_dir}"
+      else
+        puts "Failed to save project as: #{name}"
       end
     end
   end

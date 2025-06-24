@@ -15,6 +15,9 @@ module PaceEditor::UI
     @export_status : String = ""
     @is_exporting : Bool = false
     @validation_results : Array(String) = [] of String
+    @show_directory_browser : Bool = false
+    @current_directory : String = "."
+    @directory_entries : Array(String) = [] of String
 
     def initialize(@state : Core::EditorState)
     end
@@ -30,6 +33,10 @@ module PaceEditor::UI
         @export_name = project.name.downcase.gsub(/[^a-z0-9_]/, "_")
         @export_path = File.join(project.project_path, "exports", @export_name)
       end
+      
+      # Initialize directory browser
+      @current_directory = "."
+      refresh_directory_list
     end
 
     def hide
@@ -68,6 +75,11 @@ module PaceEditor::UI
       else
         draw_export_settings(dialog_x, dialog_y, dialog_width, dialog_height)
       end
+      
+      # Draw directory browser overlay if visible
+      if @show_directory_browser
+        draw_directory_browser
+      end
     end
 
     private def draw_export_settings(x : Int32, y : Int32, width : Int32, height : Int32)
@@ -89,8 +101,8 @@ module PaceEditor::UI
 
       # Browse button
       if draw_small_button("Browse", x + width - 90, current_y, 70, 25)
-        # TODO: Open file browser for directory selection
-        puts "Browse for export directory"
+        @show_directory_browser = true
+        refresh_directory_list
       end
       current_y += 35
 
@@ -641,6 +653,104 @@ module PaceEditor::UI
         TEXT
 
       File.write(dist_readme, content)
+    end
+
+    private def refresh_directory_list
+      @directory_entries.clear
+      
+      begin
+        # Add parent directory if not at root
+        if @current_directory != "."
+          @directory_entries << ".."
+        end
+        
+        # Add directories first, then files
+        Dir.each_child(@current_directory) do |entry|
+          full_path = File.join(@current_directory, entry)
+          if Dir.exists?(full_path)
+            @directory_entries << entry + "/"
+          end
+        end
+      rescue
+        # If error reading directory, go back to current directory
+        @current_directory = "."
+      end
+    end
+
+    private def draw_directory_browser
+      screen_width = RL.get_screen_width
+      screen_height = RL.get_screen_height
+      browser_width = 500
+      browser_height = 400
+      browser_x = (screen_width - browser_width) // 2
+      browser_y = (screen_height - browser_height) // 2
+
+      # Modal overlay
+      RL.draw_rectangle(0, 0, screen_width, screen_height,
+        RL::Color.new(r: 0, g: 0, b: 0, a: 128))
+
+      # Browser background
+      RL.draw_rectangle(browser_x, browser_y, browser_width, browser_height,
+        RL::Color.new(r: 60, g: 60, b: 60, a: 255))
+      RL.draw_rectangle_lines(browser_x, browser_y, browser_width, browser_height, RL::WHITE)
+
+      # Title
+      RL.draw_text("Select Export Directory", browser_x + 20, browser_y + 20, 18, RL::WHITE)
+
+      # Current directory path
+      RL.draw_text("Current: #{@current_directory}", browser_x + 20, browser_y + 50, 14, RL::LIGHTGRAY)
+
+      # Directory list
+      list_y = browser_y + 80
+      list_height = browser_height - 160
+      
+      @directory_entries.each_with_index do |entry, index|
+        item_y = list_y + (index * 25)
+        break if item_y > browser_y + browser_height - 80
+        
+        # Check if this item is hovered
+        mouse_pos = RL.get_mouse_position
+        is_hovered = mouse_pos.x >= browser_x + 20 && mouse_pos.x <= browser_x + browser_width - 20 &&
+                     mouse_pos.y >= item_y && mouse_pos.y <= item_y + 25
+        
+        # Draw background for hovered item
+        if is_hovered
+          RL.draw_rectangle(browser_x + 20, item_y, browser_width - 40, 25,
+            RL::Color.new(r: 80, g: 80, b: 80, a: 255))
+        end
+        
+        # Draw entry name
+        color = entry.ends_with?("/") ? RL::SKYBLUE : RL::WHITE
+        RL.draw_text(entry, browser_x + 30, item_y + 3, 14, color)
+        
+        # Handle click
+        if is_hovered && RL.mouse_button_pressed?(RL::MouseButton::Left)
+          if entry == ".."
+            # Go to parent directory
+            @current_directory = File.dirname(@current_directory)
+            refresh_directory_list
+          elsif entry.ends_with?("/")
+            # Enter directory
+            @current_directory = File.join(@current_directory, entry.chomp("/"))
+            refresh_directory_list
+          end
+        end
+      end
+
+      # Buttons
+      if draw_button("Select This Directory", browser_x + 20, browser_y + browser_height - 50, 150, 30, RL::GREEN)
+        @export_path = @current_directory
+        @show_directory_browser = false
+      end
+
+      if draw_button("Cancel", browser_x + browser_width - 90, browser_y + browser_height - 50, 70, 30, RL::RED)
+        @show_directory_browser = false
+      end
+
+      # Handle Escape key
+      if RL.key_pressed?(RL::KeyboardKey::Escape)
+        @show_directory_browser = false
+      end
     end
   end
 end

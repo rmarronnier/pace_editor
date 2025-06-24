@@ -26,6 +26,9 @@ module PaceEditor::Core
     property scene_hierarchy : UI::SceneHierarchy
     property asset_browser : UI::AssetBrowser
 
+    # Dialog systems
+    property confirm_dialog : ConfirmDialog?
+
     # Editors for different modes
     property scene_editor : Editors::SceneEditor
     property character_editor : Editors::CharacterEditor
@@ -73,6 +76,9 @@ module PaceEditor::Core
       @property_panel = UI::PropertyPanel.new(@state)
       @scene_hierarchy = UI::SceneHierarchy.new(@state)
       @asset_browser = UI::AssetBrowser.new(@state)
+
+      # Initialize dialogs
+      @confirm_dialog = nil
 
       # Initialize editors
       @scene_editor = Editors::SceneEditor.new(@state, @viewport_x, @viewport_y, @viewport_width, @viewport_height)
@@ -124,11 +130,89 @@ module PaceEditor::Core
     end
 
     def show_dialog_editor_for_character(character_name : String)
+      return unless project = @state.current_project
+      
       # Switch to dialog mode and set the dialog editor to edit this character's dialog
       switch_mode(PaceEditor::EditorMode::Dialog)
       @ui_state.track_action("dialog_editor_opened")
-      # TODO: Load/create dialog tree for the character
-      puts "Opening dialog editor for character: #{character_name}"
+      
+      # Load or create dialog tree for the character
+      dialog_path = File.join(project.dialogs_path, "#{character_name}.yml")
+      
+      # Create dialogs directory if it doesn't exist
+      Dir.mkdir_p(project.dialogs_path) unless Dir.exists?(project.dialogs_path)
+      
+      # If dialog file doesn't exist, create a default one
+      unless File.exists?(dialog_path)
+        create_default_dialog_for_character(character_name, dialog_path)
+      end
+      
+      # Load the dialog into the dialog editor
+      begin
+        yaml_content = File.read(dialog_path)
+        @dialog_editor.current_dialog = PointClickEngine::Characters::Dialogue::DialogTree.from_yaml(yaml_content)
+      rescue ex : Exception
+        puts "Error loading dialog file #{dialog_path}: #{ex.message}"
+        # Create a new dialog as fallback
+        @dialog_editor.current_dialog = PointClickEngine::Characters::Dialogue::DialogTree.new("#{character_name}_dialog")
+      end
+      
+      puts "Opened dialog editor for character: #{character_name}"
+      puts "Dialog file: #{dialog_path}"
+    end
+
+    private def create_default_dialog_for_character(character_name : String, dialog_path : String)
+      # Create a simple default dialog tree
+      dialog_tree = PointClickEngine::Characters::Dialogue::DialogTree.new("#{character_name}_dialog")
+      
+      # Create start node
+      start_node = PointClickEngine::Characters::Dialogue::DialogNode.new(
+        "start", 
+        "Hello! I'm #{character_name}. What can I do for you?"
+      )
+      
+      # Create goodbye node
+      goodbye_node = PointClickEngine::Characters::Dialogue::DialogNode.new(
+        "goodbye",
+        "See you later!"
+      )
+      
+      # Create info node
+      info_node = PointClickEngine::Characters::Dialogue::DialogNode.new(
+        "info",
+        "I'm just a character in this game. Feel free to talk to me anytime!"
+      )
+      
+      # Add choices to start node
+      choice_goodbye = PointClickEngine::Characters::Dialogue::DialogChoice.new(
+        "Goodbye",
+        "goodbye"
+      )
+      choice_info = PointClickEngine::Characters::Dialogue::DialogChoice.new(
+        "Tell me about yourself",
+        "info"
+      )
+      
+      start_node.choices << choice_goodbye
+      start_node.choices << choice_info
+      
+      # Add choice from info back to start
+      choice_continue = PointClickEngine::Characters::Dialogue::DialogChoice.new(
+        "That's interesting. What else?",
+        "start"
+      )
+      info_node.choices << choice_continue
+      info_node.choices << choice_goodbye
+      
+      # Add nodes to dialog tree
+      dialog_tree.nodes["start"] = start_node
+      dialog_tree.nodes["goodbye"] = goodbye_node
+      dialog_tree.nodes["info"] = info_node
+      
+      # Save to file
+      File.write(dialog_path, dialog_tree.to_yaml)
+      
+      puts "Created default dialog file for character '#{character_name}' at #{dialog_path}"
     end
 
     def show_background_import_dialog
@@ -156,17 +240,14 @@ module PaceEditor::Core
         @menu_bar.show_open_project_dialog
         @ui_state.track_action("open_project_dialog_shown")
       else
-        # TODO: Implement file dialog for saving projects
-        puts "Save project as dialog would appear here"
+        puts "EditorWindow: Showing save project dialog"
+        @menu_bar.show_save_project_dialog
         @ui_state.track_action("save_as_dialog_shown")
       end
     end
 
     def show_confirm_dialog(title : String, message : String, &callback : -> Nil)
-      # TODO: Implement confirmation dialog
-      puts "Confirm dialog: #{title} - #{message}"
-      puts "Auto-confirming for now..."
-      callback.call
+      @confirm_dialog = ConfirmDialog.new(title, message, callback)
     end
 
     def show_animation_editor(character_name : String)
@@ -249,6 +330,13 @@ module PaceEditor::Core
       @asset_import_dialog.update
       @scene_creation_wizard.update
       @game_export_dialog.update
+
+      # Clean up finished confirm dialog
+      if dialog = @confirm_dialog
+        unless dialog.visible?
+          @confirm_dialog = nil
+        end
+      end
     end
 
     private def draw
@@ -301,6 +389,11 @@ module PaceEditor::Core
 
       # Draw menu bar dialogs (open project, etc)
       @menu_bar.draw
+
+      # Draw confirm dialog if active
+      if dialog = @confirm_dialog
+        dialog.draw
+      end
 
       RL.end_drawing
     end
@@ -617,6 +710,75 @@ module PaceEditor::Core
         @state.show_new_project_dialog = false
         @state.new_project_name = ""
       end
+    end
+  end
+
+  # Simple confirmation dialog class
+  class ConfirmDialog
+    def initialize(@title : String, @message : String, @callback : -> Nil)
+      @visible = true
+    end
+
+    def draw
+      return unless @visible
+
+      screen_width = RL.get_screen_width
+      screen_height = RL.get_screen_height
+      dialog_width = 400
+      dialog_height = 200
+      dialog_x = (screen_width - dialog_width) // 2
+      dialog_y = (screen_height - dialog_height) // 2
+
+      # Modal overlay
+      RL.draw_rectangle(0, 0, screen_width, screen_height,
+        RL::Color.new(r: 0, g: 0, b: 0, a: 128))
+
+      # Dialog background
+      RL.draw_rectangle(dialog_x, dialog_y, dialog_width, dialog_height,
+        RL::Color.new(r: 60, g: 60, b: 60, a: 255))
+      RL.draw_rectangle_lines(dialog_x, dialog_y, dialog_width, dialog_height, RL::WHITE)
+
+      # Title
+      RL.draw_text(@title, dialog_x + 20, dialog_y + 20, 18, RL::WHITE)
+
+      # Message
+      RL.draw_text(@message, dialog_x + 20, dialog_y + 60, 14, RL::LIGHTGRAY)
+
+      # Buttons
+      if draw_button("OK", dialog_x + dialog_width - 160, dialog_y + dialog_height - 50, 70, 30, RL::GREEN)
+        @callback.call
+        @visible = false
+      end
+
+      if draw_button("Cancel", dialog_x + dialog_width - 80, dialog_y + dialog_height - 50, 70, 30, RL::RED)
+        @visible = false
+      end
+
+      # Handle Escape key
+      if RL.key_pressed?(RL::KeyboardKey::Escape)
+        @visible = false
+      end
+    end
+
+    def visible?
+      @visible
+    end
+
+    private def draw_button(text : String, x : Int32, y : Int32, width : Int32, height : Int32, color : RL::Color) : Bool
+      mouse_pos = RL.get_mouse_position
+      is_hover = mouse_pos.x >= x && mouse_pos.x <= x + width &&
+                 mouse_pos.y >= y && mouse_pos.y <= y + height
+
+      button_color = is_hover ? RL::Color.new(r: color.r + 20, g: color.g + 20, b: color.b + 20, a: 255) : color
+      RL.draw_rectangle(x, y, width, height, button_color)
+      RL.draw_rectangle_lines(x, y, width, height, RL::WHITE)
+
+      text_width = RL.measure_text(text, 14)
+      text_x = x + (width - text_width) // 2
+      text_y = y + (height - 14) // 2
+      RL.draw_text(text, text_x, text_y, 14, RL::WHITE)
+
+      is_hover && RL.mouse_button_pressed?(RL::MouseButton::Left)
     end
   end
 end

@@ -5,6 +5,23 @@ require "../ui/object_type_dialog"
 module PaceEditor::Editors
   # Scene editor combining best features from both implementations
   class SceneEditor
+    # Color constants to avoid allocations in draw loops
+    HOTSPOT_COLOR = RL::Color.new(r: 255, g: 100, b: 0, a: 80)
+    HOTSPOT_SELECTED_COLOR = RL::Color.new(r: 255, g: 200, b: 0, a: 100)
+    ITEM_COLOR = RL::Color.new(r: 100, g: 255, b: 100, a: 80)
+    TRIGGER_COLOR = RL::Color.new(r: 255, g: 100, b: 255, a: 60)
+    
+    HOTSPOT_BORDER = RL::ORANGE
+    ITEM_BORDER = RL::GREEN
+    TRIGGER_BORDER = RL::PURPLE
+    SELECTED_BORDER = RL::YELLOW
+    
+    # Preview colors
+    PREVIEW_ALPHA = RL::Color.new(r: 255, g: 255, b: 255, a: 128)
+    HOTSPOT_PREVIEW = RL::Color.new(r: 255, g: 100, b: 0, a: 128)
+    CHARACTER_PREVIEW = RL::Color.new(r: 0, g: 255, b: 0, a: 128)
+    ITEM_PREVIEW = RL::Color.new(r: 100, g: 255, b: 100, a: 128)
+    TRIGGER_PREVIEW = RL::Color.new(r: 255, g: 100, b: 255, a: 128)
     property viewport_x : Int32
     property viewport_y : Int32
     property viewport_width : Int32
@@ -473,13 +490,89 @@ module PaceEditor::Editors
     end
 
     private def place_item_at(position : RL::Vector2)
-      # TODO: Implement item placement when item system is ready
-      puts "Item placement not yet implemented"
+      return unless scene = @state.current_scene
+
+      item_count = scene.hotspots.count { |h| h.name.starts_with?("item_") } + 1
+      item_name = "item_#{item_count}"
+
+      # Ensure unique name
+      while scene.hotspots.any? { |h| h.name == item_name }
+        item_count += 1
+        item_name = "item_#{item_count}"
+      end
+
+      # Create new item hotspot
+      item_hotspot = PointClickEngine::Scenes::Hotspot.new(
+        name: item_name,
+        position: position,
+        size: RL::Vector2.new(32.0_f32, 32.0_f32)
+      )
+
+      # Set item-specific properties
+      item_hotspot.cursor_type = PointClickEngine::Scenes::Hotspot::CursorType::Hand
+      item_hotspot.visible = true
+      item_hotspot.description = "Collectable item"
+      item_hotspot.object_type = PointClickEngine::UI::ObjectType::Item
+      item_hotspot.default_verb = PointClickEngine::UI::VerbType::Take
+
+      # Add to scene
+      scene.hotspots << item_hotspot
+
+      # Select the new item
+      @state.selected_object = item_hotspot.name
+
+      # Create undo action for creation
+      create_action = Core::CreateObjectAction.new(item_name, "item", item_hotspot.position, @state)
+      @state.add_undo_action(create_action)
+
+      # Mark as dirty and save
+      @state.is_dirty = true
+      save_scene
+
+      puts "Created item: #{item_name} at #{position.x.to_i}, #{position.y.to_i}"
     end
 
     private def place_trigger_at(position : RL::Vector2)
-      # TODO: Implement trigger placement when trigger system is ready
-      puts "Trigger placement not yet implemented"
+      return unless scene = @state.current_scene
+
+      trigger_count = scene.hotspots.count { |h| h.name.starts_with?("trigger_") } + 1
+      trigger_name = "trigger_#{trigger_count}"
+
+      # Ensure unique name
+      while scene.hotspots.any? { |h| h.name == trigger_name }
+        trigger_count += 1
+        trigger_name = "trigger_#{trigger_count}"
+      end
+
+      # Create new trigger zone hotspot
+      trigger_hotspot = PointClickEngine::Scenes::Hotspot.new(
+        name: trigger_name,
+        position: position,
+        size: RL::Vector2.new(64.0_f32, 64.0_f32)
+      )
+
+      # Set trigger-specific properties
+      trigger_hotspot.cursor_type = PointClickEngine::Scenes::Hotspot::CursorType::Look
+      trigger_hotspot.visible = false # Triggers are usually invisible
+      trigger_hotspot.description = "Trigger zone"
+      trigger_hotspot.object_type = PointClickEngine::UI::ObjectType::Exit
+      trigger_hotspot.default_verb = PointClickEngine::UI::VerbType::Use
+
+      # Add to scene
+      scene.hotspots << trigger_hotspot
+
+      # Select the new trigger
+      @state.selected_object = trigger_hotspot.name
+
+      # Create undo action for creation
+      create_action = Core::CreateObjectAction.new(trigger_name, "trigger", trigger_hotspot.position, @state)
+      @state.add_undo_action(create_action)
+
+      # Mark as dirty and save
+      @state.is_dirty = true
+      save_scene
+
+      puts "Created trigger: #{trigger_name} at #{position.x.to_i}, #{position.y.to_i}"
     end
 
     private def save_scene
@@ -667,12 +760,22 @@ module PaceEditor::Editors
 
     private def draw_hotspots(scene)
       scene.hotspots.each do |hotspot|
-        # Determine color based on selection
+        # Determine color based on selection and type
         is_selected = is_hotspot_selected?(hotspot.name)
+        hotspot_type = get_hotspot_type(hotspot)
+        
+        # Color coding by type
         color = if is_selected
-                  RL::Color.new(r: 255, g: 200, b: 0, a: 100)
+                  HOTSPOT_SELECTED_COLOR
                 else
-                  RL::Color.new(r: 255, g: 100, b: 0, a: 80)
+                  case hotspot_type
+                  when "item"
+                    ITEM_COLOR
+                  when "trigger"
+                    TRIGGER_COLOR
+                  else
+                    HOTSPOT_COLOR
+                  end
                 end
 
         # Draw hotspot rectangle
@@ -681,14 +784,47 @@ module PaceEditor::Editors
         width = hotspot.size.x.to_i
         height = hotspot.size.y.to_i
 
-        RL.draw_rectangle(x, y, width, height, color)
-        RL.draw_rectangle_lines(x, y, width, height,
-          is_selected ? RL::YELLOW : RL::ORANGE)
+        # Only draw if visible or in editor mode
+        should_draw = hotspot.visible || hotspot_type != "trigger"
+        
+        if should_draw
+          RL.draw_rectangle(x, y, width, height, color)
+          
+          # Different border styles for different types
+          border_color = if is_selected
+                          SELECTED_BORDER
+                        else
+                          case hotspot_type
+                          when "item"
+                            ITEM_BORDER
+                          when "trigger"
+                            TRIGGER_BORDER
+                          else
+                            HOTSPOT_BORDER
+                          end
+                        end
+          
+          # Dashed lines for triggers to show they're usually invisible
+          if hotspot_type == "trigger"
+            draw_dashed_rectangle(x, y, width, height, border_color)
+          else
+            RL.draw_rectangle_lines(x, y, width, height, border_color)
+          end
+        end
 
-        # Draw name
+        # Draw name and type indicator
         if @state.zoom > 0.5
           font_size = (12 * @state.zoom).to_i
-          RL.draw_text(hotspot.name, x + 2, y + 2, font_size, RL::WHITE)
+          type_indicator = case hotspot_type
+                          when "item"
+                            "[I] "
+                          when "trigger"
+                            "[T] "
+                          else
+                            ""
+                          end
+          display_name = "#{type_indicator}#{hotspot.name}"
+          RL.draw_text(display_name, x + 2, y + 2, font_size, RL::WHITE)
         end
 
         # Draw cursor type icon
@@ -825,16 +961,38 @@ module PaceEditor::Editors
       world_pos = screen_to_world(mouse_pos)
 
       case @state.current_tool
+      when Tool::Place
+        # Preview placement - show generic object until type is selected
+        x = snap_to_grid(world_pos.x.to_i)
+        y = snap_to_grid(world_pos.y.to_i)
+        RL.draw_rectangle_lines(x, y, 48, 48, PREVIEW_ALPHA)
+        # Draw "?" to indicate object type selection needed
+        font_size = 20
+        RL.draw_text("?", x + 20, y + 15, font_size, PREVIEW_ALPHA)
       when "hotspot"
         # Preview hotspot placement
         x = snap_to_grid(world_pos.x.to_i)
         y = snap_to_grid(world_pos.y.to_i)
-        RL.draw_rectangle_lines(x, y, 64, 64, RL::Color.new(r: 255, g: 255, b: 255, a: 128))
+        RL.draw_rectangle_lines(x, y, 64, 64, HOTSPOT_PREVIEW)
+        RL.draw_text("H", x + 28, y + 28, 16, HOTSPOT_PREVIEW)
       when "character"
         # Preview character placement
         x = snap_to_grid(world_pos.x.to_i)
         y = snap_to_grid(world_pos.y.to_i)
-        RL.draw_rectangle_lines(x - 16, y - 24, 32, 48, RL::Color.new(r: 0, g: 255, b: 0, a: 128))
+        RL.draw_rectangle_lines(x - 16, y - 24, 32, 48, CHARACTER_PREVIEW)
+        RL.draw_text("C", x - 8, y - 8, 16, CHARACTER_PREVIEW)
+      when "item"
+        # Preview item placement
+        x = snap_to_grid(world_pos.x.to_i)
+        y = snap_to_grid(world_pos.y.to_i)
+        RL.draw_rectangle_lines(x, y, 32, 32, ITEM_PREVIEW)
+        RL.draw_text("I", x + 12, y + 10, 14, ITEM_PREVIEW)
+      when "trigger"
+        # Preview trigger placement
+        x = snap_to_grid(world_pos.x.to_i)
+        y = snap_to_grid(world_pos.y.to_i)
+        draw_dashed_rectangle(x, y, 64, 64, TRIGGER_PREVIEW)
+        RL.draw_text("T", x + 28, y + 28, 16, TRIGGER_PREVIEW)
       end
     end
 
@@ -1005,6 +1163,62 @@ module PaceEditor::Editors
 
     private def is_character_selected?(name : String) : Bool
       @state.selected_characters.includes?(name) || @state.selected_object == name
+    end
+    
+    # Helper method to determine hotspot type based on name and properties
+    private def get_hotspot_type(hotspot) : String
+      if hotspot.name.starts_with?("item_")
+        "item"
+      elsif hotspot.name.starts_with?("trigger_")
+        "trigger"
+      elsif hotspot.object_type == PointClickEngine::UI::ObjectType::Item
+        "item"
+      elsif hotspot.object_type == PointClickEngine::UI::ObjectType::Exit
+        "trigger"
+      elsif hotspot.default_verb == PointClickEngine::UI::VerbType::Take
+        "item"
+      else
+        "hotspot"
+      end
+    end
+    
+    # Helper method to draw dashed rectangle borders for triggers
+    private def draw_dashed_rectangle(x : Int32, y : Int32, width : Int32, height : Int32, color : RL::Color)
+      dash_length = 4
+      gap_length = 2
+      total_segment = dash_length + gap_length
+      
+      # Top edge
+      current_x = x
+      while current_x < x + width
+        segment_end = Math.min(current_x + dash_length, x + width)
+        RL.draw_line(current_x, y, segment_end, y, color)
+        current_x += total_segment
+      end
+      
+      # Bottom edge
+      current_x = x
+      while current_x < x + width
+        segment_end = Math.min(current_x + dash_length, x + width)
+        RL.draw_line(current_x, y + height, segment_end, y + height, color)
+        current_x += total_segment
+      end
+      
+      # Left edge
+      current_y = y
+      while current_y < y + height
+        segment_end = Math.min(current_y + dash_length, y + height)
+        RL.draw_line(x, current_y, x, segment_end, color)
+        current_y += total_segment
+      end
+      
+      # Right edge
+      current_y = y
+      while current_y < y + height
+        segment_end = Math.min(current_y + dash_length, y + height)
+        RL.draw_line(x + width, current_y, x + width, segment_end, color)
+        current_y += total_segment
+      end
     end
   end
 end
