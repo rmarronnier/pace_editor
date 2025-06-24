@@ -14,10 +14,12 @@ module PaceEditor::UI
       return unless @state.current_mode.assets?
 
       # Asset browser takes over the main viewport when in assets mode
+      screen_width = RL.get_screen_width
+      screen_height = RL.get_screen_height
       browser_x = Core::EditorWindow::TOOL_PALETTE_WIDTH
       browser_y = Core::EditorWindow::MENU_HEIGHT
-      browser_width = Core::EditorWindow::WINDOW_WIDTH - Core::EditorWindow::TOOL_PALETTE_WIDTH - Core::EditorWindow::PROPERTY_PANEL_WIDTH
-      browser_height = Core::EditorWindow::WINDOW_HEIGHT - Core::EditorWindow::MENU_HEIGHT
+      browser_width = screen_width - Core::EditorWindow::TOOL_PALETTE_WIDTH - Core::EditorWindow::PROPERTY_PANEL_WIDTH
+      browser_height = screen_height - Core::EditorWindow::MENU_HEIGHT
 
       # Draw background
       RL.draw_rectangle(browser_x, browser_y, browser_width, browser_height,

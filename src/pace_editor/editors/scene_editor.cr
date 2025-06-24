@@ -97,7 +97,9 @@ module PaceEditor::Editors
         # Try to load background if not already loaded
         if scene.background.nil?
           if project = @state.current_project
-            full_path = File.join(project.project_path, bg_path)
+            # Add "assets/" prefix if not already present
+            asset_path = bg_path.starts_with?("assets/") ? bg_path : "assets/#{bg_path}"
+            full_path = File.join(project.project_path, asset_path)
             if File.exists?(full_path)
               begin
                 texture = RL.load_texture(full_path)

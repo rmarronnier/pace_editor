@@ -37,7 +37,8 @@ module PaceEditor::UI
 
     def draw_background
       # Draw menu bar background
-      RL.draw_rectangle(0, 0, Core::EditorWindow::WINDOW_WIDTH, Core::EditorWindow::MENU_HEIGHT,
+      screen_width = RL.get_screen_width
+      RL.draw_rectangle(0, 0, screen_width, Core::EditorWindow::MENU_HEIGHT,
         RL::Color.new(r: 60, g: 60, b: 60, a: 255))
     end
 
@@ -73,7 +74,8 @@ module PaceEditor::UI
       draw_mode_buttons(x)
 
       # Help menu (right-aligned)
-      help_x = Core::EditorWindow::WINDOW_WIDTH - 60
+      screen_width = RL.get_screen_width
+      help_x = screen_width - 60
       if draw_menu_item("Help", help_x, 5)
         @show_about_dialog = true
       end
@@ -375,13 +377,15 @@ module PaceEditor::UI
 
     private def draw_new_project_dialog
       # Simple modal dialog for new project
+      screen_width = RL.get_screen_width
+      screen_height = RL.get_screen_height
       dialog_width = 500
       dialog_height = 250
-      dialog_x = (Core::EditorWindow::WINDOW_WIDTH - dialog_width) // 2
-      dialog_y = (Core::EditorWindow::WINDOW_HEIGHT - dialog_height) // 2
+      dialog_x = (screen_width - dialog_width) // 2
+      dialog_y = (screen_height - dialog_height) // 2
 
       # Modal overlay
-      RL.draw_rectangle(0, 0, Core::EditorWindow::WINDOW_WIDTH, Core::EditorWindow::WINDOW_HEIGHT,
+      RL.draw_rectangle(0, 0, screen_width, screen_height,
         RL::Color.new(r: 0, g: 0, b: 0, a: 128))
 
       # Dialog background
@@ -473,13 +477,15 @@ module PaceEditor::UI
     end
 
     private def draw_open_project_dialog
+      screen_width = RL.get_screen_width
+      screen_height = RL.get_screen_height
       dialog_width = 600
       dialog_height = 400
-      dialog_x = (Core::EditorWindow::WINDOW_WIDTH - dialog_width) // 2
-      dialog_y = (Core::EditorWindow::WINDOW_HEIGHT - dialog_height) // 2
+      dialog_x = (screen_width - dialog_width) // 2
+      dialog_y = (screen_height - dialog_height) // 2
 
       # Modal overlay
-      RL.draw_rectangle(0, 0, Core::EditorWindow::WINDOW_WIDTH, Core::EditorWindow::WINDOW_HEIGHT,
+      RL.draw_rectangle(0, 0, screen_width, screen_height,
         RL::Color.new(r: 0, g: 0, b: 0, a: 128))
 
       # Dialog background
@@ -580,13 +586,15 @@ module PaceEditor::UI
     end
 
     private def draw_about_dialog
+      screen_width = RL.get_screen_width
+      screen_height = RL.get_screen_height
       dialog_width = 400
       dialog_height = 200
-      dialog_x = (Core::EditorWindow::WINDOW_WIDTH - dialog_width) // 2
-      dialog_y = (Core::EditorWindow::WINDOW_HEIGHT - dialog_height) // 2
+      dialog_x = (screen_width - dialog_width) // 2
+      dialog_y = (screen_height - dialog_height) // 2
 
       # Modal overlay
-      RL.draw_rectangle(0, 0, Core::EditorWindow::WINDOW_WIDTH, Core::EditorWindow::WINDOW_HEIGHT,
+      RL.draw_rectangle(0, 0, screen_width, screen_height,
         RL::Color.new(r: 0, g: 0, b: 0, a: 128))
 
       # Dialog background
@@ -620,19 +628,22 @@ module PaceEditor::UI
     end
 
     def show_open_project_dialog
+      puts "MenuBar: Setting @show_open_dialog = true"
       @show_open_dialog = true
     end
 
     private def draw_scene_dialog
       return unless project = @state.current_project
 
+      screen_width = RL.get_screen_width
+      screen_height = RL.get_screen_height
       dialog_width = 600
       dialog_height = 400
-      dialog_x = (Core::EditorWindow::WINDOW_WIDTH - dialog_width) // 2
-      dialog_y = (Core::EditorWindow::WINDOW_HEIGHT - dialog_height) // 2
+      dialog_x = (screen_width - dialog_width) // 2
+      dialog_y = (screen_height - dialog_height) // 2
 
       # Modal overlay
-      RL.draw_rectangle(0, 0, Core::EditorWindow::WINDOW_WIDTH, Core::EditorWindow::WINDOW_HEIGHT,
+      RL.draw_rectangle(0, 0, screen_width, screen_height,
         RL::Color.new(r: 0, g: 0, b: 0, a: 128))
 
       # Dialog background

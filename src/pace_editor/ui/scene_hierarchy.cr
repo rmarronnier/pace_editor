@@ -12,8 +12,9 @@ module PaceEditor::UI
     def draw
       return unless @state.current_mode.scene?
 
+      screen_height = RL.get_screen_height
       panel_x = Core::EditorWindow::TOOL_PALETTE_WIDTH
-      panel_y = Core::EditorWindow::WINDOW_HEIGHT - 200 # Bottom panel
+      panel_y = screen_height - 200 # Bottom panel
       panel_width = Core::EditorWindow::SCENE_HIERARCHY_WIDTH
       panel_height = 200
 

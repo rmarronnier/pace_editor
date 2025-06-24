@@ -101,7 +101,7 @@ module PaceEditor::Core
 
         # Add scene to project
         @current_project.not_nil!.add_scene("main.yml")
-        
+
         # Save the scene file
         save_current_scene(scene)
 

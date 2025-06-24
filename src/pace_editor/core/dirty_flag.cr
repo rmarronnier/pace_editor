@@ -222,7 +222,7 @@ module PaceEditor::Core
     def to_s(io : IO) : Nil
       io << "DirtyTracker(#{@name}, dirty=#{@dirty})"
     end
-    
+
     def to_s : String
       "DirtyTracker(#{@name}, dirty=#{@dirty})"
     end

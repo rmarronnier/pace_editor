@@ -19,10 +19,12 @@ module PaceEditor::Editors
 
     def draw
       # Character editor takes over the main viewport
+      screen_width = RL.get_screen_width
+      screen_height = RL.get_screen_height
       editor_x = Core::EditorWindow::TOOL_PALETTE_WIDTH
       editor_y = Core::EditorWindow::MENU_HEIGHT
-      editor_width = Core::EditorWindow::WINDOW_WIDTH - Core::EditorWindow::TOOL_PALETTE_WIDTH - Core::EditorWindow::PROPERTY_PANEL_WIDTH
-      editor_height = Core::EditorWindow::WINDOW_HEIGHT - Core::EditorWindow::MENU_HEIGHT
+      editor_width = screen_width - Core::EditorWindow::TOOL_PALETTE_WIDTH - Core::EditorWindow::PROPERTY_PANEL_WIDTH
+      editor_height = screen_height - Core::EditorWindow::MENU_HEIGHT
 
       # Draw background
       RL.draw_rectangle(editor_x, editor_y, editor_width, editor_height,

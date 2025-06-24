@@ -12,16 +12,17 @@ module PaceEditor::UI
 
     def draw
       # Draw tool palette background
+      screen_height = RL.get_screen_height
       palette_rect = RL::Rectangle.new(
         x: 0.0_f32,
         y: Core::EditorWindow::MENU_HEIGHT.to_f32,
         width: Core::EditorWindow::TOOL_PALETTE_WIDTH.to_f32,
-        height: (Core::EditorWindow::WINDOW_HEIGHT - Core::EditorWindow::MENU_HEIGHT).to_f32
+        height: (screen_height - Core::EditorWindow::MENU_HEIGHT).to_f32
       )
 
       RL.draw_rectangle_rec(palette_rect, RL::Color.new(r: 45, g: 45, b: 45, a: 255))
       RL.draw_line(Core::EditorWindow::TOOL_PALETTE_WIDTH, Core::EditorWindow::MENU_HEIGHT,
-        Core::EditorWindow::TOOL_PALETTE_WIDTH, Core::EditorWindow::WINDOW_HEIGHT, RL::GRAY)
+        Core::EditorWindow::TOOL_PALETTE_WIDTH, screen_height, RL::GRAY)
 
       # Draw tool buttons
       y = Core::EditorWindow::MENU_HEIGHT + 10

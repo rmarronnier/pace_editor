@@ -112,7 +112,7 @@ describe PaceEditor::Core::Project do
         # Remove current scene should clear current_scene
         project.current_scene = "room2"
         project.remove_scene("room2")
-        project.current_scene.should be_nil  # No scenes left
+        project.current_scene.should be_nil # No scenes left
       ensure
         FileUtils.rm_rf(test_dir) if Dir.exists?(test_dir)
       end
@@ -211,10 +211,10 @@ describe PaceEditor::Core::Project do
         # Export game
         export_path = File.join(test_dir, "exported_game")
         result = project.export_game(export_path)
-        
+
         # The export returns a ValidationResult
         result.should be_a(PaceEditor::Validation::ValidationResult)
-        
+
         # The actual export functionality is now handled by GameExporter
         # which has its own comprehensive tests
         # We just verify that the method delegates correctly

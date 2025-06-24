@@ -57,16 +57,16 @@ module PaceEditor::UI
     end
 
     def handle_input(mouse_pos : RL::Vector2, mouse_clicked : Bool) : Bool
-      # Handle getting started panel
-      if @show_getting_started && PaceEditor::Constants.point_in_rect?(mouse_pos, @getting_started_rect)
-        return handle_getting_started_input(mouse_pos, mouse_clicked)
-      end
-
-      # Handle tutorial step input
+      # Handle tutorial step input first (higher priority when active)
       if tutorial = @current_tutorial
         if step = tutorial.current_step
           return handle_tutorial_input(step, mouse_pos, mouse_clicked)
         end
+      end
+
+      # Handle getting started panel
+      if @show_getting_started && PaceEditor::Constants.point_in_rect?(mouse_pos, @getting_started_rect)
+        return handle_getting_started_input(mouse_pos, mouse_clicked)
       end
 
       false
@@ -108,7 +108,7 @@ module PaceEditor::UI
       screen_height = RL.get_screen_height
       @getting_started_rect.x = (screen_width - @getting_started_rect.width) / 2
       @getting_started_rect.y = (screen_height - @getting_started_rect.height) / 2
-      
+
       # Panel background
       RL.draw_rectangle_rec(@getting_started_rect, RL::Color.new(r: 255_u8, g: 255_u8, b: 255_u8, a: 240_u8))
       RL.draw_rectangle_lines_ex(@getting_started_rect, 2.0_f32, RL::Color.new(r: 100_u8, g: 150_u8, b: 255_u8, a: 255_u8))
@@ -188,8 +188,8 @@ module PaceEditor::UI
       panel_width = 300.0_f32
       panel_height = 150.0_f32
       panel_x = (screen_width - panel_width) / 2
-      panel_y = screen_height * 0.2_f32  # Position at 20% from top
-      
+      panel_y = screen_height * 0.2_f32 # Position at 20% from top
+
       instruction_rect = RL::Rectangle.new(x: panel_x, y: panel_y, width: panel_width, height: panel_height)
       RL.draw_rectangle_rec(instruction_rect, RL::Color.new(r: 255_u8, g: 255_u8, b: 255_u8, a: 255_u8))
       RL.draw_rectangle_lines_ex(instruction_rect, 2.0_f32, RL::Color.new(r: 100_u8, g: 150_u8, b: 255_u8, a: 255_u8))
@@ -325,15 +325,28 @@ module PaceEditor::UI
         width: button_width, height: button_height
       )
 
+      puts "Getting started click - Mouse: #{mouse_pos.x}, #{mouse_pos.y}"
+      puts "Open button: #{open_project_rect.x}-#{open_project_rect.x + open_project_rect.width}, #{open_project_rect.y}-#{open_project_rect.y + open_project_rect.height}"
+
       if PaceEditor::Constants.point_in_rect?(mouse_pos, new_project_rect)
+        puts "New project button clicked!"
         @editor_state.show_new_project_dialog = true
         @ui_state.track_action("new_project_from_welcome")
         return true
       elsif PaceEditor::Constants.point_in_rect?(mouse_pos, open_project_rect)
+        puts "Open project button clicked!"
         # Open project logic
         @ui_state.track_action("open_project_from_welcome")
+        # Show the open project dialog by triggering it in the editor window
+        if editor_window = @editor_state.editor_window
+          puts "Calling show_project_file_dialog(true)"
+          editor_window.show_project_file_dialog(true)
+        else
+          puts "No editor window found!"
+        end
         return true
       elsif PaceEditor::Constants.point_in_rect?(mouse_pos, tutorial_rect)
+        puts "Tutorial button clicked!"
         start_tutorial("basic_workflow")
         return true
       end
@@ -350,15 +363,22 @@ module PaceEditor::UI
       panel_width = 300.0_f32
       panel_height = 150.0_f32
       panel_x = (screen_width - panel_width) / 2
-      panel_y = screen_height * 0.2_f32  # Position at 20% from top
-      
+      panel_y = screen_height * 0.2_f32 # Position at 20% from top
+
       next_rect = RL::Rectangle.new(x: panel_x + 150.0_f32, y: panel_y + 110.0_f32, width: 60.0_f32, height: 25.0_f32)
       skip_rect = RL::Rectangle.new(x: panel_x + 220.0_f32, y: panel_y + 110.0_f32, width: 60.0_f32, height: 25.0_f32)
 
+      # Debug output to help diagnose click issues
+      puts "Tutorial click - Mouse: #{mouse_pos.x}, #{mouse_pos.y}"
+      puts "Next button: #{next_rect.x}-#{next_rect.x + next_rect.width}, #{next_rect.y}-#{next_rect.y + next_rect.height}"
+      puts "Skip button: #{skip_rect.x}-#{skip_rect.x + skip_rect.width}, #{skip_rect.y}-#{skip_rect.y + skip_rect.height}"
+
       if PaceEditor::Constants.point_in_rect?(mouse_pos, next_rect)
+        puts "Next button clicked!"
         complete_current_step
         return true
       elsif PaceEditor::Constants.point_in_rect?(mouse_pos, skip_rect)
+        puts "Skip button clicked!"
         skip_tutorial
         return true
       end

@@ -109,7 +109,7 @@ describe PaceEditor::UI::ScriptEditor do
     it "draws without crashing" do
       RaylibTestHelper.init
       editor.show
-      
+
       # Need to be in a drawing context
       RL.begin_drawing
       editor.draw

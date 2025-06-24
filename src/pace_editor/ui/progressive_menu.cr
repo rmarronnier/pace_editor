@@ -120,6 +120,7 @@ module PaceEditor::UI
 
       file_items << MenuItem.new("exit", "Exit", "Exit PACE Editor") do
         # Set flag to close window on next frame
+        puts "Exit menu item clicked - setting should_exit = true"
         @editor_state.should_exit = true
       end.as(MenuItemBase)
 
@@ -513,7 +514,7 @@ module PaceEditor::UI
     property visibility_check : Proc(Core::EditorState, UIState, Bool)?
 
     def initialize(@name : String, @items : Array(MenuItemBase), @visibility_check = nil)
-      @width = 0.0_f32  # Will be calculated when needed
+      @width = 0.0_f32 # Will be calculated when needed
     end
 
     def calculate_width

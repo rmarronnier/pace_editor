@@ -31,7 +31,8 @@ module PaceEditor::UI
       # Handle scrolling
       if RL.get_mouse_wheel_move != 0
         mouse_pos = RL.get_mouse_position
-        panel_x = Core::EditorWindow::WINDOW_WIDTH - Core::EditorWindow::PROPERTY_PANEL_WIDTH
+        screen_width = RL.get_screen_width
+        panel_x = screen_width - Core::EditorWindow::PROPERTY_PANEL_WIDTH
         if mouse_pos.x >= panel_x
           @scroll_y -= RL.get_mouse_wheel_move * 20
           @scroll_y = @scroll_y.clamp(0.0_f32, Float32::MAX)
@@ -89,20 +90,31 @@ module PaceEditor::UI
     end
 
     def draw
-      panel_x = Core::EditorWindow::WINDOW_WIDTH - Core::EditorWindow::PROPERTY_PANEL_WIDTH
+      # Use actual screen dimensions instead of constants
+      screen_width = RL.get_screen_width
+      screen_height = RL.get_screen_height
+
+      panel_x = screen_width - Core::EditorWindow::PROPERTY_PANEL_WIDTH
       panel_y = Core::EditorWindow::MENU_HEIGHT
       panel_width = Core::EditorWindow::PROPERTY_PANEL_WIDTH
-      panel_height = Core::EditorWindow::WINDOW_HEIGHT - Core::EditorWindow::MENU_HEIGHT
+      panel_height = screen_height - Core::EditorWindow::MENU_HEIGHT
 
       # Draw panel background
       RL.draw_rectangle(panel_x, panel_y, panel_width, panel_height,
         RL::Color.new(r: 45, g: 45, b: 45, a: 255))
-      RL.draw_line(panel_x, panel_y, panel_x, Core::EditorWindow::WINDOW_HEIGHT, RL::GRAY)
+      RL.draw_line(panel_x, panel_y, panel_x, screen_height, RL::GRAY)
 
       # Panel title
       RL.draw_text("Properties", panel_x + 10, panel_y + 10, 18, RL::WHITE)
 
-      y = panel_y + 40
+      # Debug info
+      if @state.selected_object
+        RL.draw_text("Selected: #{@state.selected_object}", panel_x + 10, panel_y + 28, 10, RL::GREEN)
+      else
+        RL.draw_text("Mode: #{@state.current_mode}", panel_x + 10, panel_y + 28, 10, RL::GRAY)
+      end
+
+      y = panel_y + 45
 
       # Draw properties based on current selection and mode
       if @state.selected_object

@@ -33,7 +33,7 @@ describe "Hint System Extensions" do
       # Create expired hint
       hint = PaceEditor::UI::UIHint.new(
         "test_id",
-        "Test hint message", 
+        "Test hint message",
         PaceEditor::UI::UIHintType::Error,
         expires_in: -1.seconds
       )

@@ -245,7 +245,7 @@ describe PaceEditor::Core::DirtyFlag do
       obj.clean
       block_executed = false
 
-      obj.draw_if_dirty(1_u32) do  # Use non-zero skip threshold
+      obj.draw_if_dirty(1_u32) do # Use non-zero skip threshold
         block_executed = true
       end
 
@@ -464,7 +464,7 @@ describe PaceEditor::Core::DirtyFlagManager do
 
       stats = manager.get_stats
       stats["frame_count"].should eq(2_u64)
-      stats["total_redraws"].should eq(2_u64) # Sum of dirty objects per frame
+      stats["total_redraws"].should eq(2_u64)  # Sum of dirty objects per frame
       stats["skipped_frames"].should eq(2_u64) # Sum of clean objects per frame
       # redraw_rate = total_redraws / frame_count = 2 / 2 = 100%
       stats["redraw_rate_percent"].should eq(100.0)

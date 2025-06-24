@@ -495,7 +495,7 @@ describe "UI Interaction Integration" do
         RL::Vector2.new(32.0_f32, 64.0_f32)
       )
       scene.characters << npc
-      
+
       state.current_project = project
       state.current_scene = scene
 

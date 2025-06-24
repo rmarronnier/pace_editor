@@ -334,8 +334,18 @@ module PaceEditor::UI
       begin
         File.copy(file_path, dest_path)
 
+        # Add to project's backgrounds list
+        relative_path = "backgrounds/#{filename}"
+        unless project.backgrounds.includes?(relative_path)
+          project.backgrounds << relative_path
+        end
+
         # Set scene background
-        scene.background_path = "backgrounds/#{filename}"
+        scene.background_path = relative_path
+
+        # Save the project and scene
+        @state.save_project
+        @state.save_current_scene(scene)
 
         # Close dialog
         hide

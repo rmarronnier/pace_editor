@@ -12,7 +12,7 @@ describe "UI Visibility" do
   describe "UI components visibility" do
     it "renders menu bar with visible menus" do
       RaylibTestHelper.init
-      
+
       state = PaceEditor::Core::EditorState.new
       menu_bar = PaceEditor::UI::MenuBar.new(state)
 
@@ -25,7 +25,7 @@ describe "UI Visibility" do
 
     it "renders tool palette with tool buttons" do
       RaylibTestHelper.init
-      
+
       state = PaceEditor::Core::EditorState.new
       tool_palette = PaceEditor::UI::ToolPalette.new(state)
 
@@ -37,7 +37,7 @@ describe "UI Visibility" do
 
     it "renders scene editor viewport" do
       RaylibTestHelper.init
-      
+
       state = PaceEditor::Core::EditorState.new
       editor = PaceEditor::Editors::SceneEditor.new(state, 100, 50, 800, 600)
 

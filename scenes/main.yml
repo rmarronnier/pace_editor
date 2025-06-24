@@ -1,33 +1,51 @@
 ---
 name: main
-background_path: backgrounds/background_layer_1.png
+background_path:
 scale: 1.0
 enable_pathfinding: true
 navigation_cell_size: 16
 script_path:
 hotspots:
-- name: hotspot_1750770880
+- name: hotspot_1
   position:
-    x: 350.0
-    y: 250.0
-  size:
-    x: 100.0
-    y: 100.0
-  cursor_type: Hand
-  visible: true
-  description: Fountain
-  script_path:
-characters:
-- name: character_1750770838
-  description: A character named character_1750770838
-  position:
-    x: 864.0
-    y: 192.0
+    x: 528.0
+    y: 368.0
   size:
     x: 64.0
-    y: 128.0
+    y: 64.0
+  cursor_type: Hand
+  visible: true
+  description: New hotspot
+  script_path:
+characters:
+- name: character_1
+  description: New character
+  position:
+    x: 464.0
+    y: 384.0
+  size:
+    x: 32.0
+    y: 64.0
   state: Idle
-  direction: Right
+  direction: Down
+  walking_speed: 100.0
+  use_pathfinding: true
+  sprite_path:
+  type: npc
+  mood: Neutral
+  dialogues: []
+  can_repeat_dialogues: true
+  interaction_distance: 50.0
+- name: character_2
+  description: New character
+  position:
+    x: 400.0
+    y: 288.0
+  size:
+    x: 32.0
+    y: 64.0
+  state: Idle
+  direction: Down
   walking_speed: 100.0
   use_pathfinding: true
   sprite_path:

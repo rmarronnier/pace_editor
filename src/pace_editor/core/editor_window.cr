@@ -152,8 +152,8 @@ module PaceEditor::Core
     def show_project_file_dialog(open : Bool)
       # Show file dialog for opening or saving projects
       if open
-        # TODO: Implement file dialog for opening projects
-        puts "Open project file dialog would appear here"
+        puts "EditorWindow: Showing open project dialog"
+        @menu_bar.show_open_project_dialog
         @ui_state.track_action("open_project_dialog_shown")
       else
         # TODO: Implement file dialog for saving projects
@@ -202,23 +202,14 @@ module PaceEditor::Core
       mouse_pos = RL.get_mouse_position
       mouse_clicked = RL.mouse_button_pressed?(RL::MouseButton::Left)
 
-      # Check guided workflow input first (only for getting started panel)
-      if @guided_workflow.show_getting_started
-        if @guided_workflow.handle_input(mouse_pos, mouse_clicked)
-          return # Input consumed by guided workflow
-        end
+      # Check guided workflow input (handles both getting started panel and tutorials)
+      if @guided_workflow.handle_input(mouse_pos, mouse_clicked)
+        return # Input consumed by guided workflow
       end
-      
+
       # Check progressive menu input
       if @progressive_menu.handle_input(mouse_pos, mouse_clicked)
         return # Input consumed by progressive menu
-      end
-
-      # Check guided workflow for other inputs (tutorials, etc)
-      if !@guided_workflow.show_getting_started
-        if @guided_workflow.handle_input(mouse_pos, mouse_clicked)
-          return # Input consumed by guided workflow
-        end
       end
 
       # Handle global shortcuts
@@ -302,11 +293,14 @@ module PaceEditor::Core
       @asset_import_dialog.draw
       @scene_creation_wizard.draw
       @game_export_dialog.draw
-      
+
       # Draw new project dialog if needed
       if @state.show_new_project_dialog
         draw_new_project_dialog
       end
+
+      # Draw menu bar dialogs (open project, etc)
+      @menu_bar.draw
 
       RL.end_drawing
     end
@@ -498,70 +492,70 @@ module PaceEditor::Core
     private def cleanup
       RL.close_window
     end
-    
+
     private def draw_new_project_dialog
       # Get screen dimensions
       screen_width = RL.get_screen_width
       screen_height = RL.get_screen_height
-      
+
       # Draw modal background
       RL.draw_rectangle(0, 0, screen_width, screen_height, RL::Color.new(r: 0, g: 0, b: 0, a: 180))
-      
+
       # Dialog dimensions
       dialog_width = 400
       dialog_height = 200
       dialog_x = (screen_width - dialog_width) // 2
       dialog_y = (screen_height - dialog_height) // 2
-      
+
       # Draw dialog background
       RL.draw_rectangle(dialog_x, dialog_y, dialog_width, dialog_height, RL::Color.new(r: 60, g: 60, b: 60, a: 255))
       RL.draw_rectangle_lines(dialog_x, dialog_y, dialog_width, dialog_height, RL::WHITE)
-      
+
       # Title
       title = "New Project"
       title_width = RL.measure_text(title, 20)
       RL.draw_text(title, dialog_x + (dialog_width - title_width) // 2, dialog_y + 20, 20, RL::WHITE)
-      
+
       # Project name input
       RL.draw_text("Project Name:", dialog_x + 20, dialog_y + 60, 16, RL::WHITE)
-      
+
       # Simple text display for now (input handling would be added)
       name_box_y = dialog_y + 85
       RL.draw_rectangle(dialog_x + 20, name_box_y, dialog_width - 40, 30, RL::Color.new(r: 40, g: 40, b: 40, a: 255))
       RL.draw_rectangle_lines(dialog_x + 20, name_box_y, dialog_width - 40, 30, RL::LIGHTGRAY)
-      
+
       if @state.new_project_name.empty?
         RL.draw_text("Enter project name...", dialog_x + 25, name_box_y + 8, 14, RL::GRAY)
       else
         RL.draw_text(@state.new_project_name, dialog_x + 25, name_box_y + 8, 14, RL::WHITE)
       end
-      
+
       # Buttons
       button_width = 80
       button_height = 30
       button_y = dialog_y + dialog_height - 50
-      
+
       # Create button
       create_button_x = dialog_x + dialog_width - button_width * 2 - 30
-      create_button_rect = RL::Rectangle.new(x: create_button_x.to_f32, y: button_y.to_f32, 
-                                             width: button_width.to_f32, height: button_height.to_f32)
-      
+      create_button_rect = RL::Rectangle.new(x: create_button_x.to_f32, y: button_y.to_f32,
+        width: button_width.to_f32, height: button_height.to_f32)
+
       mouse_pos = RL.get_mouse_position
       create_hovered = PaceEditor::Constants.point_in_rect?(mouse_pos, create_button_rect)
-      
+
       RL.draw_rectangle_rec(create_button_rect, create_hovered ? RL::Color.new(r: 100, g: 150, b: 255, a: 255) : RL::Color.new(r: 80, g: 120, b: 200, a: 255))
       RL.draw_text("Create", create_button_x + 20, button_y + 8, 14, RL::WHITE)
-      
+
       # Cancel button
       cancel_button_x = dialog_x + dialog_width - button_width - 20
       cancel_button_rect = RL::Rectangle.new(x: cancel_button_x.to_f32, y: button_y.to_f32,
-                                             width: button_width.to_f32, height: button_height.to_f32)
-      
+        width: button_width.to_f32, height: button_height.to_f32)
+
       cancel_hovered = PaceEditor::Constants.point_in_rect?(mouse_pos, cancel_button_rect)
-      
+
       RL.draw_rectangle_rec(cancel_button_rect, cancel_hovered ? RL::LIGHTGRAY : RL::GRAY)
       RL.draw_text("Cancel", cancel_button_x + 20, button_y + 8, 14, RL::WHITE)
-      
+
       # Handle input
       if RL.mouse_button_pressed?(RL::MouseButton::Left)
         if create_hovered && !@state.new_project_name.empty?
@@ -576,21 +570,21 @@ module PaceEditor::Core
           @state.new_project_name = ""
         end
       end
-      
+
       # Handle text input
       key = RL.get_char_pressed
       while key > 0
-        if key >= 32 && key <= 126  # Printable characters
+        if key >= 32 && key <= 126 # Printable characters
           @state.new_project_name += key.chr
         end
         key = RL.get_char_pressed
       end
-      
+
       # Handle backspace
       if RL.key_pressed?(RL::KeyboardKey::Backspace) && !@state.new_project_name.empty?
         @state.new_project_name = @state.new_project_name[0...-1]
       end
-      
+
       # Handle enter key
       if RL.key_pressed?(RL::KeyboardKey::Enter) && !@state.new_project_name.empty?
         if @state.create_new_project(@state.new_project_name, Dir.current)
@@ -599,7 +593,7 @@ module PaceEditor::Core
           @ui_state.track_action("project_created")
         end
       end
-      
+
       # Handle escape key
       if RL.key_pressed?(RL::KeyboardKey::Escape)
         @state.show_new_project_dialog = false

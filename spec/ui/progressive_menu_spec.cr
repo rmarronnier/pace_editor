@@ -28,7 +28,7 @@ describe PaceEditor::UI::ProgressiveMenu do
       editor_state = PaceEditor::Core::EditorState.new
       ui_state = PaceEditor::UI::UIState.new
       progressive_menu = PaceEditor::UI::ProgressiveMenu.new(editor_state, ui_state)
-      
+
       file_section = progressive_menu.menu_items["File"]
       file_section.visible?(editor_state, ui_state).should be_true
     end
@@ -37,7 +37,7 @@ describe PaceEditor::UI::ProgressiveMenu do
       editor_state = PaceEditor::Core::EditorState.new
       ui_state = PaceEditor::UI::UIState.new
       progressive_menu = PaceEditor::UI::ProgressiveMenu.new(editor_state, ui_state)
-      
+
       edit_section = progressive_menu.menu_items["Edit"]
       edit_section.visible?(editor_state, ui_state).should be_false
     end
@@ -48,13 +48,13 @@ describe PaceEditor::UI::ProgressiveMenu do
       temp_dir = File.tempname("test_project_#{Time.utc.to_unix_ms}")
       project = PaceEditor::Core::Project.new("Test Project", temp_dir)
       editor_state.current_project = project
-      
+
       ui_state = PaceEditor::UI::UIState.new
       progressive_menu = PaceEditor::UI::ProgressiveMenu.new(editor_state, ui_state)
 
       edit_section = progressive_menu.menu_items["Edit"]
       edit_section.visible?(editor_state, ui_state).should be_true
-      
+
       # Cleanup
       FileUtils.rm_rf(temp_dir) if Dir.exists?(temp_dir)
     end
@@ -63,7 +63,7 @@ describe PaceEditor::UI::ProgressiveMenu do
       editor_state = PaceEditor::Core::EditorState.new
       ui_state = PaceEditor::UI::UIState.new
       progressive_menu = PaceEditor::UI::ProgressiveMenu.new(editor_state, ui_state)
-      
+
       help_section = progressive_menu.menu_items["Help"]
       help_section.visible?(editor_state, ui_state).should be_true
     end
@@ -74,12 +74,12 @@ describe PaceEditor::UI::ProgressiveMenu do
       editor_state = PaceEditor::Core::EditorState.new
       ui_state = PaceEditor::UI::UIState.new
       progressive_menu = PaceEditor::UI::ProgressiveMenu.new(editor_state, ui_state)
-      
+
       file_section = progressive_menu.menu_items["File"]
       new_project_item = file_section.items.find { |item|
         item.is_a?(PaceEditor::UI::MenuItem) && item.as(PaceEditor::UI::MenuItem).id == "new_project"
       }
-      
+
       new_project_item.should_not be_nil
       if item = new_project_item.as?(PaceEditor::UI::MenuItem)
         item.visible?(editor_state, ui_state).should be_true
@@ -90,12 +90,12 @@ describe PaceEditor::UI::ProgressiveMenu do
       editor_state = PaceEditor::Core::EditorState.new
       ui_state = PaceEditor::UI::UIState.new
       progressive_menu = PaceEditor::UI::ProgressiveMenu.new(editor_state, ui_state)
-      
+
       file_section = progressive_menu.menu_items["File"]
       save_item = file_section.items.find { |item|
         item.is_a?(PaceEditor::UI::MenuItem) && item.as(PaceEditor::UI::MenuItem).id == "save_project"
       }
-      
+
       save_item.should_not be_nil
       if item = save_item.as?(PaceEditor::UI::MenuItem)
         item.visible?(editor_state, ui_state).should be_false
@@ -109,7 +109,7 @@ describe PaceEditor::UI::ProgressiveMenu do
       project = PaceEditor::Core::Project.new("Test Project", temp_dir)
       editor_state.current_project = project
       editor_state.is_dirty = true
-      
+
       ui_state = PaceEditor::UI::UIState.new
       progressive_menu = PaceEditor::UI::ProgressiveMenu.new(editor_state, ui_state)
 
@@ -117,12 +117,12 @@ describe PaceEditor::UI::ProgressiveMenu do
       save_item = file_section.items.find { |item|
         item.is_a?(PaceEditor::UI::MenuItem) && item.as(PaceEditor::UI::MenuItem).id == "save_project"
       }
-      
+
       save_item.should_not be_nil
       if item = save_item.as?(PaceEditor::UI::MenuItem)
         item.visible?(editor_state, ui_state).should be_true
       end
-      
+
       # Cleanup
       FileUtils.rm_rf(temp_dir) if Dir.exists?(temp_dir)
     end
@@ -162,7 +162,7 @@ describe PaceEditor::UI::ProgressiveMenu do
       editor_state = PaceEditor::Core::EditorState.new
       ui_state = PaceEditor::UI::UIState.new
       progressive_menu = PaceEditor::UI::ProgressiveMenu.new(editor_state, ui_state)
-      
+
       mouse_pos = RL::Vector2.new(x: 100.0_f32, y: 100.0_f32) # Below menu bar
       result = progressive_menu.handle_input(mouse_pos, false)
 
@@ -171,23 +171,23 @@ describe PaceEditor::UI::ProgressiveMenu do
 
     it "handles hover over menu sections" do
       RaylibTestHelper.init
-      
+
       editor_state = PaceEditor::Core::EditorState.new
       ui_state = PaceEditor::UI::UIState.new
       progressive_menu = PaceEditor::UI::ProgressiveMenu.new(editor_state, ui_state)
-      
+
       # Set the menu bar width (simulate screen width)
       progressive_menu.menu_bar_rect.width = 800.0_f32
-      
+
       # Verify File menu exists and is visible
       file_section = progressive_menu.menu_items["File"]
       file_section.should_not be_nil
       file_section.visible?(editor_state, ui_state).should be_true
-      
+
       # Calculate width to ensure it's set
       width = file_section.calculate_width
       width.should be > 0.0_f32
-      
+
       # The width is calculated from text measurement, need Raylib for that
       # But we can estimate it's at least 40 pixels wide
       # Mouse at x=25 should be within the File menu section (starts at x=10)
@@ -199,20 +199,20 @@ describe PaceEditor::UI::ProgressiveMenu do
 
     it "toggles menu on click" do
       RaylibTestHelper.init
-      
+
       editor_state = PaceEditor::Core::EditorState.new
       ui_state = PaceEditor::UI::UIState.new
       progressive_menu = PaceEditor::UI::ProgressiveMenu.new(editor_state, ui_state)
-      
+
       # Set the menu bar width (simulate screen width)
       progressive_menu.menu_bar_rect.width = 800.0_f32
-      
+
       # Calculate width to ensure it's set
       file_section = progressive_menu.menu_items["File"]
       file_section.should_not be_nil
       width = file_section.calculate_width
       width.should be > 0.0_f32
-      
+
       # Mouse at x=25 should be within the File menu section (starts at x=10)
       mouse_pos = RL::Vector2.new(x: 25.0_f32, y: 15.0_f32) # Within menu bar height and File section
       result = progressive_menu.handle_input(mouse_pos, true)
@@ -225,7 +225,7 @@ describe PaceEditor::UI::ProgressiveMenu do
       editor_state = PaceEditor::Core::EditorState.new
       ui_state = PaceEditor::UI::UIState.new
       progressive_menu = PaceEditor::UI::ProgressiveMenu.new(editor_state, ui_state)
-      
+
       # First open a menu
       mouse_pos = RL::Vector2.new(x: 15.0_f32, y: 15.0_f32)
       progressive_menu.handle_input(mouse_pos, true)
@@ -243,12 +243,12 @@ describe PaceEditor::UI::ProgressiveMenu do
       editor_state = PaceEditor::Core::EditorState.new
       ui_state = PaceEditor::UI::UIState.new
       progressive_menu = PaceEditor::UI::ProgressiveMenu.new(editor_state, ui_state)
-      
+
       file_section = progressive_menu.menu_items["File"]
       new_project_item = file_section.items.find { |item|
         item.is_a?(PaceEditor::UI::MenuItem) && item.as(PaceEditor::UI::MenuItem).id == "new_project"
       }
-      
+
       new_project_item.should_not be_nil
       if item = new_project_item.as?(PaceEditor::UI::MenuItem)
         item.action.should_not be_nil
@@ -261,13 +261,13 @@ describe PaceEditor::UI::ProgressiveMenu do
       unless HEADLESS_MODE
         RaylibTestHelper.init
       end
-      
+
       editor_state = PaceEditor::Core::EditorState.new
       ui_state = PaceEditor::UI::UIState.new
       progressive_menu = PaceEditor::UI::ProgressiveMenu.new(editor_state, ui_state)
-      
+
       file_section = progressive_menu.menu_items["File"]
-      
+
       if HEADLESS_MODE
         # In headless mode, width starts at 0 and is calculated on demand
         file_section.width.should eq(0.0_f32)
@@ -281,7 +281,7 @@ describe PaceEditor::UI::ProgressiveMenu do
       editor_state = PaceEditor::Core::EditorState.new
       ui_state = PaceEditor::UI::UIState.new
       progressive_menu = PaceEditor::UI::ProgressiveMenu.new(editor_state, ui_state)
-      
+
       file_section = progressive_menu.menu_items["File"]
       file_section.update_layout(10.0_f32, 0.0_f32)
 
