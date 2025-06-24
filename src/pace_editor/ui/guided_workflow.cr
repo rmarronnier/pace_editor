@@ -103,6 +103,12 @@ module PaceEditor::UI
     end
 
     private def draw_getting_started_panel
+      # Update position to center on current screen size
+      screen_width = RL.get_screen_width
+      screen_height = RL.get_screen_height
+      @getting_started_rect.x = (screen_width - @getting_started_rect.width) / 2
+      @getting_started_rect.y = (screen_height - @getting_started_rect.height) / 2
+      
       # Panel background
       RL.draw_rectangle_rec(@getting_started_rect, RL::Color.new(r: 255_u8, g: 255_u8, b: 255_u8, a: 240_u8))
       RL.draw_rectangle_lines_ex(@getting_started_rect, 2.0_f32, RL::Color.new(r: 100_u8, g: 150_u8, b: 255_u8, a: 255_u8))
@@ -176,20 +182,27 @@ module PaceEditor::UI
         highlight_area(target)
       end
 
-      # Draw instruction panel
-      instruction_rect = RL::Rectangle.new(x: 50.0_f32, y: 50.0_f32, width: 300.0_f32, height: 150.0_f32)
+      # Draw instruction panel - position it properly on screen
+      screen_width = RL.get_screen_width
+      screen_height = RL.get_screen_height
+      panel_width = 300.0_f32
+      panel_height = 150.0_f32
+      panel_x = (screen_width - panel_width) / 2
+      panel_y = screen_height * 0.2_f32  # Position at 20% from top
+      
+      instruction_rect = RL::Rectangle.new(x: panel_x, y: panel_y, width: panel_width, height: panel_height)
       RL.draw_rectangle_rec(instruction_rect, RL::Color.new(r: 255_u8, g: 255_u8, b: 255_u8, a: 255_u8))
       RL.draw_rectangle_lines_ex(instruction_rect, 2.0_f32, RL::Color.new(r: 100_u8, g: 150_u8, b: 255_u8, a: 255_u8))
 
       # Step title
-      RL.draw_text(step.title, 60, 70, 16, RL::Color.new(r: 50_u8, g: 50_u8, b: 50_u8, a: 255_u8))
+      RL.draw_text(step.title, (panel_x + 10).to_i, (panel_y + 20).to_i, 16, RL::Color.new(r: 50_u8, g: 50_u8, b: 50_u8, a: 255_u8))
 
       # Step description
-      draw_wrapped_text(step.description, 60, 100, 280, 14, RL::Color.new(r: 80_u8, g: 80_u8, b: 80_u8, a: 255_u8))
+      draw_wrapped_text(step.description, panel_x + 10, panel_y + 50, 280, 14, RL::Color.new(r: 80_u8, g: 80_u8, b: 80_u8, a: 255_u8))
 
       # Next/Skip buttons
-      next_rect = RL::Rectangle.new(x: 200.0_f32, y: 160.0_f32, width: 60.0_f32, height: 25.0_f32)
-      skip_rect = RL::Rectangle.new(x: 270.0_f32, y: 160.0_f32, width: 60.0_f32, height: 25.0_f32)
+      next_rect = RL::Rectangle.new(x: panel_x + 150.0_f32, y: panel_y + 110.0_f32, width: 60.0_f32, height: 25.0_f32)
+      skip_rect = RL::Rectangle.new(x: panel_x + 220.0_f32, y: panel_y + 110.0_f32, width: 60.0_f32, height: 25.0_f32)
 
       draw_action_button(next_rect, "Next", RL::Color.new(r: 100_u8, g: 150_u8, b: 255_u8, a: 255_u8))
       draw_action_button(skip_rect, "Skip", RL::Color.new(r: 150_u8, g: 150_u8, b: 150_u8, a: 255_u8))

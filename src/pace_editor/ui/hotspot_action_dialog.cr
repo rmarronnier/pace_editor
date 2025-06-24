@@ -67,15 +67,19 @@ module PaceEditor::UI
       return unless hotspot_name = @hotspot_name
       return unless hotspot_data = @hotspot_data
 
+      # Get screen dimensions
+      screen_width = RL.get_screen_width
+      screen_height = RL.get_screen_height
+
       # Draw modal background
-      RL.draw_rectangle(0, 0, Core::EditorWindow::WINDOW_WIDTH, Core::EditorWindow::WINDOW_HEIGHT,
+      RL.draw_rectangle(0, 0, screen_width, screen_height,
         RL::Color.new(r: 0, g: 0, b: 0, a: 180))
 
       # Dialog dimensions
       dialog_width = 600
       dialog_height = 500
-      dialog_x = (Core::EditorWindow::WINDOW_WIDTH - dialog_width) // 2
-      dialog_y = (Core::EditorWindow::WINDOW_HEIGHT - dialog_height) // 2
+      dialog_x = (screen_width - dialog_width) // 2
+      dialog_y = (screen_height - dialog_height) // 2
 
       # Draw dialog background
       RL.draw_rectangle(dialog_x, dialog_y, dialog_width, dialog_height,

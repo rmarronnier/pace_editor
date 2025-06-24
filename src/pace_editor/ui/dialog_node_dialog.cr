@@ -65,14 +65,16 @@ module PaceEditor::UI
       return unless @visible
 
       # Draw modal background
-      RL.draw_rectangle(0, 0, Core::EditorWindow::WINDOW_WIDTH, Core::EditorWindow::WINDOW_HEIGHT,
+      screen_width = RL.get_screen_width
+      screen_height = RL.get_screen_height
+      RL.draw_rectangle(0, 0, screen_width, screen_height,
         RL::Color.new(r: 0, g: 0, b: 0, a: 180))
 
       # Dialog window
       dialog_width = 500
       dialog_height = 400
-      dialog_x = (Core::EditorWindow::WINDOW_WIDTH - dialog_width) // 2
-      dialog_y = (Core::EditorWindow::WINDOW_HEIGHT - dialog_height) // 2
+      dialog_x = (screen_width - dialog_width) // 2
+      dialog_y = (screen_height - dialog_height) // 2
 
       # Window background
       RL.draw_rectangle(dialog_x, dialog_y, dialog_width, dialog_height,

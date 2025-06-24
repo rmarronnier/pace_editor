@@ -69,14 +69,18 @@ module PaceEditor::UI
     def draw
       return unless @visible
 
+      # Get screen dimensions
+      screen_width = RL.get_screen_width
+      screen_height = RL.get_screen_height
+
       # Dialog window dimensions
       window_width = 600
       window_height = 500
-      window_x = (Core::EditorWindow::WINDOW_WIDTH - window_width) // 2
-      window_y = (Core::EditorWindow::WINDOW_HEIGHT - window_height) // 2
+      window_x = (screen_width - window_width) // 2
+      window_y = (screen_height - window_height) // 2
 
       # Draw backdrop
-      RL.draw_rectangle(0, 0, Core::EditorWindow::WINDOW_WIDTH, Core::EditorWindow::WINDOW_HEIGHT,
+      RL.draw_rectangle(0, 0, screen_width, screen_height,
         RL::Color.new(r: 0, g: 0, b: 0, a: 150))
 
       # Draw dialog window

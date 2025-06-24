@@ -39,14 +39,18 @@ module PaceEditor::UI
     def draw
       return unless @visible
 
+      # Get screen dimensions
+      screen_width = RL.get_screen_width
+      screen_height = RL.get_screen_height
+
       # Dialog background
       dialog_width = 600
       dialog_height = 500
-      dialog_x = (Core::EditorWindow::WINDOW_WIDTH - dialog_width) // 2
-      dialog_y = (Core::EditorWindow::WINDOW_HEIGHT - dialog_height) // 2
+      dialog_x = (screen_width - dialog_width) // 2
+      dialog_y = (screen_height - dialog_height) // 2
 
       # Modal background
-      RL.draw_rectangle(0, 0, Core::EditorWindow::WINDOW_WIDTH, Core::EditorWindow::WINDOW_HEIGHT,
+      RL.draw_rectangle(0, 0, screen_width, screen_height,
         RL::Color.new(r: 0, g: 0, b: 0, a: 128))
 
       # Dialog box
@@ -219,11 +223,15 @@ module PaceEditor::UI
       # Handle mouse clicks in file list
       mouse_pos = RL.get_mouse_position
 
+      # Get screen dimensions
+      screen_width = RL.get_screen_width
+      screen_height = RL.get_screen_height
+
       # Calculate file list area
       dialog_width = 600
       dialog_height = 500
-      dialog_x = (Core::EditorWindow::WINDOW_WIDTH - dialog_width) // 2
-      dialog_y = (Core::EditorWindow::WINDOW_HEIGHT - dialog_height) // 2
+      dialog_x = (screen_width - dialog_width) // 2
+      dialog_y = (screen_height - dialog_height) // 2
 
       list_x = dialog_x + 20
       list_y = dialog_y + 80

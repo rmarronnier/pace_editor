@@ -202,14 +202,23 @@ module PaceEditor::Core
       mouse_pos = RL.get_mouse_position
       mouse_clicked = RL.mouse_button_pressed?(RL::MouseButton::Left)
 
+      # Check guided workflow input first (only for getting started panel)
+      if @guided_workflow.show_getting_started
+        if @guided_workflow.handle_input(mouse_pos, mouse_clicked)
+          return # Input consumed by guided workflow
+        end
+      end
+      
       # Check progressive menu input
       if @progressive_menu.handle_input(mouse_pos, mouse_clicked)
         return # Input consumed by progressive menu
       end
 
-      # Check guided workflow input
-      if @guided_workflow.handle_input(mouse_pos, mouse_clicked)
-        return # Input consumed by guided workflow
+      # Check guided workflow for other inputs (tutorials, etc)
+      if !@guided_workflow.show_getting_started
+        if @guided_workflow.handle_input(mouse_pos, mouse_clicked)
+          return # Input consumed by guided workflow
+        end
       end
 
       # Handle global shortcuts
