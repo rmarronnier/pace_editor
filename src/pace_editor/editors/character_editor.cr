@@ -1,4 +1,6 @@
 require "../ui/animation_editor"
+require "../ui/script_editor"
+require "../ui/colors"
 
 module PaceEditor::Editors
   # Character editor for configuring character properties and animations
@@ -7,14 +9,17 @@ module PaceEditor::Editors
     property animation_preview_time : Float32 = 0.0f32
 
     @animation_editor : UI::AnimationEditor
+    @script_editor : UI::ScriptEditor
 
     def initialize(@state : Core::EditorState)
       @animation_editor = UI::AnimationEditor.new(@state)
+      @script_editor = UI::ScriptEditor.new(@state)
     end
 
     def update
       @animation_preview_time += RL.get_frame_time
       @animation_editor.update
+      @script_editor.update
     end
 
     def update_viewport(viewport_x : Int32, viewport_y : Int32, viewport_width : Int32, viewport_height : Int32)
@@ -32,8 +37,7 @@ module PaceEditor::Editors
       editor_height = screen_height - Core::EditorWindow::MENU_HEIGHT
 
       # Draw background
-      RL.draw_rectangle(editor_x, editor_y, editor_width, editor_height,
-        RL::Color.new(r: 40, g: 40, b: 40, a: 255))
+      RL.draw_rectangle(editor_x, editor_y, editor_width, editor_height, UI::Colors::PANEL_MEDIUM)
 
       if character = get_current_character
         draw_character_workspace(character, editor_x, editor_y, editor_width, editor_height)
@@ -41,8 +45,9 @@ module PaceEditor::Editors
         draw_no_character_message(editor_x, editor_y, editor_width, editor_height)
       end
 
-      # Draw animation editor on top
+      # Draw animation editor and script editor on top
       @animation_editor.draw
+      @script_editor.draw
     end
 
     private def get_current_character : PointClickEngine::Characters::Character?
@@ -72,7 +77,7 @@ module PaceEditor::Editors
 
     private def draw_character_preview(character : PointClickEngine::Characters::Character, x : Int32, y : Int32, width : Int32, height : Int32)
       # Preview section background
-      RL.draw_rectangle(x, y, width, height, RL::Color.new(r: 50, g: 50, b: 50, a: 255))
+      RL.draw_rectangle(x, y, width, height, UI::Colors::PANEL_LIGHT)
       RL.draw_line(x + width, y, x + width, y + height, RL::GRAY)
 
       # Preview title
@@ -87,7 +92,7 @@ module PaceEditor::Editors
       char_height = character.size.y.to_i
 
       RL.draw_rectangle(preview_x - char_width//2, preview_y - char_height//2,
-        char_width, char_height, RL::Color.new(r: 100, g: 100, b: 200, a: 150))
+        char_width, char_height, UI::Colors::CHARACTER_BOUNDS)
       RL.draw_rectangle_lines(preview_x - char_width//2, preview_y - char_height//2,
         char_width, char_height, RL::BLUE)
 
@@ -115,56 +120,62 @@ module PaceEditor::Editors
 
     private def draw_character_controls(character : PointClickEngine::Characters::Character, x : Int32, y : Int32, width : Int32, height : Int32)
       # Controls section background
-      RL.draw_rectangle(x, y, width, height, RL::Color.new(r: 45, g: 45, b: 45, a: 255))
+      RL.draw_rectangle(x, y, width, height, UI::Colors::PANEL_DARK)
 
       # Controls title
-      RL.draw_text("Character Properties", x + 10, y + 10, 18, RL::WHITE)
+      RL.draw_text("Character Editor", x + 10, y + 10, 18, RL::WHITE)
 
-      current_y = y + 40
+      current_y = y + 50
 
-      # Basic properties section
-      draw_section_header("Basic Properties", x, current_y, width)
+      # Character info section
+      RL.draw_text("Selected Character:", x + 10, current_y, 14, RL::LIGHTGRAY)
+      current_y += 20
+      RL.draw_text(character.name, x + 20, current_y, 16, RL::YELLOW)
       current_y += 30
 
-      current_y = draw_property_field("Name:", character.name, x, current_y, width)
-      current_y = draw_property_field("X:", character.position.x.to_s, x, current_y, width)
-      current_y = draw_property_field("Y:", character.position.y.to_s, x, current_y, width)
-      current_y = draw_property_field("Width:", character.size.x.to_s, x, current_y, width)
-      current_y = draw_property_field("Height:", character.size.y.to_s, x, current_y, width)
+      # Instructions for editing properties
+      instruction_text = "To edit character properties:"
+      RL.draw_text(instruction_text, x + 10, current_y, 14, RL::WHITE)
+      current_y += 25
 
+      instruction1 = "1. Make sure this character is selected"
+      RL.draw_text(instruction1, x + 20, current_y, 12, RL::LIGHTGRAY)
       current_y += 20
 
-      # Animation properties section
-      draw_section_header("Animation", x, current_y, width)
+      instruction2 = "2. Use the Properties panel on the right →"
+      RL.draw_text(instruction2, x + 20, current_y, 12, RL::LIGHTGRAY)
       current_y += 30
 
-      current_y = draw_property_field("Sprite Sheet:", "None", x, current_y, width)
-      current_y = draw_property_field("Frame Width:", "32", x, current_y, width)
-      current_y = draw_property_field("Frame Height:", "32", x, current_y, width)
-      current_y = draw_property_field("Frame Count:", "1", x, current_y, width)
-      current_y = draw_property_field("Frame Speed:", "0.1", x, current_y, width)
+      # Character selection button
+      is_selected = @state.selected_object == character.name
+      button_text = is_selected ? "✓ Selected" : "Select Character"
+      button_color = is_selected ? RL::GREEN : RL::BLUE
 
-      current_y += 20
+      if draw_colored_button(button_text, x + 10, current_y, 150, 30, button_color)
+        if !is_selected
+          @state.select_object(character.name)
+        end
+      end
+      current_y += 50
 
-      # Script properties section
-      draw_section_header("Scripting", x, current_y, width)
+      # Animation section
+      draw_section_header("Animation Tools", x, current_y, width)
       current_y += 30
 
-      current_y = draw_property_field("Script File:", "None", x, current_y, width)
+      # Edit animations button
+      if draw_button("Edit Animations", x + 10, current_y, 150, 30)
+        open_animation_editor(character)
+      end
+      current_y += 50
+
+      # Script section
+      draw_section_header("Script Tools", x, current_y, width)
+      current_y += 30
 
       # Script editing button
-      if draw_button("Edit Script", x + 10, current_y, 100, 25)
-        # Open script editor
+      if draw_button("Edit Script", x + 10, current_y, 150, 30)
+        open_script_editor(character)
       end
-      current_y += 35
-
-      # Behavior properties
-      draw_section_header("Behavior", x, current_y, width)
-      current_y += 30
-
-      current_y = draw_property_field("AI Behavior:", "None", x, current_y, width)
-      current_y = draw_property_field("Movement Speed:", "100", x, current_y, width)
-      current_y = draw_property_field("Interaction Range:", "50", x, current_y, width)
     end
 
     private def draw_no_character_message(x : Int32, y : Int32, width : Int32, height : Int32)
@@ -193,34 +204,39 @@ module PaceEditor::Editors
       RL.draw_line(x + 10, y + 20, x + width - 10, y + 20, RL::GRAY)
     end
 
-    private def draw_property_field(label : String, value : String, x : Int32, y : Int32, width : Int32) : Int32
-      label_width = 100
-
-      # Draw label
-      RL.draw_text(label, x + 10, y, 12, RL::LIGHTGRAY)
-
-      # Draw value field
-      field_x = x + 10 + label_width
-      field_width = width - label_width - 30
-      field_height = 18
-
-      RL.draw_rectangle(field_x, y - 2, field_width, field_height,
-        RL::Color.new(r: 30, g: 30, b: 30, a: 255))
-      RL.draw_rectangle_lines(field_x, y - 2, field_width, field_height, RL::GRAY)
-
-      # Draw value text
-      value_to_draw = value.size > 20 ? value[0...17] + "..." : value
-      RL.draw_text(value_to_draw, field_x + 5, y, 12, RL::WHITE)
-
-      y + 25
-    end
-
     private def draw_button(text : String, x : Int32, y : Int32, width : Int32, height : Int32) : Bool
       mouse_pos = RL.get_mouse_position
       is_hover = mouse_pos.x >= x && mouse_pos.x <= x + width &&
                  mouse_pos.y >= y && mouse_pos.y <= y + height
 
-      bg_color = is_hover ? RL::Color.new(r: 80, g: 80, b: 80, a: 255) : RL::Color.new(r: 60, g: 60, b: 60, a: 255)
+      bg_color = is_hover ? UI::Colors::BUTTON_HOVER : UI::Colors::BUTTON_NORMAL
+
+      RL.draw_rectangle(x, y, width, height, bg_color)
+      RL.draw_rectangle_lines(x, y, width, height, RL::WHITE)
+
+      text_width = RL.measure_text(text, 14)
+      text_x = x + (width - text_width) // 2
+      RL.draw_text(text, text_x, y + (height - 14) // 2, 14, RL::WHITE)
+
+      is_hover && RL.mouse_button_pressed?(RL::MouseButton::Left)
+    end
+
+    private def draw_colored_button(text : String, x : Int32, y : Int32, width : Int32, height : Int32, color : RL::Color) : Bool
+      mouse_pos = RL.get_mouse_position
+      is_hover = mouse_pos.x >= x && mouse_pos.x <= x + width &&
+                 mouse_pos.y >= y && mouse_pos.y <= y + height
+
+      # Lighten color on hover
+      bg_color = if is_hover
+                   RL::Color.new(
+                     r: [color.r.to_i + 30, 255].min.to_u8,
+                     g: [color.g.to_i + 30, 255].min.to_u8,
+                     b: [color.b.to_i + 30, 255].min.to_u8,
+                     a: color.a
+                   )
+                 else
+                   color
+                 end
 
       RL.draw_rectangle(x, y, width, height, bg_color)
       RL.draw_rectangle_lines(x, y, width, height, RL::WHITE)
@@ -253,6 +269,12 @@ module PaceEditor::Editors
       @animation_editor.show(character.name, sprite_path)
     end
 
+    private def open_script_editor(character : PointClickEngine::Characters::Character)
+      # Find or create character's script path
+      script_path = get_character_script_path(character.name)
+      @script_editor.show(script_path)
+    end
+
     private def get_character_sprite_path(character_name : String) : String?
       return nil unless project = @state.current_project
 
@@ -279,6 +301,55 @@ module PaceEditor::Editors
       end
 
       nil
+    end
+
+    private def get_character_script_path(character_name : String) : String?
+      return nil unless project = @state.current_project
+
+      # Create scripts directory if it doesn't exist
+      scripts_path = File.join(project.assets_path, "scripts")
+      Dir.mkdir_p(scripts_path) unless Dir.exists?(scripts_path)
+
+      # Generate script filename based on character name
+      script_filename = "#{character_name.downcase.gsub(/[^a-z0-9_]/, "_")}_character.lua"
+      script_path = File.join(scripts_path, script_filename)
+
+      # Create default script if it doesn't exist
+      unless File.exists?(script_path)
+        default_script = <<-LUA
+-- Character script for #{character_name}
+-- This script defines behavior and interactions for the character
+
+function on_character_click(character)
+    -- Called when the character is clicked
+    print("#{character_name} was clicked!")
+end
+
+function on_character_interact(character, player)
+    -- Called when the player interacts with this character
+    print("Player is interacting with #{character_name}")
+end
+
+function on_character_update(character, dt)
+    -- Called every frame to update character behavior
+    -- dt is the time since last frame in seconds
+end
+
+function on_character_enter_scene(character)
+    -- Called when the character enters a scene
+    print("#{character_name} entered the scene")
+end
+
+function on_character_leave_scene(character)
+    -- Called when the character leaves a scene
+    print("#{character_name} left the scene")
+end
+LUA
+
+        File.write(script_path, default_script)
+      end
+
+      script_path
     end
   end
 end

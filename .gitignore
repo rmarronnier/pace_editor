@@ -5,6 +5,7 @@
 /assets/
 /.shards/
 *.dwarf
+/projects/
 
 # Compiled binaries
 # pace_editor

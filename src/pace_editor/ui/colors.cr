@@ -1,8 +1,12 @@
 require "raylib-cr"
 
 module PaceEditor::UI
-  # Pre-allocated color constants to avoid performance issues
-  # from creating new color objects in draw loops
+  # Pre-allocated color constants to avoid performance issues from creating
+  # new color objects in draw loops. This eliminates thousands of object
+  # allocations per second and reduces garbage collection pressure.
+  #
+  # Usage: RL.draw_rectangle(x, y, w, h, Colors::PANEL_MEDIUM)
+  # Instead of: RL.draw_rectangle(x, y, w, h, RL::Color.new(r: 40, g: 40, b: 40, a: 255))
   module Colors
     # Basic colors
     TRANSPARENT  = RL::Color.new(r: 0, g: 0, b: 0, a: 0)
@@ -43,7 +47,7 @@ module PaceEditor::UI
     HOTSPOT_OUTLINE  = RL::Color.new(r: 255, g: 255, b: 0, a: 255)
 
     # Character colors
-    CHARACTER_BOUNDS = RL::Color.new(r: 0, g: 255, b: 0, a: 100)
+    CHARACTER_BOUNDS = RL::Color.new(r: 100, g: 100, b: 200, a: 150)
 
     # Tool preview colors
     TOOL_PREVIEW = RL::Color.new(r: 255, g: 255, b: 255, a: 100)

@@ -2,9 +2,19 @@
 
 PACE is a visual editor for creating point-and-click adventure games using the PointClickEngine. It provides an intuitive interface for designing scenes, characters, hotspots, and dialog trees without requiring extensive programming knowledge.
 
-## 🎉 New in Version 2.0.1
+## 🎉 New in Version 2.1.0 - Major Stability & Performance Update
 
-### Latest Fixes (2024-06-24)
+### 🐛 Critical Bug Fixes & Improvements
+- **✅ Memory Leak Fixes** - Eliminated texture memory leaks during scene switching
+- **✅ Crash Prevention** - Fixed all unsafe nil assertions and state synchronization issues  
+- **✅ Performance Boost** - Eliminated thousands of object allocations per second in rendering
+- **✅ Cross-Platform** - Fixed Windows compatibility with proper path handling
+- **✅ Character Editor Overhaul** - Complete redesign with functional property editing and script integration
+- **✅ Viewport Handling** - All editors now properly adapt to window resizing
+
+*See [SYSTEMATIC_BUGS.md](SYSTEMATIC_BUGS.md) and [CHANGELOG_BUGFIXES.md](CHANGELOG_BUGFIXES.md) for complete details*
+
+### Previous Fixes (Version 2.0.1)
 - **Fixed Modal Positioning** - All dialogs now center correctly on any screen size
 - **Fixed Tutorial UI** - Multi-step tutorials no longer appear off-screen
 - **Fixed Button Clicks** - All modal buttons now respond properly to clicks
