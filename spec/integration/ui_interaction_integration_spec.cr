@@ -486,6 +486,19 @@ describe "UI Interaction Integration" do
       editor_window = PaceEditor::Core::EditorWindow.new
       state = editor_window.state
 
+      # Set up a project with a scene containing an NPC
+      project = PaceEditor::Core::Project.new("Test Project", project_dir)
+      scene = PointClickEngine::Scenes::Scene.new("test_scene")
+      npc = PointClickEngine::Characters::NPC.new(
+        "test_npc",
+        RL::Vector2.new(100.0_f32, 100.0_f32),
+        RL::Vector2.new(32.0_f32, 64.0_f32)
+      )
+      scene.characters << npc
+      
+      state.current_project = project
+      state.current_scene = scene
+
       initial_mode = state.current_mode
 
       # Show dialog editor for character

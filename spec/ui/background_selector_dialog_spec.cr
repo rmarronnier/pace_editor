@@ -26,8 +26,7 @@ describe PaceEditor::UI::BackgroundSelectorDialog do
 
   describe "background discovery" do
     it "finds background images in project directory" do
-      temp_dir = File.tempfile("bg_project_#{Time.utc.to_unix_ms}").path
-      FileUtils.rm_rf(temp_dir) if Dir.exists?(temp_dir)
+      temp_dir = File.tempname("bg_project_#{Time.utc.to_unix_ms}")
 
       project = PaceEditor::Core::Project.new("test", temp_dir)
       state = PaceEditor::Core::EditorState.new
@@ -63,8 +62,7 @@ describe PaceEditor::UI::BackgroundSelectorDialog do
     end
 
     it "handles empty background directory" do
-      temp_dir = File.tempfile("bg_project_#{Time.utc.to_unix_ms}").path
-      FileUtils.rm_rf(temp_dir) if Dir.exists?(temp_dir)
+      temp_dir = File.tempname("bg_project_#{Time.utc.to_unix_ms}")
 
       project = PaceEditor::Core::Project.new("test", temp_dir)
       state = PaceEditor::Core::EditorState.new
@@ -95,8 +93,7 @@ describe PaceEditor::UI::BackgroundSelectorDialog do
 
   describe "background assignment" do
     it "assigns background to current scene" do
-      temp_dir = File.tempfile("bg_project_#{Time.utc.to_unix_ms}").path
-      FileUtils.rm_rf(temp_dir) if Dir.exists?(temp_dir)
+      temp_dir = File.tempname("bg_project_#{Time.utc.to_unix_ms}")
 
       project = PaceEditor::Core::Project.new("test", temp_dir)
       state = PaceEditor::Core::EditorState.new
@@ -119,8 +116,7 @@ describe PaceEditor::UI::BackgroundSelectorDialog do
     end
 
     it "saves scene after assignment" do
-      temp_dir = File.tempfile("bg_project_#{Time.utc.to_unix_ms}").path
-      FileUtils.rm_rf(temp_dir) if Dir.exists?(temp_dir)
+      temp_dir = File.tempname("bg_project_#{Time.utc.to_unix_ms}")
 
       project = PaceEditor::Core::Project.new("test", temp_dir)
       state = PaceEditor::Core::EditorState.new

@@ -107,14 +107,14 @@ describe PaceEditor::UI::ScriptEditor do
     end
 
     it "draws without crashing" do
-      unless HEADLESS_MODE
-        RaylibTestHelper.init
-        editor.show
-        editor.draw
-        # Should not raise any exceptions
-      else
-        pending "Skipped in headless mode"
-      end
+      RaylibTestHelper.init
+      editor.show
+      
+      # Need to be in a drawing context
+      RL.begin_drawing
+      editor.draw
+      RL.end_drawing
+      # Should not raise any exceptions
     end
   end
 end

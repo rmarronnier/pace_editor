@@ -26,14 +26,14 @@ fi
 
 echo
 
-# Run headless UI specs
-echo -e "${YELLOW}Running Headless UI Specs...${NC}"
+# Run UI specs
+echo -e "${YELLOW}Running UI Specs...${NC}"
 crystal spec spec/ui -Dwith_audio --no-color
 
 if [ $? -eq 0 ]; then
-    echo -e "${GREEN}✓ Headless UI specs passed${NC}"
+    echo -e "${GREEN}✓ UI specs passed${NC}"
 else
-    echo -e "${RED}✗ Headless UI specs failed${NC}"
+    echo -e "${RED}✗ UI specs failed${NC}"
 fi
 
 echo

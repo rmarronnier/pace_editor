@@ -258,11 +258,15 @@ describe "Script Editor Integration" do
         project_path: project_dir
       )
 
-      # Don't create the scripts directory
+      # The Project constructor now creates all directories
       scripts_dir = File.join(project.project_path, "assets", "scripts")
+      Dir.exists?(scripts_dir).should be_true
+      
+      # Remove the scripts directory to test handling
+      FileUtils.rm_rf(scripts_dir)
       Dir.exists?(scripts_dir).should be_false
 
-      # Directory creation should work
+      # Directory recreation should work
       Dir.mkdir_p(scripts_dir)
       Dir.exists?(scripts_dir).should be_true
     end

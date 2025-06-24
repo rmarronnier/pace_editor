@@ -48,7 +48,7 @@ module PaceEditor::UI
       # Check menu section clicks
       x_offset = 10.0_f32
       @menu_items.each do |name, section|
-        section_rect = RL::Rectangle.new(x: x_offset, y: 0.0_f32, width: section.width, height: MENU_HEIGHT.to_f32)
+        section_rect = RL::Rectangle.new(x: x_offset, y: 0.0_f32, width: section.calculate_width, height: MENU_HEIGHT.to_f32)
 
         if PaceEditor::Constants.point_in_rect?(mouse_pos, section_rect)
           @hover_item = name
@@ -59,7 +59,7 @@ module PaceEditor::UI
           end
         end
 
-        x_offset += section.width + 20.0_f32
+        x_offset += section.calculate_width + 20.0_f32
       end
 
       # Check dropdown item clicks
@@ -335,7 +335,7 @@ module PaceEditor::UI
         @ui_state.show_tooltip(reason, RL::Vector2.new(x_offset, MENU_HEIGHT.to_f32))
       end
 
-      section.width
+      section.calculate_width
     end
 
     private def draw_dropdown_menu(section : MenuSection)
@@ -513,7 +513,14 @@ module PaceEditor::UI
     property visibility_check : Proc(Core::EditorState, UIState, Bool)?
 
     def initialize(@name : String, @items : Array(MenuItemBase), @visibility_check = nil)
-      @width = RL.measure_text(@name, 14).to_f32 + 10.0_f32
+      @width = 0.0_f32  # Will be calculated when needed
+    end
+
+    def calculate_width
+      if @width == 0.0_f32
+        @width = RL.measure_text(@name, 14).to_f32 + 10.0_f32
+      end
+      @width
     end
 
     def visible?(editor_state : Core::EditorState, ui_state : UIState) : Bool

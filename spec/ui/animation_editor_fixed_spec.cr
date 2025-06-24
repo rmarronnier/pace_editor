@@ -155,8 +155,13 @@ describe PaceEditor::UI::AnimationEditor do
     end
 
     it "draws without crashing" do
+      RaylibTestHelper.init
       editor.show("test_character")
+      
+      # Need to be in a drawing context
+      RL.begin_drawing
       editor.draw
+      RL.end_drawing
       # Should not raise any exceptions
     end
   end

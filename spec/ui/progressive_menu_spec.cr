@@ -170,22 +170,51 @@ describe PaceEditor::UI::ProgressiveMenu do
     end
 
     it "handles hover over menu sections" do
+      RaylibTestHelper.init
+      
       editor_state = PaceEditor::Core::EditorState.new
       ui_state = PaceEditor::UI::UIState.new
       progressive_menu = PaceEditor::UI::ProgressiveMenu.new(editor_state, ui_state)
       
-      mouse_pos = RL::Vector2.new(x: 15.0_f32, y: 15.0_f32) # Over File menu
+      # Set the menu bar width (simulate screen width)
+      progressive_menu.menu_bar_rect.width = 800.0_f32
+      
+      # Verify File menu exists and is visible
+      file_section = progressive_menu.menu_items["File"]
+      file_section.should_not be_nil
+      file_section.visible?(editor_state, ui_state).should be_true
+      
+      # Calculate width to ensure it's set
+      width = file_section.calculate_width
+      width.should be > 0.0_f32
+      
+      # The width is calculated from text measurement, need Raylib for that
+      # But we can estimate it's at least 40 pixels wide
+      # Mouse at x=25 should be within the File menu section (starts at x=10)
+      mouse_pos = RL::Vector2.new(x: 25.0_f32, y: 15.0_f32) # Within menu bar height
       progressive_menu.handle_input(mouse_pos, false)
 
       progressive_menu.hover_item.should eq("File")
     end
 
     it "toggles menu on click" do
+      RaylibTestHelper.init
+      
       editor_state = PaceEditor::Core::EditorState.new
       ui_state = PaceEditor::UI::UIState.new
       progressive_menu = PaceEditor::UI::ProgressiveMenu.new(editor_state, ui_state)
       
-      mouse_pos = RL::Vector2.new(x: 15.0_f32, y: 15.0_f32) # Over File menu
+      # Set the menu bar width (simulate screen width)
+      progressive_menu.menu_bar_rect.width = 800.0_f32
+      
+      # Calculate width to ensure it's set
+      file_section = progressive_menu.menu_items["File"]
+      file_section.should_not be_nil
+      width = file_section.calculate_width
+      width.should be > 0.0_f32
+      
+      # Mouse at x=25 should be within the File menu section (starts at x=10)
+      mouse_pos = RL::Vector2.new(x: 25.0_f32, y: 15.0_f32) # Within menu bar height and File section
       result = progressive_menu.handle_input(mouse_pos, true)
 
       result.should be_true
@@ -229,12 +258,23 @@ describe PaceEditor::UI::ProgressiveMenu do
 
   describe "layout calculation" do
     it "calculates menu section widths" do
+      unless HEADLESS_MODE
+        RaylibTestHelper.init
+      end
+      
       editor_state = PaceEditor::Core::EditorState.new
       ui_state = PaceEditor::UI::UIState.new
       progressive_menu = PaceEditor::UI::ProgressiveMenu.new(editor_state, ui_state)
       
       file_section = progressive_menu.menu_items["File"]
-      file_section.width.should be > 0.0_f32
+      
+      if HEADLESS_MODE
+        # In headless mode, width starts at 0 and is calculated on demand
+        file_section.width.should eq(0.0_f32)
+      else
+        # With Raylib initialized, we can calculate width
+        file_section.calculate_width.should be > 0.0_f32
+      end
     end
 
     it "updates section layout positions" do

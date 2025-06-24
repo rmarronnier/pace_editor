@@ -28,6 +28,20 @@ describe "Dialog Editor Integration" do
 
     it "switches to dialog mode when show_dialog_editor_for_character is called" do
       editor_window = PaceEditor::Core::EditorWindow.new
+      
+      # Set up a project with a scene containing an NPC
+      project = PaceEditor::Core::Project.new("Test Project", project_dir)
+      scene = PointClickEngine::Scenes::Scene.new("test_scene")
+      npc = PointClickEngine::Characters::NPC.new(
+        "test_npc",
+        RL::Vector2.new(100.0_f32, 100.0_f32),
+        RL::Vector2.new(32.0_f32, 64.0_f32)
+      )
+      scene.characters << npc
+      
+      editor_window.state.current_project = project
+      editor_window.state.current_scene = scene
+      
       initial_mode = editor_window.state.current_mode
 
       # Should switch to dialog mode
@@ -37,7 +51,25 @@ describe "Dialog Editor Integration" do
 
     it "handles dialog editor for different character names" do
       editor_window = PaceEditor::Core::EditorWindow.new
+      
+      # Set up a project with a scene containing NPCs
+      project = PaceEditor::Core::Project.new("Test Project", project_dir)
+      scene = PointClickEngine::Scenes::Scene.new("test_scene")
+      
       character_names = ["wizard", "merchant", "guard", "princess"]
+      
+      # Add all NPCs to the scene
+      character_names.each do |name|
+        npc = PointClickEngine::Characters::NPC.new(
+          name,
+          RL::Vector2.new(100.0_f32, 100.0_f32),
+          RL::Vector2.new(32.0_f32, 64.0_f32)
+        )
+        scene.characters << npc
+      end
+      
+      editor_window.state.current_project = project
+      editor_window.state.current_scene = scene
 
       character_names.each do |name|
         editor_window.show_dialog_editor_for_character(name)

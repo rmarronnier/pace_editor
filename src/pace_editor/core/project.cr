@@ -78,7 +78,7 @@ module PaceEditor::Core
               File.join(@assets_path, "ui")]
 
       dirs.each do |dir|
-        Dir.mkdir_p(dir) unless Dir.exists?(dir)
+        Dir.mkdir_p(dir)
       end
     end
 
@@ -106,7 +106,7 @@ module PaceEditor::Core
 
     def save : Bool
       begin
-        project_file = File.join(@project_path, "project.pace")
+        project_file = File.join(@project_path, "#{@name}.pace")
         File.write(project_file, to_yaml)
         true
       rescue ex
