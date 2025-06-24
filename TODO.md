@@ -4,42 +4,42 @@ This document tracks all unimplemented features, TODOs, and placeholder code fou
 
 ## High Priority - Core Editor Functionality
 
-### File Operations & Project Management
-- **File Save Dialogs** (`src/pace_editor/core/editor_window.cr:159`)
-  - Implement file dialog for saving projects
-  - Status: TODO comment present, no implementation
-  - Impact: Users cannot save projects properly
+### File Operations & Project Management ✅ COMPLETED
+- **File Save Dialogs** (`src/pace_editor/ui/menu_bar.cr`)
+  - ✅ **IMPLEMENTED**: Complete save project dialog functionality
+  - Status: Fully functional save-as dialog with project name input
+  - Features: Project directory copying, unique naming, validation
 
-- **Project Export Directory Selection** (`src/pace_editor/ui/game_export_dialog.cr:92`)
-  - Implement file browser for directory selection
-  - Status: TODO comment present, placeholder button
-  - Impact: Game export functionality incomplete
+- **Project Export Directory Selection** (`src/pace_editor/ui/game_export_dialog.cr`)
+  - ✅ **IMPLEMENTED**: Directory browser with navigation
+  - Status: Full directory browsing and selection system
+  - Features: Directory navigation, parent/child browsing, path validation
 
-- **Save Confirmation Dialog** (`src/pace_editor/core/editor_window.cr:166`)
-  - Implement confirmation dialog for unsaved changes
-  - Status: TODO comment present
-  - Impact: Risk of data loss
+- **Save Confirmation Dialog** (`src/pace_editor/core/editor_window.cr`)
+  - ✅ **IMPLEMENTED**: Comprehensive confirmation dialog system
+  - Status: ConfirmDialog class with callback support
+  - Features: Customizable title/message, action callbacks
 
-### Character Management System
-- **Player Character Creation** (`src/pace_editor/core/editor_state.cr:331`)
-  - Complete implementation of player character creation
-  - Status: TODO comment, no implementation
-  - Impact: Core game feature missing
+### Character Management System ✅ COMPLETED
+- **Player Character Creation** (`src/pace_editor/core/editor_state.cr`)
+  - ✅ **IMPLEMENTED**: Full player character creation system
+  - Status: `add_player_character` method with unique naming and defaults
+  - Features: Automatic positioning, undo/redo support, scene integration
 
-- **NPC Character Creation** (`src/pace_editor/core/editor_state.cr:337`)
-  - Complete implementation of NPC character creation
-  - Status: TODO comment, no implementation
-  - Impact: Core game feature missing
+- **NPC Character Creation** (`src/pace_editor/core/editor_state.cr`)
+  - ✅ **IMPLEMENTED**: Full NPC character creation system
+  - Status: `add_npc_character` method with mood and behavior settings
+  - Features: Unique naming, default properties, undo/redo support
 
-- **Character Dialog Trees** (`src/pace_editor/core/editor_window.cr:130`)
-  - Load/create dialog tree system for characters
-  - Status: TODO comment present
-  - Impact: Character interaction system incomplete
+- **Character Dialog Trees** (`src/pace_editor/core/editor_window.cr`)
+  - ✅ **IMPLEMENTED**: Automatic dialog creation and editor integration
+  - Status: `show_dialog_editor_for_character` with default dialog generation
+  - Features: YAML dialog trees, node structure, choice validation
 
-- **Dialog Testing** (`src/pace_editor/core/editor_state.cr:344`)
-  - Implement dialog testing functionality
-  - Status: TODO comment present
-  - Impact: Cannot test dialog flows
+- **Dialog Testing** (`src/pace_editor/core/editor_state.cr`)
+  - ✅ **IMPLEMENTED**: Dialog validation and testing system
+  - Status: `test_dialog` method with tree validation
+  - Features: Node validation, choice verification, error reporting
 
 ## Medium Priority - Scene & Asset Management
 
@@ -54,16 +54,16 @@ This document tracks all unimplemented features, TODOs, and placeholder code fou
   - Status: TODO comment, placeholder implementation
   - Impact: Project management incomplete
 
-### Item & Trigger Systems
-- **Item Placement** (`src/pace_editor/editors/scene_editor.cr:476`)
-  - Implement item placement when item system is ready
-  - Status: TODO comment, depends on item system
-  - Impact: Game object interaction missing
+### Item & Trigger Systems ✅ COMPLETED
+- **Item Placement** (`src/pace_editor/editors/scene_editor.cr`)
+  - ✅ **IMPLEMENTED**: Full item placement system using hotspot architecture
+  - Status: `place_item_at` method with proper object typing
+  - Features: Green color coding, hand cursor, Take verb, 32x32 size, undo/redo
 
-- **Trigger Placement** (`src/pace_editor/editors/scene_editor.cr:481`)
-  - Implement trigger placement when trigger system is ready
-  - Status: TODO comment, depends on trigger system
-  - Impact: Game logic triggers missing
+- **Trigger Placement** (`src/pace_editor/editors/scene_editor.cr`)
+  - ✅ **IMPLEMENTED**: Full trigger placement system with visual distinction
+  - Status: `place_trigger_at` method with exit object type
+  - Features: Purple color coding, dashed borders, invisible by default, 64x64 size
 
 ### Animation System
 - **Animation Data Persistence** (`src/pace_editor/ui/animation_editor.cr:636`)
@@ -142,17 +142,17 @@ Multiple spec files contain placeholder tests that need proper implementation:
 
 ## Implementation Priority
 
-### Phase 1 (Immediate - High Priority)
-1. File save dialogs and project management
-2. Character creation system (player/NPC)
-3. Animation data persistence
-4. Script save-as functionality
+### Phase 1 ✅ COMPLETED
+1. ✅ File save dialogs and project management
+2. ✅ Character creation system (player/NPC) 
+3. ❌ Animation data persistence (pending)
+4. ❌ Script save-as functionality (pending)
 
-### Phase 2 (Short Term - Medium Priority)
-1. Scene duplication/deletion
-2. Item and trigger placement systems
-3. Dialog testing system
-4. Resource cleanup implementation
+### Phase 2 - PARTIALLY COMPLETED
+1. ❌ Scene duplication/deletion (pending)
+2. ✅ Item and trigger placement systems
+3. ✅ Dialog testing system
+4. ❌ Resource cleanup implementation (pending)
 
 ### Phase 3 (Long Term - Enhancement)
 1. Advanced UI components (multiline text input)
@@ -162,10 +162,10 @@ Multiple spec files contain placeholder tests that need proper implementation:
 
 ## Dependencies & Blockers
 
-- **Item System**: Item placement depends on item system completion
-- **Trigger System**: Trigger placement depends on trigger system completion
-- **File Dialog Framework**: Multiple file operations depend on file dialog implementation
-- **Character Framework**: Dialog trees depend on character system completion
+- ✅ **Item System**: RESOLVED - Item placement implemented using PointClickEngine hotspot architecture
+- ✅ **Trigger System**: RESOLVED - Trigger placement implemented with proper object typing
+- ✅ **File Dialog Framework**: RESOLVED - Complete file dialog system implemented
+- ✅ **Character Framework**: RESOLVED - Full character and dialog system implemented
 
 ## Estimated Complexity
 
@@ -176,4 +176,23 @@ Multiple spec files contain placeholder tests that need proper implementation:
 ---
 
 *Last Updated: 2025-06-24*
-*Total TODO Items: 24 comments + numerous placeholder implementations*
+*Total TODO Items: 24 original items*
+*✅ COMPLETED: 8 major systems (File Operations, Character Management, Item/Trigger Placement, Dialog System)*
+*❌ REMAINING: 16 items (Animation, Scene Operations, Script Editor, Export, Resource Management, UI/UX, Tests)*
+
+## Recently Completed Features
+
+### Item and Trigger Placement System
+- **Performance Optimized**: Uses color constants to avoid allocations in draw loops
+- **Visual Distinction**: Different colors and indicators for each object type
+  - Orange for hotspots, Green for items, Purple for triggers
+  - Type prefixes in labels: `[I] item_name`, `[T] trigger_name`
+- **Proper Architecture**: Uses PointClickEngine object types and verb systems
+- **Full Integration**: Works with object type dialog, undo/redo, and scene persistence
+- **Comprehensive Testing**: Full test coverage for all functionality
+
+### Enhanced Drawing System
+- **Color Constants**: `HOTSPOT_COLOR`, `ITEM_COLOR`, `TRIGGER_COLOR`, etc.
+- **Dashed Borders**: Visual indication for invisible triggers
+- **Tool Previews**: Shows object type being placed
+- **Type Detection**: Automatic identification by name patterns and properties

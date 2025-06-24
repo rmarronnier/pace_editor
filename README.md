@@ -117,13 +117,18 @@ PACE is a visual editor for creating point-and-click adventure games using the P
 - Journal entry system
 - Quest categories (main/side/hidden)
 
-### 🎒 Item System (NEW)
-- Item property editor
-- Stackable and consumable items
-- Item combinations
-- Use effects configuration
-- Quest item support
-- Item states management
+### 🎒 Item & Trigger Placement (NEW)
+- **Visual Item Placement** - Place collectible items directly in scenes
+  - Green color coding with hand cursor
+  - 32x32 pixel size with proper object typing
+  - Automatic `Take` verb assignment for pickup behavior
+- **Trigger Zone Creation** - Create invisible event areas
+  - Purple color coding with dashed borders
+  - 64x64 pixel invisible zones with `Use` verb
+  - Visual editor indication despite runtime invisibility
+- **Performance Optimized** - Color constants prevent memory allocations
+- **Full Integration** - Works with object type dialog and undo/redo system
+- **Comprehensive Testing** - Complete test coverage for all functionality
 
 ### 🎬 Cutscene Editor (NEW)
 - Timeline-based editor
