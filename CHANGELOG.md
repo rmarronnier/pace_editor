@@ -5,7 +5,34 @@ All notable changes to PACE Editor will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.0.0] - 2025-06-23
+## [2.0.1] - 2024-06-24
+
+### Fixed
+- **Modal Dialog Positioning** - All modal dialogs now properly center on screen using dynamic dimensions instead of hardcoded values
+- **Tutorial UI Positioning** - Fixed multi-step tutorial panels appearing partially off-screen
+- **Getting Started Panel** - Fixed positioning to always center properly on different screen sizes
+- **Input Handling** - Fixed input priority so menus work correctly after closing the getting started panel
+- **New Project Dialog** - Implemented missing new project dialog with proper text input and button handling
+- **Tutorial Button Clicks** - Fixed tutorial Next/Skip buttons using incorrect positions
+- **Progressive Menu** - Fixed menu width calculations to work properly with dynamic initialization
+
+### Added
+- **New Project Dialog Implementation** - Complete modal dialog for creating new projects with:
+  - Text input for project name
+  - Create/Cancel buttons with hover states
+  - Keyboard shortcuts (Enter to create, Escape to cancel)
+  - Proper input validation
+
+### Changed
+- **Dialog Positioning System** - All dialogs now use `RL.get_screen_width()` and `RL.get_screen_height()` for dynamic positioning
+- **Input Handling Order** - Improved input priority to ensure UI elements respond correctly
+
+### Testing
+- **Fixed All Pending Tests** - Removed headless mode dependencies and fixed all UI tests to work properly
+- **Test Infrastructure** - Updated test runner script to work without headless mode
+- **UI Test Coverage** - All UI components now have proper test coverage with Raylib initialization
+
+## [2.0.0] - 2024-06-23
 
 ### Added
 

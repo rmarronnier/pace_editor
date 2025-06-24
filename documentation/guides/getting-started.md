@@ -16,7 +16,7 @@ Before starting, make sure you have:
 Start PACE from your terminal:
 ```bash
 cd /path/to/pace_editor
-crystal run src/pace_editor.cr
+./run.sh src/pace_editor.cr
 ```
 
 Or if you have it compiled:
@@ -24,16 +24,22 @@ Or if you have it compiled:
 ./pace_editor
 ```
 
-### 2. Create a New Project
+### 2. Welcome Screen
 
-1. Click **File → New Project** (or press `Ctrl+N`)
-2. Enter your project details:
-   - **Project Name**: "My First Adventure"
-   - **Location**: Choose a folder for your project
-   - **Resolution**: Keep default (1024x768)
-   - **Author**: Your name
+When PACE starts, you'll see the **Welcome to PACE Editor** panel with three options:
+- **New Project** - Create a new adventure game
+- **Open Project** - Open an existing project
+- **Start Tutorial** - Begin the interactive tutorial
 
-3. Click **Create Project**
+### 3. Create a New Project
+
+1. Click **New Project** on the welcome screen (or use **File → New Project**)
+2. In the New Project dialog:
+   - Enter a **Project Name** (e.g., "My First Adventure")
+   - Click **Create** or press Enter
+   - Click **Cancel** or press Escape to cancel
+
+3. PACE will create your project in the current directory
 
 PACE will create a project structure like this:
 ```

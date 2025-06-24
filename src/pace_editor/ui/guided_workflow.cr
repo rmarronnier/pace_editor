@@ -344,8 +344,16 @@ module PaceEditor::UI
     private def handle_tutorial_input(step : WorkflowStep, mouse_pos : RL::Vector2, clicked : Bool) : Bool
       return false unless clicked
 
-      next_rect = RL::Rectangle.new(x: 200.0_f32, y: 160.0_f32, width: 60.0_f32, height: 25.0_f32)
-      skip_rect = RL::Rectangle.new(x: 270.0_f32, y: 160.0_f32, width: 60.0_f32, height: 25.0_f32)
+      # Calculate button positions based on actual panel position
+      screen_width = RL.get_screen_width
+      screen_height = RL.get_screen_height
+      panel_width = 300.0_f32
+      panel_height = 150.0_f32
+      panel_x = (screen_width - panel_width) / 2
+      panel_y = screen_height * 0.2_f32  # Position at 20% from top
+      
+      next_rect = RL::Rectangle.new(x: panel_x + 150.0_f32, y: panel_y + 110.0_f32, width: 60.0_f32, height: 25.0_f32)
+      skip_rect = RL::Rectangle.new(x: panel_x + 220.0_f32, y: panel_y + 110.0_f32, width: 60.0_f32, height: 25.0_f32)
 
       if PaceEditor::Constants.point_in_rect?(mouse_pos, next_rect)
         complete_current_step
