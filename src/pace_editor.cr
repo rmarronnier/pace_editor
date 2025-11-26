@@ -90,14 +90,16 @@ module PaceEditor
   end
 end
 
-# Auto-run if this is the main file
+# Auto-run if this is the main file (not when running specs)
 program_basename = File.basename(PROGRAM_NAME)
 is_pace_editor = program_basename.includes?("pace_editor") ||
-                 program_basename.includes?("crystal-run") ||
                  PROGRAM_NAME.ends_with?("pace_editor") ||
                  PROGRAM_NAME.ends_with?("pace_editor.cr")
+is_running_specs = program_basename.includes?("spec") ||
+                   PROGRAM_NAME.includes?("crystal-run-spec") ||
+                   ENV["HEADLESS_SPECS"]? == "true"
 
-if is_pace_editor
+if is_pace_editor && !is_running_specs
   begin
     PaceEditor.run
   rescue ex
