@@ -39,6 +39,12 @@ module PaceEditor::UI
 
     def hide
       @visible = false
+      # Clear editing state to avoid stale data on reopen
+      @active_field = nil.as(String?)
+      @edit_buffer = ""
+      @new_action_type = nil.as(Models::HotspotAction::ActionType?)
+      @edit_parameters.clear
+      @cursor_position = 0
     end
 
     def update
@@ -55,10 +61,18 @@ module PaceEditor::UI
         @cursor_blink_timer = 0.0f32
       end
 
-      # Close on Escape
-      if RL.key_pressed?(RL::KeyboardKey::Escape) && @active_field.nil?
-        save_hotspot_data
-        hide
+      # Handle Escape key
+      if RL.key_pressed?(RL::KeyboardKey::Escape)
+        if @active_field
+          # Cancel editing - deactivate field without saving changes
+          @active_field = nil.as(String?)
+          @edit_buffer = ""
+          @cursor_position = 0
+        else
+          # Close dialog
+          save_hotspot_data
+          hide
+        end
       end
     end
 
@@ -344,7 +358,9 @@ module PaceEditor::UI
 
       # Draw cursor if active
       if is_active && @cursor_blink_timer < 0.5f32
-        cursor_x = x + 5 + RL.measure_text(display_value[0...@cursor_position], 14)
+        # Clamp cursor position to avoid slice overflow
+        display_cursor_pos = @cursor_position.clamp(0, display_value.size)
+        cursor_x = x + 5 + RL.measure_text(display_value[0...display_cursor_pos], 14)
         cursor_y = y + (height - 14) // 2
         RL.draw_line(cursor_x, cursor_y, cursor_x, cursor_y + 14, RL::WHITE)
       end

@@ -419,9 +419,13 @@ module PaceEditor::UI
     end
 
     private def insert_tab
+      # Insert tab as spaces at once to avoid multiple syntax highlighting updates
+      line = @lines[@cursor_line]
       spaces = " " * @tab_size
-      @tab_size.times { insert_character(' ') }
-      @cursor_column -= @tab_size - 1 # Adjust because insert_character increments
+      @lines[@cursor_line] = line[0...@cursor_column] + spaces + line[@cursor_column..-1]
+      @cursor_column += @tab_size
+      @is_modified = true
+      update_syntax_highlighting
     end
 
     private def move_cursor_up

@@ -61,8 +61,10 @@ module PaceEditor::Core
       @script_editor.update
       @background_import_dialog.update
       @asset_import_dialog.update
-      @scene_creation_wizard.update
+      @scene_creation_wizard.update_with_input(input)
       @game_export_dialog.update
+      @animation_editor.update
+      @dialog_preview_window.update
 
       # Clean up finished confirm dialog
       if dialog = @confirm_dialog
@@ -114,6 +116,8 @@ module PaceEditor::Core
       @asset_import_dialog.draw
       @scene_creation_wizard.draw
       @game_export_dialog.draw
+      @animation_editor.draw
+      @dialog_preview_window.draw
 
       # Draw new project dialog if needed
       if @state.show_new_project_dialog

@@ -15,6 +15,11 @@ require "./testing/tool_palette_ext"
 require "./testing/progressive_menu_ext"
 require "./testing/asset_browser_ext"
 require "./testing/hotspot_action_dialog_ext"
+require "./testing/scene_creation_wizard_ext"
+require "./testing/dialog_node_dialog_ext"
+require "./testing/game_export_dialog_ext"
+require "./testing/animation_editor_ext"
+require "./testing/script_editor_ext"
 require "./testing/test_harness"
 
 module PaceEditor::Testing

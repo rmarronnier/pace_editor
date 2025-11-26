@@ -12,6 +12,7 @@ module PaceEditor::UI
     @scroll_offset : Int32 = 0
     @selected_indices : Array(Int32) = [] of Int32
     @preview_textures : Hash(String, RL::Texture2D) = {} of String => RL::Texture2D
+    @failed_textures : Set(String) = Set(String).new  # Track failed loads to avoid retry every frame
 
     def initialize(@state : Core::EditorState)
       @current_directory = Dir.current
@@ -240,12 +241,20 @@ module PaceEditor::UI
     end
 
     private def draw_file_preview(file_path : String, x : Int32, y : Int32, size : Int32)
+      # Skip if previously failed to load
+      if @failed_textures.includes?(file_path)
+        RL.draw_rectangle(x, y, size, size, RL::Color.new(r: 100, g: 100, b: 100, a: 255))
+        RL.draw_text("?", x + size//2 - 5, y + size//2 - 7, 14, RL::WHITE)
+        return
+      end
+
       # Load texture if not cached
       unless @preview_textures.has_key?(file_path)
         begin
           @preview_textures[file_path] = RL.load_texture(file_path)
         rescue
-          # If loading fails, show placeholder
+          # Mark as failed to avoid retry every frame
+          @failed_textures.add(file_path)
           RL.draw_rectangle(x, y, size, size, RL::Color.new(r: 100, g: 100, b: 100, a: 255))
           RL.draw_text("?", x + size//2 - 5, y + size//2 - 7, 14, RL::WHITE)
           return
@@ -454,6 +463,7 @@ module PaceEditor::UI
         RL.unload_texture(texture)
       end
       @preview_textures.clear
+      @failed_textures.clear  # Clear failed set so files with same names in new directory can be tried
     end
   end
 end

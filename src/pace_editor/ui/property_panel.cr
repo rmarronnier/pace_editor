@@ -7,6 +7,8 @@ module PaceEditor::UI
     @edit_buffer : String
     @cursor_position : Int32
     @cursor_blink_timer : Float32
+    @last_selected_object : String?
+    @last_mode : EditorMode?
 
     def initialize(@state : Core::EditorState)
       @scroll_y = 0.0f32
@@ -14,9 +16,20 @@ module PaceEditor::UI
       @edit_buffer = ""
       @cursor_position = 0
       @cursor_blink_timer = 0.0f32
+      @last_selected_object = nil
+      @last_mode = nil
     end
 
     def update
+      # Clear edit state when selected object or mode changes
+      if @state.selected_object != @last_selected_object || @state.current_mode != @last_mode
+        @active_field = nil
+        @edit_buffer = ""
+        @cursor_position = 0
+        @last_selected_object = @state.selected_object
+        @last_mode = @state.current_mode
+      end
+
       # Handle text input for active field
       if field = @active_field
         handle_text_input
@@ -86,6 +99,8 @@ module PaceEditor::UI
       # Cancel on Escape
       if RL.key_pressed?(RL::KeyboardKey::Escape)
         @active_field = nil
+        @edit_buffer = ""
+        @cursor_position = 0
       end
     end
 
@@ -411,7 +426,9 @@ module PaceEditor::UI
 
       # Draw cursor if active
       if is_active && @cursor_blink_timer < 0.5f32
-        cursor_x = field_x + 5 + RL.measure_text(value_to_draw[0...@cursor_position], 12)
+        # Clamp cursor position to the displayed text length to avoid slice overflow
+        display_cursor_pos = @cursor_position.clamp(0, value_to_draw.size)
+        cursor_x = field_x + 5 + RL.measure_text(value_to_draw[0...display_cursor_pos], 12)
         RL.draw_line(cursor_x, y, cursor_x, y + 12, RL::WHITE)
       end
 

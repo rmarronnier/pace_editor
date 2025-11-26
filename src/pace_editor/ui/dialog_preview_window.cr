@@ -56,7 +56,8 @@ module PaceEditor::UI
         choice_count = node.choices.size
         if choice_count > 0
           if RL.key_pressed?(RL::KeyboardKey::Up)
-            @selected_choice_index = (@selected_choice_index - 1) % choice_count
+            # Use explicit wrap-around to avoid negative modulo issues in Crystal
+            @selected_choice_index = (@selected_choice_index - 1 + choice_count) % choice_count
           elsif RL.key_pressed?(RL::KeyboardKey::Down)
             @selected_choice_index = (@selected_choice_index + 1) % choice_count
           elsif RL.key_pressed?(RL::KeyboardKey::Enter) && @selected_choice_index >= 0

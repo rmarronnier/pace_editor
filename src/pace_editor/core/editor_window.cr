@@ -44,6 +44,8 @@ module PaceEditor::Core
     property asset_import_dialog : UI::AssetImportDialog
     property scene_creation_wizard : UI::SceneCreationWizard
     property game_export_dialog : UI::GameExportDialog
+    property animation_editor : UI::AnimationEditor
+    property dialog_preview_window : UI::DialogPreviewWindow
 
     # Editor viewport
     @viewport_x : Int32
@@ -93,6 +95,8 @@ module PaceEditor::Core
       @asset_import_dialog = UI::AssetImportDialog.new(@state)
       @scene_creation_wizard = UI::SceneCreationWizard.new(@state)
       @game_export_dialog = UI::GameExportDialog.new(@state)
+      @animation_editor = UI::AnimationEditor.new(@state)
+      @dialog_preview_window = UI::DialogPreviewWindow.new(@state)
 
       # Initialize dimensions
       @width = @window_width
@@ -251,9 +255,13 @@ module PaceEditor::Core
     end
 
     def show_animation_editor(character_name : String)
-      # TODO: Implement animation editor
-      puts "Animation editor would open for character: #{character_name}"
+      @animation_editor.show(character_name)
       @ui_state.track_action("animation_editor_opened")
+    end
+
+    def show_dialog_preview(dialog_tree : PointClickEngine::Characters::Dialogue::DialogTree)
+      @dialog_preview_window.show(dialog_tree)
+      @ui_state.track_action("dialog_preview_opened")
     end
 
     def run
@@ -330,6 +338,8 @@ module PaceEditor::Core
       @asset_import_dialog.update
       @scene_creation_wizard.update
       @game_export_dialog.update
+      @animation_editor.update
+      @dialog_preview_window.update
 
       # Clean up finished confirm dialog
       if dialog = @confirm_dialog
@@ -381,6 +391,8 @@ module PaceEditor::Core
       @asset_import_dialog.draw
       @scene_creation_wizard.draw
       @game_export_dialog.draw
+      @animation_editor.draw
+      @dialog_preview_window.draw
 
       # Draw new project dialog if needed
       if @state.show_new_project_dialog

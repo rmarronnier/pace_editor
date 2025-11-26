@@ -584,13 +584,16 @@ module PaceEditor::UI
 
     private def next_frame
       return unless animation = get_current_animation
+      return if animation.frames.empty?
       @current_frame = (@current_frame + 1) % animation.frames.size
       @frame_timer = 0.0_f32
     end
 
     private def previous_frame
       return unless animation = get_current_animation
-      @current_frame = (@current_frame - 1) % animation.frames.size
+      return if animation.frames.empty?
+      # Use explicit wrap-around to avoid negative modulo issues in Crystal
+      @current_frame = (@current_frame - 1 + animation.frames.size) % animation.frames.size
       @frame_timer = 0.0_f32
     end
 
