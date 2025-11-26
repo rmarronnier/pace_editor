@@ -258,7 +258,9 @@ module PaceEditor::IO
         character.description = char_data["description"]?.try(&.as_s) || "Character"
         character.walking_speed = char_data["walking_speed"]?.try(&.as_f.to_f32) || 100.0_f32
         character.use_pathfinding = char_data["use_pathfinding"]?.try(&.as_bool) || true
-        character.sprite_path = char_data["sprite_path"]?.try(&.as_s?)
+        if sprite_path = char_data["sprite_path"]?.try(&.as_s)
+          character.sprite_controller.sprite_path = sprite_path
+        end
 
         # Set state enum
         if state_str = char_data["state"]?.try(&.as_s)
