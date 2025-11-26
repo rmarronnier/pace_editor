@@ -265,7 +265,8 @@ module PaceEditor::UI
       control_x += control_button_width + control_spacing
       if draw_button(">>", control_x, controls_y, control_button_width, 25)
         if animation = get_current_animation
-          @current_frame = animation.frames.size - 1
+          # Only skip to last if there are frames, prevent -1 index
+          @current_frame = [animation.frames.size - 1, 0].max
           @frame_timer = 0.0_f32
         end
       end

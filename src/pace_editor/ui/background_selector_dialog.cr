@@ -141,6 +141,7 @@ module PaceEditor::UI
       thumb_size = 120
       padding = 10
       cols = (width + padding) // (thumb_size + padding)
+      cols = [cols, 1].max  # Ensure at least 1 column to avoid division by zero
 
       # Scissor mode for scrolling
       RL.begin_scissor_mode(x, y, width, height)

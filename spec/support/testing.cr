@@ -20,6 +20,12 @@ require "./testing/dialog_node_dialog_ext"
 require "./testing/game_export_dialog_ext"
 require "./testing/animation_editor_ext"
 require "./testing/script_editor_ext"
+require "./testing/background_import_dialog_ext"
+require "./testing/object_type_dialog_ext"
+require "./testing/background_selector_dialog_ext"
+require "./testing/hotspot_interaction_preview_ext"
+require "./testing/guided_workflow_ext"
+require "./testing/dialog_preview_window_ext"
 require "./testing/test_harness"
 
 module PaceEditor::Testing

@@ -754,7 +754,11 @@ module PaceEditor::UI
           scene_name = scene_file.chomp(".yml")
 
           # Highlight current scene
-          is_current = @state.current_scene && @state.current_scene.not_nil!.name == scene_name
+          is_current = if current = @state.current_scene
+                         current.name == scene_name
+                       else
+                         false
+                       end
           text_color = is_current ? RL::GREEN : RL::WHITE
 
           if draw_file_item(scene_name, dialog_x + 20, y, dialog_width - 40)
