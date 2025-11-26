@@ -17,6 +17,7 @@ module PaceEditor::Testing
     abstract def key_down?(key : RL::KeyboardKey) : Bool
     abstract def key_released?(key : RL::KeyboardKey) : Bool
     abstract def get_char_pressed : Int32
+    abstract def get_typed_chars : Array(Int32)
 
     # Window state
     abstract def window_resized? : Bool
@@ -68,6 +69,14 @@ module PaceEditor::Testing
 
     def get_char_pressed : Int32
       RL.get_char_pressed
+    end
+
+    def get_typed_chars : Array(Int32)
+      chars = [] of Int32
+      while (char = RL.get_char_pressed) > 0
+        chars << char
+      end
+      chars
     end
 
     def window_resized? : Bool
@@ -156,6 +165,12 @@ module PaceEditor::Testing
 
     def get_char_pressed : Int32
       @char_queue.shift? || 0
+    end
+
+    def get_typed_chars : Array(Int32)
+      chars = @char_queue.dup
+      @char_queue.clear
+      chars
     end
 
     # Window interface implementation

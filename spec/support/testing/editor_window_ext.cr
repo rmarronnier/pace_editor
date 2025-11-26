@@ -21,8 +21,8 @@ module PaceEditor::Core
         return # Input consumed by guided workflow
       end
 
-      # Check progressive menu input
-      if @progressive_menu.handle_input(mouse_pos, mouse_clicked)
+      # Check progressive menu input with test provider
+      if @progressive_menu.handle_input_with_test(input)
         return # Input consumed by progressive menu
       end
 
@@ -34,11 +34,11 @@ module PaceEditor::Core
       when .scene?
         @scene_editor.update_with_input(input)
       when .character?
-        @character_editor.update
+        @character_editor.update_with_input(input)
       when .hotspot?
         @hotspot_editor.update
       when .dialog?
-        @dialog_editor.update
+        @dialog_editor.update_with_input(input)
       when .assets?
         @asset_browser.update
       when .project?
@@ -49,15 +49,15 @@ module PaceEditor::Core
       @ui_state.update_project_progress(@state)
       @guided_workflow.update
 
-      # Update UI components
+      # Update UI components with test input
       @menu_bar.update
-      @tool_palette.update
-      @property_panel.update
-      @scene_hierarchy.update
-      @asset_browser.update if @state.current_mode.assets?
+      @tool_palette.update_with_input(input)
+      @property_panel.update_with_input(input)
+      @scene_hierarchy.update_with_input(input)
+      @asset_browser.update_with_input(input) if @state.current_mode.assets?
 
-      # Update dialogs
-      @hotspot_action_dialog.update
+      # Update dialogs with test input
+      @hotspot_action_dialog.update_with_input(input)
       @script_editor.update
       @background_import_dialog.update
       @asset_import_dialog.update
