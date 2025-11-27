@@ -77,7 +77,7 @@ describe "Dialog Editor UI E2E" do
       harness = E2ETestHelper.create_harness_with_scene
 
       # Switch to Dialog mode
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Dialog
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Dialog)
       harness.step_frames(5)
 
       harness.assert_mode(PaceEditor::EditorMode::Dialog)
@@ -103,7 +103,7 @@ describe "Dialog Editor UI E2E" do
       harness = E2ETestHelper.create_harness_with_scene
 
       # Switch to Dialog mode and create a dialog first
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Dialog
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Dialog)
       harness.step_frames(3)
 
       # Create initial dialog
@@ -136,7 +136,7 @@ describe "Dialog Editor UI E2E" do
       harness = E2ETestHelper.create_harness_with_scene
 
       # Switch to Dialog mode
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Dialog
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Dialog)
       harness.step_frames(3)
 
       # Create a dialog first
@@ -177,7 +177,7 @@ describe "Dialog Editor UI E2E" do
       harness = E2ETestHelper.create_harness_with_scene
 
       # Set up dialog mode with a dialog containing nodes
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Dialog
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Dialog)
       harness.step_frames(3)
 
       # Create dialog
@@ -215,7 +215,7 @@ describe "Dialog Editor UI E2E" do
     it "can deselect node by clicking on empty space" do
       harness = E2ETestHelper.create_harness_with_scene
 
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Dialog
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Dialog)
       harness.step_frames(3)
 
       harness.click(
@@ -251,7 +251,7 @@ describe "Dialog Editor UI E2E" do
     it "can drag a node to a new position" do
       harness = E2ETestHelper.create_harness_with_scene
 
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Dialog
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Dialog)
       harness.step_frames(3)
 
       harness.click(
@@ -301,7 +301,7 @@ describe "Dialog Editor UI E2E" do
     it "can enter and exit connection mode" do
       harness = E2ETestHelper.create_harness_with_scene
 
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Dialog
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Dialog)
       harness.step_frames(3)
 
       harness.click(
@@ -335,7 +335,7 @@ describe "Dialog Editor UI E2E" do
     it "can connect two nodes by clicking in connection mode" do
       harness = E2ETestHelper.create_harness_with_scene
 
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Dialog
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Dialog)
       harness.step_frames(3)
 
       harness.click(
@@ -400,7 +400,7 @@ describe "Dialog Editor UI E2E" do
     it "can delete a selected node" do
       harness = E2ETestHelper.create_harness_with_scene
 
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Dialog
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Dialog)
       harness.step_frames(3)
 
       harness.click(
@@ -449,7 +449,7 @@ describe "Dialog Editor UI E2E" do
     it "can pan the dialog workspace with middle mouse" do
       harness = E2ETestHelper.create_harness_with_scene
 
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Dialog
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Dialog)
       harness.step_frames(3)
 
       harness.click(
@@ -498,7 +498,7 @@ describe "Dialog Editor UI E2E" do
     it "opens edit dialog on double-click" do
       harness = E2ETestHelper.create_harness_with_scene
 
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Dialog
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Dialog)
       harness.step_frames(3)
 
       harness.click(
@@ -529,7 +529,7 @@ describe "Dialog Editor Edge Cases E2E" do
   it "handles clicking Delete with no node selected" do
     harness = E2ETestHelper.create_harness_with_scene
 
-    harness.editor.state.current_mode = PaceEditor::EditorMode::Dialog
+    E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Dialog)
     harness.step_frames(3)
 
     harness.click(
@@ -564,7 +564,7 @@ describe "Dialog Editor Edge Cases E2E" do
   it "handles clicking outside node workspace" do
     harness = E2ETestHelper.create_harness_with_scene
 
-    harness.editor.state.current_mode = PaceEditor::EditorMode::Dialog
+    E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Dialog)
     harness.step_frames(3)
 
     harness.click(
@@ -599,7 +599,7 @@ describe "Dialog Editor Edge Cases E2E" do
   it "handles rapid toolbar button clicks" do
     harness = E2ETestHelper.create_harness_with_scene
 
-    harness.editor.state.current_mode = PaceEditor::EditorMode::Dialog
+    E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Dialog)
     harness.step_frames(3)
 
     harness.click(
@@ -628,7 +628,7 @@ describe "Dialog Editor Edge Cases E2E" do
   it "connection mode cancels when clicking empty space" do
     harness = E2ETestHelper.create_harness_with_scene
 
-    harness.editor.state.current_mode = PaceEditor::EditorMode::Dialog
+    E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Dialog)
     harness.step_frames(3)
 
     harness.click(

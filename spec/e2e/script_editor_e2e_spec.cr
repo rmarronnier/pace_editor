@@ -558,11 +558,11 @@ describe "Script Editor E2E" do
 
       harness.assert_mode(PaceEditor::EditorMode::Scene)
 
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Script
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Script)
       harness.step_frames(3)
       harness.assert_mode(PaceEditor::EditorMode::Script)
 
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Scene
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Scene)
       harness.step_frames(3)
       harness.assert_mode(PaceEditor::EditorMode::Scene)
 
@@ -580,11 +580,11 @@ describe "Script Editor E2E" do
       initial_count = harness.hotspot_count
 
       # Switch to Script mode
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Script
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Script)
       harness.step_frames(5)
 
       # Switch back
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Scene
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Scene)
       harness.step_frames(5)
 
       # Scene content preserved

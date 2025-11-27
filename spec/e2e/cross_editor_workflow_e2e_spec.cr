@@ -65,13 +65,13 @@ describe "Cross-Editor Workflows E2E" do
       end
 
       # Switch to Dialog editor mode
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Dialog
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Dialog)
       harness.step_frames(2)
 
       harness.current_mode.should eq(PaceEditor::EditorMode::Dialog)
 
       # Switch back to Scene mode
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Scene
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Scene)
       harness.step_frames(2)
 
       harness.current_mode.should eq(PaceEditor::EditorMode::Scene)
@@ -98,15 +98,15 @@ describe "Cross-Editor Workflows E2E" do
       initial_characters = harness.character_count
 
       # Switch to Dialog mode
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Dialog
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Dialog)
       harness.step_frames(5)
 
       # Switch to Character mode
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Character
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Character)
       harness.step_frames(5)
 
       # Switch back to Scene mode
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Scene
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Scene)
       harness.step_frames(5)
 
       # Scene content should be preserved
@@ -455,13 +455,13 @@ describe "Cross-Editor Workflows E2E" do
       ]
 
       modes.each do |mode|
-        harness.editor.state.current_mode = mode
+        E2EUIHelpers.click_mode_button(harness, mode)
         harness.step_frames(3)
         harness.current_mode.should eq(mode)
       end
 
       # Return to Scene mode
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Scene
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Scene)
       harness.step_frames(2)
       harness.current_mode.should eq(PaceEditor::EditorMode::Scene)
 
@@ -480,10 +480,10 @@ describe "Cross-Editor Workflows E2E" do
       selected.should_not be_nil
 
       # Switch to different modes and back
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Dialog
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Dialog)
       harness.step_frames(3)
 
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Scene
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Scene)
       harness.step_frames(3)
 
       # Selection should be preserved (or cleared and re-selectable)

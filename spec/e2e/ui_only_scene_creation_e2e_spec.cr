@@ -43,7 +43,7 @@ describe "UI-Only Scene Creation E2E" do
       harness = E2ETestHelper.create_harness_with_scene
 
       # Switch to Character mode
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Character
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Character)
       harness.step_frames(5)
       harness.assert_mode(PaceEditor::EditorMode::Character)
 
@@ -70,7 +70,7 @@ describe "UI-Only Scene Creation E2E" do
       harness = E2ETestHelper.create_harness_with_scene
 
       # Switch to Character mode
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Character
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Character)
       harness.step_frames(5)
 
       # Create first character
@@ -133,7 +133,7 @@ describe "UI-Only Scene Creation E2E" do
       harness = E2ETestHelper.create_harness_with_scene
 
       # Create a character via Character Editor
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Character
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Character)
       harness.step_frames(3)
 
       harness.click(
@@ -145,7 +145,7 @@ describe "UI-Only Scene Creation E2E" do
       char_name = harness.selected_object
 
       # Switch back to Scene mode
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Scene
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Scene)
       harness.step_frames(3)
 
       # Clear selection
@@ -212,7 +212,7 @@ describe "UI-Only Scene Creation E2E" do
       harness = E2ETestHelper.create_harness_with_scene
 
       # Create a character via UI
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Character
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Character)
       harness.step_frames(3)
 
       harness.click(
@@ -225,7 +225,7 @@ describe "UI-Only Scene Creation E2E" do
       char_name.should_not be_nil
 
       # Switch back to scene mode to use property panel
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Scene
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Scene)
       harness.step_frames(3)
 
       # Re-select the character
@@ -323,7 +323,7 @@ describe "UI-Only Scene Creation E2E" do
       harness.step_frames(2)
 
       # === Step 3: Create character via Character Editor ===
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Character
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Character)
       harness.step_frames(3)
 
       harness.click(
@@ -336,7 +336,7 @@ describe "UI-Only Scene Creation E2E" do
       barkeeper_name = harness.selected_object
 
       # === Step 4: Modify character properties ===
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Scene
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Scene)
       harness.step_frames(3)
 
       if name = barkeeper_name
@@ -397,7 +397,7 @@ describe "UI-Only Scene Creation E2E" do
       harness.step_frames(2)
 
       # Create a character
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Character
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Character)
       harness.step_frames(3)
       harness.click(
         EditorUI::CREATE_CHAR_BUTTON_X,
@@ -406,7 +406,7 @@ describe "UI-Only Scene Creation E2E" do
       harness.step_frames(5)
 
       # Back to scene mode
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Scene
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Scene)
       harness.step_frames(3)
 
       # Clear selection
@@ -434,7 +434,7 @@ describe "UI-Only Scene Creation E2E" do
       harness = E2ETestHelper.create_harness_with_scene
 
       # Create a character via Character Editor
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Character
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Character)
       harness.step_frames(3)
 
       harness.click(
@@ -447,14 +447,14 @@ describe "UI-Only Scene Creation E2E" do
       char_name.should_not be_nil
 
       # Switch to Scene mode
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Scene
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Scene)
       harness.step_frames(5)
 
       # Selection should be maintained
       harness.selected_object.should eq(char_name)
 
       # Switch back to Character mode
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Character
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Character)
       harness.step_frames(5)
 
       # Selection should still be maintained
@@ -473,7 +473,7 @@ describe "UI-Only Scene Creation E2E" do
       harness.assert_hotspot_count(1)
 
       # Create character in Character mode
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Character
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Character)
       harness.step_frames(3)
       harness.click(
         EditorUI::CREATE_CHAR_BUTTON_X,
@@ -483,14 +483,14 @@ describe "UI-Only Scene Creation E2E" do
       harness.assert_character_count(1)
 
       # Create dialog in Dialog mode
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Dialog
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Dialog)
       harness.step_frames(3)
       # Click create dialog button
       harness.click(590, 500)  # Approximate position
       harness.step_frames(5)
 
       # Switch back to Scene mode
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Scene
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Scene)
       harness.step_frames(3)
 
       # All objects should still exist
@@ -532,9 +532,9 @@ describe "UI Edge Cases E2E" do
       PaceEditor::EditorMode::Hotspot,
     ]
 
-    # Rapid mode switching
+    # Rapid mode switching via UI clicks
     20.times do |i|
-      harness.editor.state.current_mode = modes[i % modes.size]
+      E2EUIHelpers.click_mode_button(harness, modes[i % modes.size])
       harness.step_frame
     end
 

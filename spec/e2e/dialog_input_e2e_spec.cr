@@ -139,7 +139,7 @@ describe "Dialog and Input E2E Tests" do
       harness = E2ETestHelper.create_harness_with_scene
       harness.step_frames(3)
 
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Dialog
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Dialog)
       harness.step_frames(5)
 
       harness.editor.dialog_editor.ensure_dialog_for_test
@@ -158,7 +158,7 @@ describe "Dialog and Input E2E Tests" do
       harness = E2ETestHelper.create_harness_with_scene
       harness.step_frames(3)
 
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Dialog
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Dialog)
       harness.step_frames(5)
 
       harness.editor.dialog_editor.ensure_dialog_for_test
@@ -179,7 +179,7 @@ describe "Dialog and Input E2E Tests" do
       harness = E2ETestHelper.create_harness_with_scene
       harness.step_frames(3)
 
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Dialog
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Dialog)
       harness.step_frames(5)
 
       harness.editor.dialog_editor.ensure_dialog_for_test
@@ -200,11 +200,11 @@ describe "Dialog and Input E2E Tests" do
       harness.step_frames(3)
 
       # Create a hotspot to edit
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Hotspot
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Hotspot)
       harness.step_frames(3)
 
       # Place a hotspot
-      harness.editor.state.current_tool = PaceEditor::Tool::Place
+      E2EUIHelpers.click_tool_button(harness, PaceEditor::Tool::Place)
       harness.click(400, 300)
       harness.step_frames(5)
 
@@ -220,10 +220,10 @@ describe "Dialog and Input E2E Tests" do
       harness = E2ETestHelper.create_harness_with_scene
       harness.step_frames(3)
 
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Hotspot
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Hotspot)
       harness.step_frames(3)
 
-      harness.editor.state.current_tool = PaceEditor::Tool::Place
+      E2EUIHelpers.click_tool_button(harness, PaceEditor::Tool::Place)
       harness.click(400, 300)
       harness.step_frames(5)
 
@@ -246,10 +246,10 @@ describe "Dialog and Input E2E Tests" do
       harness = E2ETestHelper.create_harness_with_scene
       harness.step_frames(3)
 
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Hotspot
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Hotspot)
       harness.step_frames(3)
 
-      harness.editor.state.current_tool = PaceEditor::Tool::Place
+      E2EUIHelpers.click_tool_button(harness, PaceEditor::Tool::Place)
       harness.click(400, 300)
       harness.step_frames(5)
 
@@ -266,10 +266,10 @@ describe "Dialog and Input E2E Tests" do
       harness = E2ETestHelper.create_harness_with_scene
       harness.step_frames(3)
 
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Hotspot
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Hotspot)
       harness.step_frames(3)
 
-      harness.editor.state.current_tool = PaceEditor::Tool::Place
+      E2EUIHelpers.click_tool_button(harness, PaceEditor::Tool::Place)
       harness.click(400, 300)
       harness.step_frames(5)
 
@@ -293,10 +293,10 @@ describe "Dialog and Input E2E Tests" do
       harness = E2ETestHelper.create_harness_with_scene
       harness.step_frames(3)
 
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Hotspot
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Hotspot)
       harness.step_frames(3)
 
-      harness.editor.state.current_tool = PaceEditor::Tool::Place
+      E2EUIHelpers.click_tool_button(harness, PaceEditor::Tool::Place)
       harness.click(400, 300)
       harness.step_frames(5)
 
@@ -314,10 +314,10 @@ describe "Dialog and Input E2E Tests" do
       harness = E2ETestHelper.create_harness_with_scene
       harness.step_frames(3)
 
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Hotspot
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Hotspot)
       harness.step_frames(3)
 
-      harness.editor.state.current_tool = PaceEditor::Tool::Place
+      E2EUIHelpers.click_tool_button(harness, PaceEditor::Tool::Place)
       harness.click(400, 300)
       harness.step_frames(5)
 
@@ -438,7 +438,7 @@ describe "Dialog and Input E2E Tests" do
       harness = E2ETestHelper.create_harness_with_scene
       harness.step_frames(3)
 
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Dialog
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Dialog)
       harness.step_frames(5)
 
       harness.editor.dialog_editor.ensure_dialog_for_test
@@ -466,11 +466,11 @@ describe "Dialog and Input E2E Tests" do
       harness = E2ETestHelper.create_harness_with_scene
       harness.step_frames(3)
 
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Hotspot
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Hotspot)
       harness.step_frames(3)
 
       # Create hotspot
-      harness.editor.state.current_tool = PaceEditor::Tool::Place
+      E2EUIHelpers.click_tool_button(harness, PaceEditor::Tool::Place)
       harness.click(400, 300)
       harness.step_frames(5)
 

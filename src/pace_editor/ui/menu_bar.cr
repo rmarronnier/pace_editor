@@ -113,6 +113,7 @@ module PaceEditor::UI
         {EditorMode::Hotspot, "Hotspot"},
         {EditorMode::Dialog, "Dialog"},
         {EditorMode::Assets, "Assets"},
+        {EditorMode::Script, "Script"},
         {EditorMode::Project, "Project"},
       ]
 

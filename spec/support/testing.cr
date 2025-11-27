@@ -26,6 +26,7 @@ require "./testing/background_selector_dialog_ext"
 require "./testing/hotspot_interaction_preview_ext"
 require "./testing/guided_workflow_ext"
 require "./testing/dialog_preview_window_ext"
+require "./testing/menu_bar_ext"
 require "./testing/test_harness"
 
 module PaceEditor::Testing

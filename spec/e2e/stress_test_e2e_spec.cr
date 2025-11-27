@@ -415,7 +415,7 @@ describe "Stress Tests E2E" do
       harness = E2ETestHelper.create_harness_with_scene
 
       # Manually set inconsistent tool state
-      harness.editor.state.current_tool = PaceEditor::Tool::Move
+      E2EUIHelpers.click_tool_button(harness, PaceEditor::Tool::Move)
       harness.editor.state.selected_object = nil
 
       # Try to use move tool without selection

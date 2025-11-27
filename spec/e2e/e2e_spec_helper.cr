@@ -135,6 +135,54 @@ module E2EMatchers
   end
 end
 
+# UI interaction helpers for E2E tests
+module E2EUIHelpers
+  # Click on a mode button in the menu bar
+  def self.click_mode_button(harness : PaceEditor::Testing::TestHarness, mode : PaceEditor::EditorMode)
+    menu_bar = harness.editor.menu_bar
+    bounds = menu_bar.test_mode_button_bounds(mode)
+
+    click_x = bounds[:x] + bounds[:width] // 2
+    click_y = bounds[:y] + bounds[:height] // 2
+
+    harness.input.set_mouse_position(click_x.to_f32, click_y.to_f32)
+    harness.input.press_mouse_button(RL::MouseButton::Left)
+    menu_bar.test_handle_mode_button_click(harness.input)
+    harness.input.release_mouse_button(RL::MouseButton::Left)
+    # Clear input state so subsequent operations aren't affected
+    harness.input.end_frame
+  end
+
+  # Click on a tool button in the tool palette
+  # Note: toggle_button_with_input checks for mouse_button_released?, so we need to
+  # set up the release state before calling update_with_input
+  def self.click_tool_button(harness : PaceEditor::Testing::TestHarness, tool : PaceEditor::Tool)
+    tool_palette = harness.editor.tool_palette
+    x, y = tool_palette.get_tool_button_position(tool)
+
+    # Click in center of button (60x60)
+    click_x = x + 30
+    click_y = y + 30
+
+    harness.input.set_mouse_position(click_x.to_f32, click_y.to_f32)
+    # toggle_button checks for released, so set released state before update
+    harness.input.release_mouse_button(RL::MouseButton::Left)
+    tool_palette.update_with_input(harness.input)
+    # Clear input state so subsequent operations aren't affected
+    harness.input.end_frame
+  end
+
+  # Switch to a mode via UI click
+  def self.switch_to_mode(harness : PaceEditor::Testing::TestHarness, mode : PaceEditor::EditorMode)
+    click_mode_button(harness, mode)
+  end
+
+  # Select a tool via UI click
+  def self.select_tool(harness : PaceEditor::Testing::TestHarness, tool : PaceEditor::Tool)
+    click_tool_button(harness, tool)
+  end
+end
+
 # Add assertion helpers
 class PaceEditor::Testing::TestHarness
   # Assert that the editor is in a specific mode

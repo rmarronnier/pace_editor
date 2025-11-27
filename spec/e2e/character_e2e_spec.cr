@@ -354,7 +354,7 @@ describe "Character Management E2E" do
     it "can switch to Character mode" do
       harness = E2ETestHelper.create_harness_with_scene
 
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Character
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Character)
       harness.step_frame
 
       harness.assert_mode(PaceEditor::EditorMode::Character)
@@ -374,12 +374,12 @@ describe "Character Management E2E" do
       harness.assert_character_count(2)
 
       # Switch to Character mode
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Character
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Character)
       harness.step_frame
       harness.assert_character_count(2)
 
       # Switch back to Scene mode
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Scene
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Scene)
       harness.step_frame
       harness.assert_character_count(2)
 

@@ -151,33 +151,33 @@ describe "Project Management E2E" do
       # Start in Scene mode
       harness.assert_mode(PaceEditor::EditorMode::Scene)
 
-      # Switch to Character mode
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Character
+      # Switch to Character mode via UI click
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Character)
       harness.step_frame
       harness.assert_mode(PaceEditor::EditorMode::Character)
 
-      # Switch to Hotspot mode
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Hotspot
+      # Switch to Hotspot mode via UI click
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Hotspot)
       harness.step_frame
       harness.assert_mode(PaceEditor::EditorMode::Hotspot)
 
-      # Switch to Dialog mode
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Dialog
+      # Switch to Dialog mode via UI click
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Dialog)
       harness.step_frame
       harness.assert_mode(PaceEditor::EditorMode::Dialog)
 
-      # Switch to Assets mode
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Assets
+      # Switch to Assets mode via UI click
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Assets)
       harness.step_frame
       harness.assert_mode(PaceEditor::EditorMode::Assets)
 
-      # Switch to Project mode
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Project
+      # Switch to Project mode via UI click
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Project)
       harness.step_frame
       harness.assert_mode(PaceEditor::EditorMode::Project)
 
-      # Switch back to Scene mode
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Scene
+      # Switch back to Scene mode via UI click
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Scene)
       harness.step_frame
       harness.assert_mode(PaceEditor::EditorMode::Scene)
 
@@ -187,16 +187,16 @@ describe "Project Management E2E" do
     it "preserves tool selection when switching modes" do
       harness = E2ETestHelper.create_harness_with_scene
 
-      # Set a specific tool
-      harness.press_key(RL::KeyboardKey::M)
+      # Set a specific tool via UI click
+      E2EUIHelpers.click_tool_button(harness, PaceEditor::Tool::Move)
       harness.assert_tool(PaceEditor::Tool::Move)
 
-      # Switch mode
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Character
+      # Switch mode via UI click
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Character)
       harness.step_frames(2)
 
-      # Switch back
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Scene
+      # Switch back via UI click
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Scene)
       harness.step_frames(2)
 
       # Tool should still be Move

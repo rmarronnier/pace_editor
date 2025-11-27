@@ -424,12 +424,12 @@ describe "Dialog Editor E2E" do
       harness.assert_mode(PaceEditor::EditorMode::Scene)
 
       # Switch to Dialog mode
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Dialog
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Dialog)
       harness.step_frames(3)
       harness.assert_mode(PaceEditor::EditorMode::Dialog)
 
       # Switch back
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Scene
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Scene)
       harness.step_frames(3)
       harness.assert_mode(PaceEditor::EditorMode::Scene)
 

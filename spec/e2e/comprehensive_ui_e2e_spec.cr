@@ -9,7 +9,7 @@ describe "Comprehensive UI E2E Tests" do
       harness = E2ETestHelper.create_harness_with_scene
 
       # Set a different tool first
-      harness.editor.state.current_tool = PaceEditor::Tool::Move
+      E2EUIHelpers.click_tool_button(harness, PaceEditor::Tool::Move)
       harness.step_frames(3)
 
       # Get Select tool button position (first tool at y=40 from menu)
@@ -24,7 +24,7 @@ describe "Comprehensive UI E2E Tests" do
     it "can click Move tool button (M shortcut)" do
       harness = E2ETestHelper.create_harness_with_scene
 
-      harness.editor.state.current_tool = PaceEditor::Tool::Select
+      E2EUIHelpers.click_tool_button(harness, PaceEditor::Tool::Select)
       harness.step_frames(3)
 
       pos = harness.editor.tool_palette.get_tool_button_position(PaceEditor::Tool::Move)
@@ -297,7 +297,7 @@ describe "Comprehensive UI E2E Tests" do
       harness.step_frames(3)
 
       # Switch to dialog mode
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Dialog
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Dialog)
       harness.step_frames(5)
 
       # Ensure dialog exists
@@ -318,7 +318,7 @@ describe "Comprehensive UI E2E Tests" do
       harness = E2ETestHelper.create_harness_with_scene
       harness.step_frames(3)
 
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Dialog
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Dialog)
       harness.step_frames(5)
 
       harness.editor.dialog_editor.ensure_dialog_for_test
@@ -339,7 +339,7 @@ describe "Comprehensive UI E2E Tests" do
       harness = E2ETestHelper.create_harness_with_scene
       harness.step_frames(3)
 
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Dialog
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Dialog)
       harness.step_frames(5)
 
       harness.editor.dialog_editor.ensure_dialog_for_test
@@ -359,7 +359,7 @@ describe "Comprehensive UI E2E Tests" do
       harness = E2ETestHelper.create_harness_with_scene
       harness.step_frames(3)
 
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Dialog
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Dialog)
       harness.step_frames(5)
 
       # Ensure dialog exists and create a node
@@ -379,7 +379,7 @@ describe "Comprehensive UI E2E Tests" do
       harness = E2ETestHelper.create_harness_with_scene
       harness.step_frames(3)
 
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Dialog
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Dialog)
       harness.step_frames(5)
 
       # Ensure dialog exists and create a node
@@ -406,7 +406,7 @@ describe "Comprehensive UI E2E Tests" do
       harness = E2ETestHelper.create_harness_with_scene
       harness.step_frames(3)
 
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Assets
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Assets)
       harness.step_frames(5)
 
       harness.editor.asset_browser.current_category.should eq("backgrounds")
@@ -422,7 +422,7 @@ describe "Comprehensive UI E2E Tests" do
       harness = E2ETestHelper.create_harness_with_scene
       harness.step_frames(3)
 
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Assets
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Assets)
       harness.step_frames(5)
 
       pos = harness.editor.asset_browser.get_category_tab_position("sounds")
@@ -437,7 +437,7 @@ describe "Comprehensive UI E2E Tests" do
       harness = E2ETestHelper.create_harness_with_scene
       harness.step_frames(3)
 
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Assets
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Assets)
       harness.step_frames(5)
 
       pos = harness.editor.asset_browser.get_import_button_position
@@ -454,7 +454,7 @@ describe "Comprehensive UI E2E Tests" do
       harness = E2ETestHelper.create_harness_with_scene
       harness.step_frames(3)
 
-      harness.editor.state.current_tool = PaceEditor::Tool::Move
+      E2EUIHelpers.click_tool_button(harness, PaceEditor::Tool::Move)
       harness.press_key(RL::KeyboardKey::V)
 
       harness.editor.state.current_tool.should eq(PaceEditor::Tool::Select)
@@ -525,7 +525,7 @@ describe "Comprehensive UI E2E Tests" do
       harness = E2ETestHelper.create_harness_with_scene
       harness.step_frames(3)
 
-      harness.editor.state.current_tool = PaceEditor::Tool::Place
+      E2EUIHelpers.click_tool_button(harness, PaceEditor::Tool::Place)
       harness.step_frames(3)
 
       initial_count = harness.hotspot_count
@@ -553,7 +553,7 @@ describe "Comprehensive UI E2E Tests" do
       harness.step_frames(3)
 
       # Switch to Select tool and deselect
-      harness.editor.state.current_tool = PaceEditor::Tool::Select
+      E2EUIHelpers.click_tool_button(harness, PaceEditor::Tool::Select)
       harness.editor.state.selected_object = nil
       harness.step_frames(3)
 
@@ -582,7 +582,7 @@ describe "Comprehensive UI E2E Tests" do
       initial_count = harness.hotspot_count
 
       # Switch to Delete tool
-      harness.editor.state.current_tool = PaceEditor::Tool::Delete
+      E2EUIHelpers.click_tool_button(harness, PaceEditor::Tool::Delete)
       harness.step_frames(3)
 
       # Click on the hotspot to delete it
@@ -619,7 +619,7 @@ describe "Comprehensive UI E2E Tests" do
       harness = E2ETestHelper.create_harness_with_scene
       harness.step_frames(3)
 
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Dialog
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Dialog)
       harness.step_frames(5)
 
       # Ensure dialog exists
@@ -642,7 +642,7 @@ describe "Comprehensive UI E2E Tests" do
       harness = E2ETestHelper.create_harness_with_scene
       harness.step_frames(3)
 
-      harness.editor.state.current_mode = PaceEditor::EditorMode::Dialog
+      E2EUIHelpers.click_mode_button(harness, PaceEditor::EditorMode::Dialog)
       harness.step_frames(5)
 
       # Create two nodes
